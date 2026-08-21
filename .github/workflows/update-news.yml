@@ -1,0 +1,62 @@
+name: News aktualisieren
+
+on:
+  schedule:
+    # Jede volle Stunde (UTC). GitHub verschiebt Cron-Läufe bei Last um
+    # einige Minuten — das ist normal und für stündliche News unkritisch.
+    - cron: '4 * * * *'
+  workflow_dispatch:        # Manuell im Actions-Tab auslösbar
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'docs/**'
+      - '!docs/data/**'      # sonst löst der Bot-Commit sich selbst wieder aus
+      - '.github/workflows/update-news.yml'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Feeds holen und news.json bauen
+        run: node scripts/build-news.mjs
+
+      - name: Änderung committen
+        run: |
+          git config user.name  "news-bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          # Der i18n-Cache MUSS mit committet werden, sonst übersetzt jeder
+          # Lauf alle Meldungen neu statt nur die neu hinzugekommenen.
+          git add docs/data/news.json docs/data/i18n-cache.json
+          if git diff --staged --quiet; then
+            echo "Keine Änderung."
+          else
+            git commit -m "News: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<title>Fakten</title>
+<meta name="description" content="Werbefreie, faktenorientierte Nachrichten aus geprüften Quellen.">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fakten">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <h1 class="brand"><span class="brand-check">✓</span> Fakten</h1>
+    <div class="topbar-actions">
+      <button id="btn-refresh" class="icon-btn" title="Aktualisieren" aria-label="Aktualisieren">↻</button>
+      <button id="btn-settings" class="icon-btn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <div class="status" id="status"></div>
+</header>
+
+<main id="main">
+  <div id="feed" class="feed"></div>
+  <section id="weather" class="weather" hidden></section>
+  <div id="empty" class="empty" hidden></div>
+</main>
+
+<!-- Bild-Vollbild -->
+<div id="lightbox" class="lightbox" hidden>
+  <button class="lightbox-close" data-lb-close aria-label="Schließen">✕</button>
+  <img id="lightbox-img" alt="">
+  <p id="lightbox-cap" class="lightbox-cap"></p>
+</div>
+
+<!-- Einstellungen -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-label="Einstellungen">
+    <div class="sheet-head">
+      <h2>Einstellungen</h2>
+      <button class="icon-btn" data-close aria-label="Schließen">✕</button>
+    </div>
+    <div class="sheet-body">
+
+      <section class="card-lite">
+        <h3>Was du gelernt hast</h3>
+        <p class="muted" id="learn-summary">Noch keine Bewertungen.</p>
+        <div id="learn-top"></div>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-reset-learning">Lernprofil zurücksetzen</button>
+        </div>
+      </section>
+
+      <section class="card-lite">
+        <h3>Anzeige</h3>
+        <label class="switch">
+          <input type="checkbox" id="opt-hide-rejected" checked>
+          <span>Als „nicht relevant“ markierte Meldungen ausblenden</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-hide-lowfact">
+          <span>Nur Meldungen mit Faktenscore „solide“ oder „hoch“</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-images" checked>
+          <span>Bilder laden</span>
+        </label>
+      </section>
+
+      <section class="card-lite">
+        <h3>KI-Einordnung <span class="pill pill-muted">optional</span></h3>
+        <p class="muted small">
+          Ohne Schlüssel liefert der Button „Einordnung“ eine regelbasierte Analyse
+          (Quellengüte, Mehrfachbestätigung, Aktualität). Mit einem Anthropic-API-Key
+          erstellt Claude zusätzlich eine inhaltliche Einordnung.
+        </p>
+        <input type="password" id="opt-apikey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+        <p class="muted small warn">
+          ⚠ Der Schlüssel wird nur lokal auf diesem Gerät gespeichert (localStorage) und
+          direkt an api.anthropic.com gesendet. Nutze einen Key mit engem Limit.
+        </p>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-save-key">Speichern</button>
+          <button class="btn btn-ghost" id="btn-clear-key">Löschen</button>
+        </div>
+      </section>
+
+      <section class="card-lite">
+        <h3>Quellen</h3>
+        <p class="muted small">Stündlich automatisch abgerufen. Status des letzten Laufs:</p>
+        <div id="source-report" class="source-report"></div>
+      </section>
+
+      <section class="card-lite">
+        <h3>Aufs iPhone legen</h3>
+        <p class="muted small">
+          Safari öffnen → Teilen-Symbol <b>⎋</b> → <b>Zum Home-Bildschirm</b>.
+          Danach startet die App als eigenes Icon im Vollbild.
+        </p>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
