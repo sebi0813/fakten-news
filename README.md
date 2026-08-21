@@ -364,6 +364,29 @@ node scripts/build-news.mjs
 
 ---
 
+## Eigene Änderungen hochladen
+
+Der News-Bot committet stündlich `news.json` und `i18n-cache.json`. Wer zwischendurch
+selbst etwas ändert, bekommt beim Push ein `rejected (fetch first)` — der Remote ist
+weitergezogen. Statt `git push` deshalb:
+
+```bash
+./sync.sh
+```
+
+Das Skript holt den Bot-Stand, setzt die eigenen Commits darauf und löst die
+Konflikte in den generierten Dateien automatisch auf:
+
+- **news.json** → die eigene, neuere Fassung (wird ohnehin stündlich neu gebaut)
+- **i18n-cache.json** → beide Seiten werden **vereinigt**, nicht ersetzt. Sonst gingen
+  bereits übersetzte Meldungen verloren und müssten erneut durch den Dienst.
+
+Auch der Bot selbst kann in diesen Wettlauf geraten: Er checkt aus, baut mehrere
+Minuten und pusht dann. Landet in dieser Zeit ein anderer Push, wird er abgelehnt.
+Der Workflow versucht es deshalb bis zu fünfmal mit wachsender Pause.
+
+---
+
 ## Lokal entwickeln
 
 ```bash
