@@ -10,7 +10,8 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   SOURCES, CATEGORIES, LOCAL_TERMS, OPINION_PATTERNS,
-  URL_BLOCKLIST, CLICKBAIT_PATTERNS,
+  URL_BLOCKLIST, CLICKBAIT_PATTERNS, FOCUS_TOPICS, FLASH_PATTERNS,
+  OEBB_FEED, REGION_STATIONS, OEBB_NOISE,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 
@@ -30,6 +31,32 @@ const STALE_FEED_DAYS = 7          // ab hier gilt ein Feed als aufgegeben
  */
 function sourceCap(nSources) {
   return Math.max(10, Math.ceil(MAX_PER_CATEGORY / nSources * 1.8))
+}
+
+/**
+ * Begrenzt jede Kategorie auf `limit` Meldungen, gewichtet aus Faktenscore
+ * und Aktualität, und deckelt zusätzlich pro Quelle — ohne das würden Feeds
+ * wie El País (150 Einträge) eine Kategorie allein füllen.
+ */
+function capPerCategory(items, now, limit) {
+  const byCat = {}
+  for (const it of items) (byCat[it.cat] ||= []).push(it)
+
+  const out = []
+  for (const cat of CATEGORIES) {
+    const rank = it => it.fact * 0.35 + freshness(it.ts, now) * 0.65
+    const cap = sourceCap(SOURCES.filter(s => s.cat === cat.id).length)
+    const perSource = {}
+    const list = []
+    for (const it of (byCat[cat.id] || []).sort((a, b) => rank(b) - rank(a))) {
+      perSource[it.source] = (perSource[it.source] || 0) + 1
+      if (perSource[it.source] > cap) continue
+      list.push(it)
+      if (list.length >= limit) break
+    }
+    out.push(...list)
+  }
+  return out
 }
 const FETCH_TIMEOUT_MS = 15000
 const UA = 'Mozilla/5.0 (compatible; FaktenNews/1.0; +https://github.com/)'
@@ -320,23 +347,52 @@ function canonicalUrl(u) {
   } catch { return u }
 }
 
-function dedupe(items) {
+/**
+ * Zusammenführen doppelter Meldungen.
+ *
+ * Läuft zweimal: einmal vor der Übersetzung (fängt Dubletten innerhalb einer
+ * Sprache) und einmal danach. Der zweite Durchlauf ist der wichtigere — erst
+ * wenn alle Titel deutsch sind, lässt sich erkennen, dass Le Monde, NOS und
+ * ORF dieselbe Meldung bringen. Vorher stehen sie in drei Sprachen da und
+ * haben kein einziges Wort gemeinsam.
+ *
+ * @param crossCategory  im zweiten Durchlauf true: dieselbe Meldung steht oft
+ *                       in "Welt" und "Wirtschaft international" gleichzeitig.
+ * @param threshold      Ähnlichkeit der Titelwörter (Jaccard), ab der zwei
+ *                       Meldungen als dieselbe gelten.
+ */
+function dedupe(items, { crossCategory = false, threshold = 0.62, perCategory = null } = {}) {
   const byUrl = new Map()
   for (const it of items) {
     const key = canonicalUrl(it.link)
     const prev = byUrl.get(key)
     if (!prev || it.fact > prev.fact) byUrl.set(key, it)
   }
-  const list = [...byUrl.values()].sort((a, b) => b.ts - a.ts)
+  // Vertrauenswürdigste zuerst: die überlebende Meldung soll die von der
+  // besseren Quelle sein, nicht zufällig die zuerst eingelesene.
+  const list = [...byUrl.values()].sort((a, b) => (b.trust - a.trust) || (b.ts - a.ts))
 
   const kept = []
   for (const it of list) {
+    // Nur der Titel, nicht die Zusammenfassung: zwei Meldungen mit
+    // identischem Titel, aber unterschiedlich langem Fließtext rutschten
+    // sonst unter die Schwelle. Genau so entkamen Le Monde und Le Figaro
+    // mit wortgleicher Überschrift der Erkennung.
     const tokens = titleTokens(it.title)
+    const nums = numbersIn(it.title)
+    const th = perCategory?.[it.cat] ?? threshold
     let dup = null
     for (const k of kept) {
-      if (k.cat !== it.cat) continue
+      if (!crossCategory && k.cat !== it.cat) continue
       if (Math.abs(k.ts - it.ts) > 36 * 3600_000) continue
-      if (jaccard(tokens, k._tokens) >= 0.62) { dup = k; break }
+      const limit = Math.max(th, perCategory?.[k.cat] ?? threshold)
+      const sim = jaccard(tokens, k._tokens)
+      if (sim >= limit) { dup = k; break }
+      // Zwei Meldungen mit denselben markanten Zahlen (Beträge, Opferzahlen,
+      // Spielergebnisse) sind fast immer dieselbe — das fängt Paare, die
+      // sprachlich weit auseinanderliegen ("Hunt wird Zweiter über 200 m"
+      // gegen "Hunt holt Silber über 200 m", Wortähnlichkeit nur 0,23).
+      if (sim >= limit - 0.20 && nums.size && setsEqual(nums, k._nums)) { dup = k; break }
     }
     if (dup) {
       dup.also = dup.also || []
@@ -350,18 +406,146 @@ function dedupe(items) {
       dup.fact = Math.min(100, dup.fact + 6)
       dup.factLabel = factLabel(dup.fact)
       if (!dup.image && it.image) dup.image = it.image
+      // Die längere Zusammenfassung ist meist die informativere.
+      if ((it.summary || '').length > (dup.summary || '').length + 60) dup.summary = it.summary
       continue
     }
     it._tokens = tokens
+    it._nums = nums
     kept.push(it)
   }
-  for (const k of kept) delete k._tokens
+  for (const k of kept) { delete k._tokens; delete k._nums }
   return kept
+}
+
+/** Markante Zahlen aus einem Titel (ohne Jahreszahlen, die zu häufig sind). */
+function numbersIn(title) {
+  const out = new Set()
+  for (const m of title.matchAll(/\d[\d.,]*/g)) {
+    const n = m[0].replace(/[.,]$/, '')
+    if (n.length < 2) continue
+    if (/^(19|20)\d\d$/.test(n)) continue
+    out.add(n)
+  }
+  return out
+}
+
+function setsEqual(a, b) {
+  if (!a || !b || a.size !== b.size || a.size === 0) return false
+  for (const v of a) if (!b.has(v)) return false
+  return true
+}
+
+// --------------------------------------------------- Fokusthemen und Flash
+
+/** Welche Fokusthemen trifft die Meldung? Siehe FOCUS_TOPICS. */
+function detectFocus(item) {
+  const title = item.title.toLowerCase()
+  const body = (item.summary || '').toLowerCase()
+  const hay = `${title} ${body}`
+  const hits = []
+  for (const topic of FOCUS_TOPICS) {
+    const inTitle = topic.strong.some(t => title.includes(t))
+    const strong = topic.strong.filter(t => hay.includes(t)).length
+    const weak = topic.weak.filter(t => hay.includes(t)).length
+    // Ein starker Treffer im Titel genügt. Steht der Begriff nur im Fließtext,
+    // braucht es ein zweites Signal — sonst gilt ein Leseraufruf, in dem
+    // "künstliche Intelligenz" beiläufig vorkommt, als KI-Meldung.
+    if (inTitle || strong >= 2 || (strong >= 1 && weak >= 1) || weak >= 3) hits.push(topic.id)
+  }
+  return hits
+}
+
+/**
+ * Flash-News: schwere Unfälle, Katastrophen, Warnungen.
+ * Verlangt ein Ereignis UND (Schwere ODER Regionalbezug), damit nicht jede
+ * Meldung mit dem Wort "Warnung" im Flash-Tab landet.
+ */
+function isFlash(item) {
+  const hay = `${item.title} ${item.summary || ''}`
+  if (!FLASH_PATTERNS.event.some(re => re.test(hay))) return false
+  const severe = FLASH_PATTERNS.severity.some(re => re.test(hay))
+  const regional = item.local || item.cat === 'korneuburg' || item.cat === 'oesterreich'
+  return severe || regional
+}
+
+// ------------------------------------------------------------------ ÖBB-Ticker
+
+/**
+ * Baut die ÖBB-Zeilen für das Laufband.
+ *
+ * Der Feed hat drei Eigenheiten, die alle behandelt werden müssen:
+ *  - Die <title>-Elemente sind leer, der Inhalt steckt in <description>.
+ *  - Rund ein Drittel sind reine Auslastungshinweise ("Sitzplatzreservierung").
+ *  - Dieselbe Störung erscheint einmal pro betroffenem Zug, teils 20-mal.
+ */
+async function buildOebbTicker(now) {
+  let xml
+  try {
+    xml = await fetchFeed({ url: OEBB_FEED, name: 'ÖBB' })
+  } catch (err) {
+    console.warn(`  ÖBB-Feed nicht erreichbar: ${err.message}`)
+    return []
+  }
+
+  const seen = new Set()
+  const out = []
+  for (const block of splitItems(xml)) {
+    const text = clean(tagContent(block, 'description')) || clean(tagContent(block, 'title'))
+    if (!text || text.length < 25) continue
+    if (OEBB_NOISE.some(re => re.test(text))) continue
+
+    const lower = text.toLowerCase()
+    if (!REGION_STATIONS.some(s => lower.includes(s))) continue
+
+    // Entstören: gleiche Meldung für 20 Züge -> eine Zeile.
+    const key = lower.replace(/\d/g, '').replace(/\s+/g, ' ').slice(0, 90)
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const date = parseDate(block)
+    const ts = date ? date.getTime() : now
+    if (ts < now - 14 * 86400_000) continue        // abgelaufene Bauarbeiten
+
+    out.push({
+      kind: 'oebb',
+      text: text.length > 190 ? text.slice(0, 187).replace(/\s\S*$/, '') + '…' : text,
+      ts,
+    })
+    if (out.length >= 8) break
+  }
+  return out
 }
 
 // ----------------------------------------------------------------------- Main
 
+/**
+ * Nachts nicht bauen. Der Cron-Auslöser kann keine Zeitzonen, also wird das
+ * Fenster hier gegen die echte Wiener Zeit geprüft — inklusive Sommerzeit,
+ * um die sich Intl selbst kümmert.
+ * Ein manueller Start im Actions-Tab ignoriert das Fenster.
+ */
+function insideUpdateWindow() {
+  if (process.env.FAKTUM_FORCE) return true          // lokal: FAKTUM_FORCE=1 node scripts/build-news.mjs
+  if (process.env.GITHUB_EVENT_NAME && process.env.GITHUB_EVENT_NAME !== 'schedule') return true
+  const parts = new Intl.DateTimeFormat('de-AT', {
+    timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date())
+  const h = Number(parts.find(p => p.type === 'hour').value)
+  const m = Number(parts.find(p => p.type === 'minute').value)
+  const minutes = h * 60 + m
+  return minutes >= 5 * 60 + 30 && minutes < 23 * 60
+}
+
 async function main() {
+  if (!insideUpdateWindow()) {
+    const t = new Intl.DateTimeFormat('de-AT', {
+      timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(new Date())
+    console.log(`Es ist ${t} Uhr in Wien — außerhalb des Fensters 5:30–23:00. Kein Build.`)
+    return
+  }
+
   const now = Date.now()
   const report = []
   const all = []
@@ -407,27 +591,17 @@ async function main() {
     console.warn('   -> in scripts/sources.mjs ersetzen.')
   }
 
-  let items = dedupe(all)
+  // Quellen mit focusOnly (heise, Golem) sind allgemeine Tech-Feeds. Aus
+  // ihnen ist nur interessant, was ein Fokusthema trifft.
+  const focusOnlySources = new Set(SOURCES.filter(s => s.focusOnly).map(s => s.name))
+  let items = all.filter(it => !focusOnlySources.has(it.source) || detectFocus(it).length > 0)
 
-  // Pro Kategorie begrenzen, gewichtet aus Faktenscore und Aktualität.
-  // Zusätzlich pro Quelle deckeln: ohne das würden Feeds wie El País (150
-  // Einträge) oder Gazzetta (125) eine Kategorie allein füllen.
-  const byCat = {}
-  for (const it of items) (byCat[it.cat] ||= []).push(it)
-  items = []
-  for (const cat of CATEGORIES) {
-    const rank = it => it.fact * 0.35 + freshness(it.ts, now) * 0.65
-    const cap = sourceCap(SOURCES.filter(s => s.cat === cat.id).length)
-    const perSource = {}
-    const list = []
-    for (const it of (byCat[cat.id] || []).sort((a, b) => rank(b) - rank(a))) {
-      perSource[it.source] = (perSource[it.source] || 0) + 1
-      if (perSource[it.source] > cap) continue
-      list.push(it)
-      if (list.length >= MAX_PER_CATEGORY) break
-    }
-    items.push(...list)
-  }
+  // Durchlauf 1: Dubletten innerhalb einer Sprache, konservative Schwelle.
+  items = dedupe(items, { threshold: 0.62 })
+
+  // Vorauswahl pro Kategorie mit Puffer — nach der Übersetzung fällt durch
+  // den zweiten Dubletten-Durchlauf noch einiges weg.
+  items = capPerCategory(items, now, MAX_PER_CATEGORY + 25)
 
   // Erst jetzt übersetzen — nach dem Deckeln, sonst würden Hunderte
   // aussortierter Meldungen unnötig durch den Dienst laufen.
@@ -458,6 +632,33 @@ async function main() {
     it.factLabel = factLabel(it.fact)
   }
 
+  // Durchlauf 2 der Dublettenerkennung — der eigentlich wirksame. Jetzt sind
+  // alle Titel deutsch, also findet er auch Meldungen, die vorher in vier
+  // Sprachen nebeneinander standen. Zusätzlich kategorieübergreifend, weil
+  // dieselbe Meldung häufig in "Welt" und "Wirtschaft international" landet.
+  const beforeDedupe2 = items.length
+  items = dedupe(items, {
+    crossCategory: true,
+    threshold: 0.42,
+    // Wissenschafts- und KI-Schlagzeilen teilen sich viel Fachvokabular.
+    // Bei 0,45 galten "Klimawandel könnte den Weizenpreis verdreifachen" und
+    // "Waldbrandfläche könnte sich verdreifachen" als dieselbe Meldung.
+    perCategory: { wissenschaft: 0.60, fokus: 0.60 },
+  })
+  console.log(`  ${beforeDedupe2 - items.length} sprachübergreifende Dubletten zusammengeführt`)
+
+  // Fokusthemen und Flash-News markieren
+  let nFocus = 0, nFlash = 0
+  for (const it of items) {
+    const f = detectFocus(it)
+    if (f.length) { it.focus = f; nFocus++ }
+    if (isFlash(it)) { it.flash = true; nFlash++ }
+  }
+  console.log(`  ${nFocus} Meldungen zu Fokusthemen, ${nFlash} Flash-News`)
+
+  // Endgültige Begrenzung
+  items = capPerCategory(items, now, MAX_PER_CATEGORY)
+
   // Stichprobe: 12 Links auf Erreichbarkeit prüfen
   const sample = items.filter((_, i) => i % Math.max(1, Math.floor(items.length / 12)) === 0).slice(0, 12)
   const alive = await Promise.all(sample.map(it => linkAlive(it.link)))
@@ -466,11 +667,23 @@ async function main() {
 
   items.sort((a, b) => b.ts - a.ts)
 
+  // Laufband: ÖBB-Störungen der Region plus die jüngsten Flash-News.
+  console.log('\nTicker …')
+  const oebb = await buildOebbTicker(now)
+  const flashTicker = items.filter(i => i.flash).slice(0, 5)
+    .map(i => ({ kind: 'flash', text: i.title, ts: i.ts, link: i.link }))
+  const ticker = [...oebb, ...flashTicker]
+  console.log(`  ${oebb.length} ÖBB-Meldungen (Region), ${flashTicker.length} Flash-News`)
+
   const payload = {
     generated: new Date(now).toISOString(),
-    version: 1,
+    version: 2,
     categories: CATEGORIES,
+    focusTopics: FOCUS_TOPICS.map(t => ({ id: t.id, label: t.label, icon: t.icon })),
     counts: Object.fromEntries(CATEGORIES.map(c => [c.id, items.filter(i => i.cat === c.id).length])),
+    flashCount: items.filter(i => i.flash).length,
+    focusCount: items.filter(i => i.focus).length,
+    ticker,
     sourceReport: report,
     items,
   }

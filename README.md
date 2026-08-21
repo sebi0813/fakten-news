@@ -1,21 +1,21 @@
-# Fakten — News ohne Werbung
+# Faktum — News ohne Werbung
 
 Eine werbefreie, faktenorientierte Nachrichten-App als PWA. Läuft auf GitHub Pages,
 kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 
-**Kategorien:** Wirtschaft international · Wirtschaft Österreich · Sport international ·
-Welt · Österreich · Korneuburg · Wetter am aktuellen Standort
+**Kategorien:** Für dich · Flash · Fokus · Wirtschaft international · Wirtschaft Österreich ·
+Sport · Wissenschaft · Welt · Österreich · Korneuburg · Gemerkt · Wetter · Historie
 
-**51 Quellen in 9 Sprachen** — alles Fremdsprachige wird automatisch ins Deutsche übersetzt.
+**72 Quellen in 8 Sprachen** — alles Fremdsprachige wird automatisch ins Deutsche übersetzt.
 
 ---
 
 ## Wie es funktioniert
 
 ```
-Stündlich (GitHub Actions)            Beim Öffnen (dein iPhone)
+Stündlich 5:30–23:00 (Actions)            Beim Öffnen (dein iPhone)
 ┌────────────────────────────┐        ┌──────────────────────────┐
-│ 51 RSS-Feeds abrufen       │        │ news.json laden          │
+│ 72 RSS-Feeds abrufen       │        │ news.json laden          │
 │ Meinung/Werbung filtern    │        │ nach Vorlieben sortieren │
 │ Duplikate zusammenführen   │        │ Wetter per GPS holen     │
 │ ins Deutsche übersetzen    │  --->  │ 👍/👎 lokal speichern    │
@@ -78,23 +78,91 @@ Die App startet ab jetzt im Vollbild ohne Safari-Leiste, mit eigenem Icon.
 
 ---
 
-## Das stündliche Update — was realistisch passiert
+## Das Update-Fenster
 
-Die GitHub Action läuft jede Stunde und schreibt einen frischen Datenstand.
-Wenn du die App öffnest, sind die Meldungen also **höchstens eine Stunde alt**.
-Zusätzlich lädt die App nach, solange sie offen ist, und beim Zurückwechseln.
+Gebaut wird **stündlich von 5:30 bis 23:00 Uhr Wiener Zeit**, nachts nicht.
+Cron kennt keine Zeitzonen und keine Sommerzeit, deshalb ist der Auslöser in UTC
+großzügig gesetzt und `build-news.mjs` entscheidet anhand der echten Wiener Uhrzeit,
+ob gebaut wird. Ein manueller Start im Actions-Tab ignoriert das Fenster, der
+↻-Knopf in der App lädt ohnehin jederzeit neu.
+
+Lokal testen außerhalb des Fensters:
+
+```bash
+FAKTUM_FORCE=1 node scripts/build-news.mjs
+```
 
 Zwei ehrliche Einschränkungen:
 
-- **iOS erlaubt keine echten Hintergrund-Updates für PWAs.** Die App kann sich
-  nicht selbst aktualisieren, während sie geschlossen ist, und keine Push-
-  Benachrichtigungen ohne zusätzlichen Server schicken. Aktualisiert wird beim
-  Öffnen — die Daten sind dann trotzdem frisch, weil der Build serverseitig lief.
-- **GitHub verschiebt Cron-Läufe bei hoher Last** um einige Minuten. Für
-  stündliche Nachrichten ist das unerheblich.
+- **iOS erlaubt keine echten Hintergrund-Updates für PWAs.** Faktum kann sich nicht
+  selbst aktualisieren, während es geschlossen ist, und keine Push-Benachrichtigungen
+  ohne zusätzlichen Server schicken. Aktualisiert wird beim Öffnen — die Daten sind
+  dann trotzdem frisch, weil der Build serverseitig lief.
+- **GitHub verschiebt Cron-Läufe bei hoher Last** um einige Minuten.
 
-Scheduled Workflows werden auf GitHub nach 60 Tagen Repo-Inaktivität deaktiviert.
-Das passiert hier nicht: Der Workflow committet selbst und hält das Repo aktiv.
+Scheduled Workflows werden nach 60 Tagen Repo-Inaktivität deaktiviert. Das passiert
+hier nicht: Der Workflow committet selbst und hält das Repo aktiv.
+
+---
+
+## Flash-News
+
+Schwere Unfälle, Katastrophen und Warnungen — bewusst eng gefasst. Eine Meldung muss
+ein **Ereignis** nennen (Unfall, Brand, Explosion, Hochwasser, Evakuierung, Warnung …)
+*und* zusätzlich **Schwere** (Tote, Schwerverletzte, Großeinsatz) oder **Regionalbezug**
+zeigen. Ohne diese Kombination stünde der Tab voller Alltagskriminalität.
+
+---
+
+## Fokusthemen
+
+Raiffeisen/RBI, Agile Coaching und KI-Modelle. Zwei Wege führen in den Fokus-Tab:
+
+1. **Eigene Quellen** — Ars Technica AI, TechCrunch AI, The Verge AI, MIT Technology
+   Review, Google DeepMind, The Register, heise, Golem, t3n, InfoQ Agile,
+   InfoQ Kultur & Methoden, Scrum.org.
+2. **Stichworttreffer** aus allen anderen Kategorien (siehe `FOCUS_TOPICS`).
+
+Fokusmeldungen werden zusätzlich in „Für dich" nach oben gewichtet.
+
+Ein starker Begriff **im Titel** genügt. Steht er nur im Fließtext, braucht es ein
+zweites Signal — sonst galt ein Leseraufruf von Le Monde, in dem „künstliche
+Intelligenz" beiläufig vorkam, als KI-Meldung.
+
+> Agile Coaching liefert naturgemäß wenig: In diesem Feld wird selten und langsam
+> publiziert. Ein paar Meldungen pro Woche sind normal, nicht ein Fehler.
+
+---
+
+## Merken, Gelesen und Löschen
+
+- **Merken** speichert die Meldung **vollständig** im Gerät — sie bleibt lesbar, auch
+  wenn die Quelle den Artikel entfernt oder sie aus `news.json` rotiert ist.
+- **Gelesen** wird eine Meldung, wenn sie **5 Sekunden** zu mindestens 60 % sichtbar
+  war (`IntersectionObserver`). Sie wird nicht sofort ausgeblendet — das würde beim
+  Lesen stören — sondern verschwindet beim nächsten Aufbau des Feeds.
+- **👍 Relevant** heißt „gut ausgewählt, entspricht meinen Kriterien". Die Meldung
+  bleibt sichtbar.
+- **👎 Eher nicht** blendet aus und merkt sich den Inhalt als unbrauchbar.
+- **Gelöscht** wird nach 3 Tagen: Meldungen und Lesestatus. Die Historie hält 30 Tage.
+  **Gemerktes und das Lernprofil bleiben dauerhaft** — sonst würde sich der Algorithmus
+  alle drei Tage zurücksetzen und nie etwas über dich lernen.
+
+---
+
+## Das Laufband
+
+Unten läuft ein Ticker mit, in dieser Rangfolge:
+
+1. **Wetterwarnungen** von GeoSphere Austria (ehemals ZAMG) für deinen Standort
+2. **ÖBB-Störungen** deiner Region — Korneuburg, Stockerau, Floridsdorf,
+   Franz-Josefs-Bahn, Nordwestbahn und Nachbarn
+3. **Flash-News**
+4. Ist nichts davon aktuell: **Wetter der nächsten 3 Stunden**
+
+Der ÖBB-Feed braucht besondere Behandlung: Seine `<title>`-Elemente sind leer, rund ein
+Drittel sind reine Auslastungshinweise, und dieselbe Störung erscheint einmal pro
+betroffenem Zug — teils zwanzigmal. Alles drei wird gefiltert bzw. zusammengefasst.
 
 ---
 
@@ -124,9 +192,9 @@ trotzdem tot. Aussortiert wurden deshalb: **WSJ** (neuester Eintrag Januar 2025)
 - Kommentare, Kolumnen, Glossen, Leitartikel, Gastbeiträge → aussortiert
 - Werbung, Advertorials, Gewinnspiele, Horoskope → aussortiert
 - Stream- und Programmhinweise („Live hören", „Video:") → aussortiert
-- Doppelmeldungen werden zusammengeführt; berichten mehrere unabhängige
-  Redaktionen dasselbe, steigt der Faktenscore — das ist das stärkste
-  automatisch verfügbare Signal gegen eine Falschmeldung
+- Doppelmeldungen werden **zweistufig** zusammengeführt (siehe unten); berichten
+  mehrere unabhängige Redaktionen dasselbe, steigt der Faktenscore — das ist das
+  stärkste automatisch verfügbare Signal gegen eine Falschmeldung
 - Stichprobe von 12 Original-Links wird auf Erreichbarkeit geprüft;
   tote Links bekommen den Hinweis „Link prüfen"
 
@@ -138,6 +206,29 @@ oder `prüfen`.
 > Der Score bewertet, wie sehr eine Meldung einer nüchternen, überprüfbaren
 > Nachricht entspricht — **nicht ihren Wahrheitsgehalt**. Jede Meldung verlinkt
 > deshalb immer auf das Original.
+
+### Doppelte Meldungen
+
+Der Abgleich läuft **zweimal**. Der erste Durchlauf fängt Dubletten innerhalb einer
+Sprache. Der zweite läuft **nach der Übersetzung** und ist der eigentlich wirksame:
+Erst wenn alle Titel deutsch sind, lässt sich erkennen, dass Le Monde, NOS und ORF
+dieselbe Meldung bringen — vorher stehen sie in drei Sprachen da und haben kein
+einziges Wort gemeinsam.
+
+Drei Details, die den Unterschied machten:
+
+- **Nur der Titel wird verglichen**, nicht Titel plus Fließtext. Zwei Meldungen mit
+  wortgleicher Überschrift, aber unterschiedlich langem Text rutschten sonst unter die
+  Schwelle — so entkamen Le Monde und Le Figaro mit identischem Titel der Erkennung.
+- **Gleiche markante Zahlen** (Beträge, Opferzahlen, Spielergebnisse) gelten als
+  starkes Signal. Das fängt Paare, die sprachlich weit auseinanderliegen: „Hunt wird
+  Zweiter über 200 m" und „Hunt holt Silber über 200 m" haben nur 23 % Wortähnlichkeit.
+- **Wissenschaft und Fokus bekommen eine höhere Schwelle** (0,60 statt 0,42). Dort ist
+  Fachvokabular-Überlappung normal: „Klimawandel könnte den Weizenpreis verdreifachen"
+  und „Waldbrandfläche könnte sich verdreifachen" galten sonst als dieselbe Meldung.
+
+Ergebnis im Test: von 20 verdächtigen Paaren blieb eines übrig — und das ist der
+absichtlich verschonte Wissenschafts-Fall.
 
 ---
 

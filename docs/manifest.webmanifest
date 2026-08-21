@@ -1,6 +1,6 @@
 {
-  "name": "Fakten — News ohne Werbung",
-  "short_name": "Fakten",
+  "name": "Faktum — News ohne Werbung",
+  "short_name": "Faktum",
   "description": "Werbefreie, faktenorientierte Nachrichten aus geprüften Quellen: Wirtschaft, Sport, Österreich, Korneuburg und regionales Wetter.",
   "start_url": "./",
   "scope": "./",

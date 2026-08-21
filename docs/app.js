@@ -1,19 +1,36 @@
-/* Fakten — werbefreie, faktenorientierte News-PWA.
+/* Faktum — werbefreie, faktenorientierte News-PWA.
  *
- * Die Meldungen kommen aus docs/data/news.json, das stündlich von einer
- * GitHub Action serverseitig gebaut wird (siehe scripts/build-news.mjs).
- * Der Client macht daraus die Darstellung, das Lernprofil und das Wetter.
+ * Die Meldungen kommen aus docs/data/news.json, das stündlich (5:30–23:00)
+ * von einer GitHub Action serverseitig gebaut wird. Der Client macht daraus
+ * Darstellung, Lernprofil, Merkliste, Wetter und Laufband.
+ *
+ * Speichermodell:
+ *   faktum.prefs     Lernprofil und Bewertungen — bleibt dauerhaft
+ *   faktum.read      Was gelesen wurde — wird nach 3 Tagen gelöscht
+ *   faktum.saved     Gemerkte Meldungen mit vollem Text — bleibt dauerhaft
+ *   faktum.history   Verlauf zum Nachschlagen — 30 Tage
+ *   faktum.cache     Letzter Datenstand für den Offline-Fall
  */
 'use strict'
 
 const DATA_URL = 'data/news.json'
-const REFRESH_AFTER_MS = 55 * 60 * 1000      // Daten gelten 55 Min als frisch
+const REFRESH_AFTER_MS = 30 * 60 * 1000
 const CHECK_INTERVAL_MS = 5 * 60 * 1000
+const READ_DWELL_MS = 5000            // so lange sichtbar = gelesen
+const ITEM_TTL_DAYS = 3
+const HISTORY_TTL_DAYS = 30
 
-const LS_PREFS = 'fakten.prefs.v1'
-const LS_SETTINGS = 'fakten.settings.v1'
+const LS = {
+  prefs: 'faktum.prefs.v1',
+  settings: 'faktum.settings.v1',
+  read: 'faktum.read.v1',
+  saved: 'faktum.saved.v1',
+  history: 'faktum.history.v1',
+  cache: 'faktum.cache.v1',
+}
 
 const $ = sel => document.querySelector(sel)
+const DAY = 86400_000
 
 const state = {
   data: null,
@@ -22,31 +39,53 @@ const state = {
   loading: false,
   weather: null,
   weatherPlace: null,
+  warnings: [],
+  search: '',
 }
 
 // --------------------------------------------------------------- Persistenz
 
-const defaultPrefs = () => ({
-  v: 1, sources: {}, cats: {}, keywords: {}, votes: {}, count: 0,
-})
-
-const defaultSettings = () => ({
-  hideRejected: true, hideLowFact: false, images: true, apiKey: '',
-})
+const defaults = {
+  prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {} }),
+  settings: () => ({ hideRead: true, hideLowFact: false, images: true, ticker: true, apiKey: '' }),
+  read: () => ({}),
+  saved: () => ({}),
+  history: () => ([]),
+}
 
 function load(key, fallback) {
   try {
     const raw = localStorage.getItem(key)
-    return raw ? { ...fallback(), ...JSON.parse(raw) } : fallback()
+    if (!raw) return fallback()
+    const parsed = JSON.parse(raw)
+    return Array.isArray(fallback()) ? parsed : { ...fallback(), ...parsed }
   } catch { return fallback() }
 }
 
 function save(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)) } catch { /* Privatmodus */ }
+  try { localStorage.setItem(key, JSON.stringify(val)) } catch { /* Speicher voll / Privatmodus */ }
 }
 
-let prefs = load(LS_PREFS, defaultPrefs)
-let settings = load(LS_SETTINGS, defaultSettings)
+let prefs = load(LS.prefs, defaults.prefs)
+let settings = load(LS.settings, defaults.settings)
+let readMap = load(LS.read, defaults.read)
+let saved = load(LS.saved, defaults.saved)
+let history = load(LS.history, defaults.history)
+
+/** Alles Abgelaufene wegräumen. Gemerktes und das Lernprofil bleiben. */
+function purgeOld() {
+  const now = Date.now()
+  let changed = false
+
+  for (const [id, ts] of Object.entries(readMap)) {
+    if (now - ts > ITEM_TTL_DAYS * DAY) { delete readMap[id]; changed = true }
+  }
+  if (changed) save(LS.read, readMap)
+
+  const before = history.length
+  history = history.filter(h => now - h.ts < HISTORY_TTL_DAYS * DAY).slice(0, 800)
+  if (history.length !== before) save(LS.history, history)
+}
 
 // ------------------------------------------------------------------ Lernen
 
@@ -54,78 +93,120 @@ const STOPWORDS = new Set(`
 der die das den dem des ein eine einer eines einem einen und oder aber doch
 ist sind war waren wird werden wurde wurden hat haben hatte hatten sein seine
 seiner ihres ihre ihrer für mit von vom zum zur auf aus bei nach über unter
-vor durch gegen ohne um sich nicht auch noch nur schon mehr sehr wie was wer
-wann wo warum als dass wenn weil dann man kann können soll sollen muss müssen
-im in an am zu es er sie ich wir ihr sein bin bist seid neue neuen neuer alle
-allen beim einigen wieder immer heute jahr jahre jahren prozent millionen
-milliarden euro dollar the and for with from that this have has was were are
-will would could should about after before into over under more most new news
-than then them they their there here what when where which while who why
-says said told according reuters afp apa dpa
-montag dienstag mittwoch donnerstag freitag samstag sonntag samstags sonntags
-jänner januar februar märz april juni juli august september oktober november
-dezember morgen gestern abend nacht woche wochen monat monate zuletzt bereits
-laut wegen sowie dabei damit dafür danach davon dazu etwa rund knapp mehrere
-viele wenige eigenen eigene ersten erste letzten letzte neben seit sondern
-zwischen während gegenüber innerhalb außerdem weiterhin erneut jedoch bisher
-worden geworden werde wurde wollen wollte lassen ließ geben gegeben stehen
-steht kommen kommt gehen geht machen macht sagte sagen sehen sieht bleibt
+vor durch gegen ohne um sich nicht auch noch nur mehr sehr wie was wer wann
+wo warum als dass wenn weil dann man kann können soll sollen muss müssen im
+in an am zu es er sie ich wir ihr bin bist seid neue neuen neuer alle allen
+beim einigen wieder immer heute jahr jahre jahren prozent millionen milliarden
+euro dollar the and for with from that this have has was were are will would
+could should about after before into over under more most new news than then
+them they their there here what when where which while who why says said told
+according reuters afp apa dpa montag dienstag mittwoch donnerstag freitag
+samstag sonntag jänner januar februar märz april juni juli august september
+oktober november dezember morgen gestern abend nacht woche wochen monat monate
+zuletzt bereits laut wegen sowie dabei damit dafür danach davon dazu etwa rund
+knapp mehrere viele wenige eigenen eigene ersten erste letzten letzte neben
+seit sondern zwischen während gegenüber innerhalb außerdem weiterhin erneut
+jedoch bisher worden geworden werde wollen wollte lassen ließ geben gegeben
+stehen steht kommen kommt gehen geht machen macht sagte sagen sehen sieht
+bleibt
 `.trim().split(/\s+/))
 
 function keywordsOf(item) {
-  const text = `${item.title} ${item.summary || ''}`.toLowerCase()
-  const words = text
+  return [...new Set(`${item.title} ${item.summary || ''}`.toLowerCase()
     .replace(/[^a-zäöüß0-9\s-]/gi, ' ')
     .split(/\s+/)
-    .filter(w => w.length >= 4 && w.length <= 24 && !STOPWORDS.has(w) && !/^\d+$/.test(w))
-  return [...new Set(words)].slice(0, 14)
+    .filter(w => w.length >= 4 && w.length <= 24 && !STOPWORDS.has(w) && !/^\d+$/.test(w)))]
+    .slice(0, 14)
 }
 
-const CLAMP = 15
+const CLAMP = 20
 const clamp = n => Math.max(-CLAMP, Math.min(CLAMP, n))
 
+/**
+ * 👍 heißt "gut ausgewählt, entspricht meinen Kriterien".
+ * 👎 heißt "ausblenden und als unbrauchbar merken".
+ */
 function vote(item, dir) {
-  const prev = prefs.votes[item.id] || 0
-  if (prev === dir) { unvote(item, dir); return }
-  if (prev !== 0) applyWeights(item, -prev)   // alte Bewertung zurückrechnen
-  prefs.votes[item.id] = dir
-  applyWeights(item, dir)
-  prefs.count = Object.keys(prefs.votes).length
-  save(LS_PREFS, prefs)
-}
-
-function unvote(item, dir) {
-  applyWeights(item, -dir)
-  delete prefs.votes[item.id]
-  prefs.count = Object.keys(prefs.votes).length
-  save(LS_PREFS, prefs)
+  const prev = prefs.votes[item.id]?.v || 0
+  if (prev === dir) {                       // nochmal getippt = zurücknehmen
+    applyWeights(item, -dir)
+    delete prefs.votes[item.id]
+  } else {
+    if (prev !== 0) applyWeights(item, -prev)
+    prefs.votes[item.id] = { v: dir, ts: Date.now() }
+    applyWeights(item, dir)
+    addHistory(item, dir === 1 ? 'up' : 'down')
+  }
+  save(LS.prefs, prefs)
 }
 
 function applyWeights(item, dir) {
   prefs.sources[item.source] = clamp((prefs.sources[item.source] || 0) + dir * 1.0)
   prefs.cats[item.cat] = clamp((prefs.cats[item.cat] || 0) + dir * 0.6)
+  for (const t of item.focus || []) prefs.focus[t] = clamp((prefs.focus[t] || 0) + dir * 1.2)
   for (const kw of keywordsOf(item)) {
     prefs.keywords[kw] = clamp((prefs.keywords[kw] || 0) + dir * 0.7)
   }
 }
 
-/** Persönlicher Rang: Aktualität + Faktenscore + gelernte Vorlieben. */
+/** Persönlicher Rang: Aktualität, Faktenscore, Fokusthemen, gelernte Vorlieben. */
 function personalScore(item) {
   const hours = (Date.now() - item.ts) / 3600_000
   const fresh = Math.max(0, 100 - hours * 2.2)
-  let s = fresh * 0.5 + item.fact * 0.3
+  let boost = 0
 
-  s += (prefs.sources[item.source] || 0) * 2.2
-  s += (prefs.cats[item.cat] || 0) * 2.0
+  boost += (prefs.sources[item.source] || 0) * 2.2
+  boost += (prefs.cats[item.cat] || 0) * 2.0
 
-  let kwBoost = 0
-  for (const kw of keywordsOf(item)) kwBoost += prefs.keywords[kw] || 0
-  s += Math.max(-25, Math.min(25, kwBoost * 1.4))
+  // Fokusthemen bekommen eine feste Grundbevorzugung, unabhängig davon, ob
+  // schon Bewertungen vorliegen — sie sind ausdrücklich gewünscht.
+  for (const t of item.focus || []) {
+    boost += 18 + (prefs.focus[t] || 0) * 2.5
+  }
 
-  item._boost = (prefs.sources[item.source] || 0) * 2.2
-    + (prefs.cats[item.cat] || 0) * 2.0
-    + Math.max(-25, Math.min(25, kwBoost * 1.4))
-  return s
+  let kw = 0
+  for (const k of keywordsOf(item)) kw += prefs.keywords[k] || 0
+  boost += Math.max(-25, Math.min(25, kw * 1.4))
+
+  if (item.flash) boost += 12
+
+  item._boost = boost
+  return fresh * 0.5 + item.fact * 0.3 + boost
+}
+
+// ------------------------------------------------------- Gelesen / Merken
+
+function markRead(item) {
+  if (readMap[item.id]) return
+  readMap[item.id] = Date.now()
+  save(LS.read, readMap)
+  addHistory(item, 'read')
+  // Bewusst kein sofortiges Abblenden: die Karte ist gerade im Blick, und
+  // sie wegzudimmen, während man noch liest, irritiert. Sie verschwindet
+  // beim nächsten Aufbau des Feeds.
+}
+
+function addHistory(item, action) {
+  history = history.filter(h => !(h.id === item.id && h.action === action))
+  history.unshift({
+    id: item.id, action, ts: Date.now(),
+    title: item.title, source: item.source, link: item.link, cat: item.cat,
+  })
+  if (history.length > 800) history.length = 800
+  save(LS.history, history)
+}
+
+function isSaved(id) { return !!saved[id] }
+
+function toggleSave(item) {
+  if (saved[item.id]) {
+    delete saved[item.id]
+  } else {
+    // Vollständige Kopie: die Meldung soll auch dann noch lesbar sein, wenn
+    // sie längst aus news.json rotiert ist.
+    saved[item.id] = { ...item, savedAt: Date.now() }
+  }
+  save(LS.saved, saved)
 }
 
 // ---------------------------------------------------------------- Datenlauf
@@ -141,32 +222,31 @@ async function fetchNews({ force = false } = {}) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     if (!data.items?.length) throw new Error('Keine Meldungen im Datensatz')
+
+    // Alles älter als 3 Tage gar nicht erst behalten.
+    const cutoff = Date.now() - ITEM_TTL_DAYS * DAY
+    data.items = data.items.filter(i => i.ts >= cutoff)
+
     state.data = data
     state.lastFetch = Date.now()
-    try { localStorage.setItem('fakten.cache', JSON.stringify(data)) } catch { /* zu groß */ }
+    save(LS.cache, data)
     render()
+    renderTicker()
     setStatus(`${data.items.length} Meldungen · Stand ${relTime(new Date(data.generated).getTime())}`)
   } catch (err) {
-    const cached = tryCache()
-    if (cached) {
+    const cached = load(LS.cache, () => null)
+    if (cached?.items?.length) {
       state.data = cached
       render()
-      setStatus(`Offline — zeige gespeicherten Stand von ${relTime(new Date(cached.generated).getTime())}`, true)
+      setStatus(`Offline — Stand von ${relTime(new Date(cached.generated).getTime())}`, true)
     } else {
       setStatus(`Konnte Meldungen nicht laden: ${err.message}`, true)
-      showEmpty('📡', 'Keine Verbindung', 'Sobald du wieder online bist, lädt die App automatisch nach.')
+      showEmpty('📡', 'Keine Verbindung', 'Sobald du wieder online bist, lädt Faktum automatisch nach.')
     }
   } finally {
     state.loading = false
     $('#btn-refresh').classList.remove('spin')
   }
-}
-
-function tryCache() {
-  try {
-    const raw = localStorage.getItem('fakten.cache')
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
 }
 
 function setStatus(text, isErr = false) {
@@ -177,24 +257,57 @@ function setStatus(text, isErr = false) {
 
 // ------------------------------------------------------------------ Ansicht
 
-function visibleItems() {
-  if (!state.data) return []
-  let items = state.data.items.slice()
+const CLIENT_TABS = {
+  'fuer-dich': { label: 'Für dich', icon: '⭐' },
+  flash: { label: 'Flash', icon: '⚡' },
+  gemerkt: { label: 'Gemerkt', icon: '🔖' },
+  historie: { label: 'Historie', icon: '🕘' },
+  wetter: { label: 'Wetter', icon: '🌤' },
+}
 
-  if (settings.hideRejected) items = items.filter(i => prefs.votes[i.id] !== -1)
+function matchesSearch(item) {
+  if (!state.search) return true
+  const q = state.search.toLowerCase()
+  return `${item.title} ${item.summary || ''} ${item.source}`.toLowerCase().includes(q)
+}
+
+function isHidden(item) {
+  if (!settings.hideRead) return false
+  if (isSaved(item.id)) return false                 // Gemerktes bleibt sichtbar
+  return !!readMap[item.id] || !!prefs.votes[item.id]
+}
+
+function allItems() {
+  return state.data?.items || []
+}
+
+function visibleItems() {
+  let items = allItems().filter(matchesSearch)
   if (settings.hideLowFact) items = items.filter(i => i.fact >= 60)
 
-  if (state.tab === 'fuer-dich') {
-    const scored = items.map(i => ({ i, s: personalScore(i) })).sort((a, b) => b.s - a.s)
-    return diversify(scored)
+  switch (state.tab) {
+    case 'gemerkt':
+      return Object.values(saved).sort((a, b) => b.savedAt - a.savedAt).filter(matchesSearch)
+    case 'flash':
+      return items.filter(i => i.flash && !isHidden(i)).sort((a, b) => b.ts - a.ts)
+    case 'fokus':
+      return items.filter(i => (i.cat === 'fokus' || i.focus) && !isHidden(i))
+        .sort((a, b) => personalScore(b) - personalScore(a))
+    case 'fuer-dich': {
+      // Mischung über alle Kategorien, nach persönlichem Rang.
+      const scored = items.filter(i => !isHidden(i))
+        .map(i => ({ i, s: personalScore(i) }))
+        .sort((a, b) => b.s - a.s)
+      return diversify(scored)
+    }
+    default:
+      return items.filter(i => i.cat === state.tab && !isHidden(i)).sort((a, b) => b.ts - a.ts)
   }
-  return items.filter(i => i.cat === state.tab).sort((a, b) => b.ts - a.ts)
 }
 
 /**
- * Verhindert, dass "Für dich" von einer einzigen Quelle oder Kategorie
- * dominiert wird — gerade am Anfang, wenn noch keine Bewertungen vorliegen
- * und allein die Aktualität entscheidet.
+ * Verhindert, dass der Hauptfeed von einer Quelle oder Kategorie dominiert
+ * wird — besonders am Anfang, wenn nur die Aktualität entscheidet.
  */
 function diversify(scored) {
   const out = []
@@ -205,19 +318,17 @@ function diversify(scored) {
   while (pool.length) {
     let bestIdx = 0
     let bestVal = -Infinity
-    // Nur das obere Feld betrachten — der Rest ist ohnehin zu schwach.
     const window = Math.min(pool.length, 25)
     for (let k = 0; k < window; k++) {
       const { i, s } = pool[k]
       const penalty = recentSrc.filter(x => x === i.source).length * 14
         + recentCat.filter(x => x === i.cat).length * 5
-      const val = s - penalty
-      if (val > bestVal) { bestVal = val; bestIdx = k }
+      if (s - penalty > bestVal) { bestVal = s - penalty; bestIdx = k }
     }
     const pick = pool.splice(bestIdx, 1)[0]
     out.push(pick.i)
     recentSrc.push(pick.i.source); if (recentSrc.length > 4) recentSrc.shift()
-    recentCat.push(pick.i.cat);    if (recentCat.length > 3) recentCat.shift()
+    recentCat.push(pick.i.cat); if (recentCat.length > 3) recentCat.shift()
   }
   return out
 }
@@ -225,13 +336,25 @@ function diversify(scored) {
 function renderTabs() {
   const cats = state.data?.categories || []
   const counts = state.data?.counts || {}
+  const items = allItems()
+
   const tabs = [
-    { id: 'fuer-dich', label: 'Für dich', icon: '⭐' },
-    ...cats.map(c => ({ ...c, count: counts[c.id] })),
-    { id: 'wetter', label: 'Wetter', icon: '🌤' },
+    { id: 'fuer-dich', ...CLIENT_TABS['fuer-dich'] },
+    { id: 'flash', ...CLIENT_TABS.flash, count: items.filter(i => i.flash && !isHidden(i)).length },
+    ...cats.map(c => ({
+      ...c,
+      count: c.id === 'fokus'
+        ? items.filter(i => (i.cat === 'fokus' || i.focus) && !isHidden(i)).length
+        : items.filter(i => i.cat === c.id && !isHidden(i)).length,
+    })),
+    { id: 'gemerkt', ...CLIENT_TABS.gemerkt, count: Object.keys(saved).length },
+    { id: 'wetter', ...CLIENT_TABS.wetter },
+    { id: 'historie', ...CLIENT_TABS.historie },
   ]
+
   $('#tabs').innerHTML = tabs.map(t => `
-    <button class="tab" role="tab" data-tab="${t.id}" aria-selected="${state.tab === t.id}">
+    <button class="tab ${t.id === 'flash' && t.count ? 'tab-flash' : ''}" role="tab"
+            data-tab="${t.id}" aria-selected="${state.tab === t.id}">
       ${t.icon} ${esc(t.label)}${t.count != null ? `<span class="tab-count">${t.count}</span>` : ''}
     </button>`).join('')
 }
@@ -239,6 +362,7 @@ function renderTabs() {
 function render() {
   renderTabs()
   $('#empty').hidden = true
+  stopReadTracking()
 
   if (state.tab === 'wetter') {
     $('#feed').hidden = true
@@ -246,21 +370,32 @@ function render() {
     renderWeather()
     return
   }
-
   $('#weather').hidden = true
   $('#feed').hidden = false
 
+  if (state.tab === 'historie') { renderHistory(); return }
+
   const items = visibleItems()
-  if (!items.length) {
-    $('#feed').innerHTML = ''
-    showEmpty('🗂', 'Nichts hier',
-      state.tab === 'korneuburg'
-        ? 'Für die Region liegen gerade keine neuen Meldungen vor. Die Quellen werden stündlich geprüft.'
-        : 'Alle Meldungen dieser Kategorie sind ausgeblendet oder bewertet.')
-    return
-  }
+  if (!items.length) { $('#feed').innerHTML = ''; renderEmptyFor(state.tab); return }
 
   $('#feed').innerHTML = items.map(cardHTML).join('')
+  startReadTracking()
+}
+
+function renderEmptyFor(tab) {
+  if (state.search) {
+    return showEmpty('🔍', 'Nichts gefunden',
+      `Zu „${state.search}“ gibt es in den aktuellen Meldungen keinen Treffer.`)
+  }
+  const texts = {
+    flash: ['⚡', 'Keine Flash-News', 'Aktuell keine schweren Unfälle, Katastrophen oder Warnungen. Gut so.'],
+    gemerkt: ['🔖', 'Noch nichts gemerkt', 'Tippe bei einer Meldung auf „Merken“ — Gemerktes bleibt dauerhaft erhalten, auch wenn die Quelle den Artikel löscht.'],
+    fokus: ['🎯', 'Keine Fokus-Meldungen', 'Zu Raiffeisen/RBI, Agile Coaching und KI liegt gerade nichts Neues vor.'],
+    korneuburg: ['📍', 'Nichts aus der Region', 'Für Korneuburg liegen gerade keine neuen Meldungen vor.'],
+  }
+  const [i, t, s] = texts[tab] || ['🗂', 'Alles gelesen',
+    'Du hast alle Meldungen dieser Kategorie gesehen oder bewertet. Unter „Historie“ kannst du sie nachlesen.']
+  showEmpty(i, t, s)
 }
 
 function showEmpty(icon, title, text) {
@@ -269,15 +404,39 @@ function showEmpty(icon, title, text) {
   el.hidden = false
 }
 
+function renderHistory() {
+  const list = history.filter(h => !state.search
+    || `${h.title} ${h.source}`.toLowerCase().includes(state.search.toLowerCase()))
+  if (!list.length) {
+    $('#feed').innerHTML = ''
+    return showEmpty('🕘', 'Historie leer', 'Hier sammelt sich, was du gelesen und bewertet hast — 30 Tage lang.')
+  }
+  const ICON = { up: '👍', down: '👎', read: '👁' }
+  $('#feed').innerHTML = `<p class="muted small hist-note">${list.length} Einträge der letzten 30 Tage</p>`
+    + list.map(h => `
+    <a class="hist-row" href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">
+      <span class="hist-icon">${ICON[h.action] || '·'}</span>
+      <span class="hist-text">
+        <b>${esc(h.title)}</b>
+        <small class="muted">${esc(h.source)} · ${relTime(h.ts)}</small>
+      </span>
+    </a>`).join('')
+}
+
 function cardHTML(item) {
-  const v = prefs.votes[item.id] || 0
+  const v = prefs.votes[item.id]?.v || 0
   const showImg = settings.images && item.image
-  const matched = state.tab === 'fuer-dich' && item._boost > 6
+  const matched = item._boost > 20
+  const topics = (item.focus || []).map(id =>
+    (state.data?.focusTopics || []).find(t => t.id === id)).filter(Boolean)
 
   return `
-  <article class="card ${v === 1 ? 'voted-up' : ''} ${v === -1 ? 'voted-down' : ''}" data-id="${item.id}">
+  <article class="card ${v === 1 ? 'voted-up' : ''} ${item.flash ? 'is-flash' : ''} ${readMap[item.id] ? 'is-read' : ''}"
+           data-id="${item.id}">
     <div class="card-body">
       <div class="meta">
+        ${item.flash ? `<span class="pill pill-flash">⚡ Flash</span>` : ''}
+        ${topics.map(t => `<span class="pill pill-focus">${t.icon} ${esc(t.label)}</span>`).join('')}
         <span class="src">${esc(item.source)}</span>
         <span class="dot">·</span>
         <span>${relTime(item.ts)}</span>
@@ -301,27 +460,16 @@ function cardHTML(item) {
           `<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.source)}</a>`).join(', ')}</p>` : ''}
     </div>
     <div class="actions">
-      <button class="btn btn-yes ${v === 1 ? 'on' : ''}" data-act="up">👍 Relevant</button>
-      <button class="btn btn-no ${v === -1 ? 'on' : ''}" data-act="down">👎 Eher nicht</button>
+      <button class="btn btn-yes ${v === 1 ? 'on' : ''}" data-act="up"
+              title="Gut ausgewählt, passt zu meinen Kriterien">👍 Relevant</button>
+      <button class="btn btn-no" data-act="down" title="Ausblenden und künftig weniger davon">👎 Eher nicht</button>
+      <button class="btn btn-save ${isSaved(item.id) ? 'on' : ''}" data-act="save">
+        ${isSaved(item.id) ? '🔖 Gemerkt' : '🔖 Merken'}</button>
       <a class="btn btn-link" href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">🔗 Original</a>
       <button class="btn" data-act="detail">💡 Einordnung</button>
     </div>
     <div class="detail-slot"></div>
   </article>`
-}
-
-function openLightbox(item) {
-  const box = $('#lightbox')
-  $('#lightbox-img').src = item.image
-  $('#lightbox-cap').textContent = `${item.source} — ${item.title}`
-  box.hidden = false
-  document.body.style.overflow = 'hidden'
-}
-
-function closeLightbox() {
-  $('#lightbox').hidden = true
-  $('#lightbox-img').src = ''
-  document.body.style.overflow = ''
 }
 
 function esc(s) {
@@ -339,6 +487,112 @@ function relTime(ts) {
   return d === 1 ? 'gestern' : `vor ${d} Tagen`
 }
 
+// ------------------------------------------------- Gelesen nach 5 Sekunden
+
+let readObserver = null
+const dwellTimers = new Map()
+
+function startReadTracking() {
+  stopReadTracking()
+  if (!('IntersectionObserver' in window)) return
+
+  readObserver = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      const id = e.target.dataset.id
+      if (e.isIntersecting && e.intersectionRatio >= 0.6) {
+        if (dwellTimers.has(id)) continue
+        dwellTimers.set(id, setTimeout(() => {
+          dwellTimers.delete(id)
+          const item = findItem(id)
+          if (item) markRead(item)
+        }, READ_DWELL_MS))
+      } else {
+        clearTimeout(dwellTimers.get(id))
+        dwellTimers.delete(id)
+      }
+    }
+  }, { threshold: [0, 0.6, 1] })
+
+  for (const card of document.querySelectorAll('#feed .card')) readObserver.observe(card)
+}
+
+function stopReadTracking() {
+  readObserver?.disconnect()
+  readObserver = null
+  for (const t of dwellTimers.values()) clearTimeout(t)
+  dwellTimers.clear()
+}
+
+function findItem(id) {
+  return allItems().find(i => i.id === id) || saved[id] || null
+}
+
+// ---------------------------------------------------------------- Laufband
+
+async function fetchWarnings() {
+  const p = await getPosition() || FALLBACK_POS
+  try {
+    const r = await fetch(`https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat=${p.lat}&lon=${p.lon}&lang=de`)
+    const j = await r.json()
+    const place = j?.properties?.location?.properties?.name || ''
+    state.warnings = (j?.properties?.warnings || []).map(w => ({
+      kind: 'warn',
+      text: `${place ? place + ': ' : ''}${w?.properties?.text || 'Wetterwarnung'}`,
+    }))
+  } catch { state.warnings = [] }
+}
+
+function tickerEntries() {
+  const out = []
+  out.push(...state.warnings)
+  for (const t of state.data?.ticker || []) {
+    out.push({ kind: t.kind, text: t.kind === 'oebb' ? `ÖBB: ${t.text}` : `⚡ ${t.text}` })
+  }
+  // Nichts los? Dann das Wetter der nächsten drei Stunden.
+  if (!out.length && state.weather?.hourly) {
+    const w = state.weather
+    const now = new Date()
+    const start = w.hourly.time.findIndex(t => new Date(t) > now)
+    if (start >= 0) {
+      const parts = []
+      for (let k = 0; k < 3; k++) {
+        const i = start + k
+        if (!w.hourly.time[i]) break
+        const [icon] = wmo(w.hourly.weather_code[i])
+        parts.push(`${new Date(w.hourly.time[i]).getHours()}:00 ${icon} ${Math.round(w.hourly.temperature_2m[i])}°`
+          + ` (${w.hourly.precipitation_probability[i] ?? 0} % Regen)`)
+      }
+      if (parts.length) out.push({ kind: 'wx', text: `${state.weatherPlace || 'Wetter'} — ${parts.join('   ·   ')}` })
+    }
+  }
+  return out
+}
+
+function renderTicker() {
+  const el = $('#ticker')
+  if (!settings.ticker) { el.hidden = true; document.body.classList.remove('has-ticker'); return }
+
+  const entries = tickerEntries()
+  if (!entries.length) { el.hidden = true; document.body.classList.remove('has-ticker'); return }
+
+  const priority = entries.some(e => e.kind === 'warn') ? 'warn'
+    : entries.some(e => e.kind === 'flash') ? 'flash'
+    : entries.some(e => e.kind === 'oebb') ? 'oebb' : 'wx'
+  const LABEL = { warn: '⚠', flash: '⚡', oebb: '🚆', wx: '🌤' }
+
+  $('#ticker-label').textContent = LABEL[priority]
+  el.dataset.kind = priority
+
+  const text = entries.map(e => e.text).join('       •       ')
+  // Zweimal hintereinander, damit die Schleife ohne Sprung durchläuft.
+  $('#ticker-track').innerHTML = `<span>${esc(text)}</span><span aria-hidden="true">${esc(text)}</span>`
+  // Tempo an die Textlänge koppeln: gleichbleibende Lesegeschwindigkeit.
+  $('#ticker-track').style.animationDuration = `${Math.max(18, text.length * 0.22)}s`
+
+  el.hidden = false
+  document.body.classList.add('has-ticker')
+}
+
 // -------------------------------------------------------------- Einordnung
 
 const TRUST_TEXT = {
@@ -350,9 +604,9 @@ const TRUST_TEXT = {
 function ruleBasedDetail(item) {
   const bits = []
   bits.push(`<li><b>Quelle:</b> ${esc(item.source)} — ${TRUST_TEXT[item.trust]}</li>`)
-  bits.push(`<li><b>Faktenscore ${item.fact}/100 („${esc(item.factLabel)}“):</b> berechnet aus Quellengüte, Länge und Konkretheit des Textes, Zeitstempel, Zuschreibungen („laut …“) und Abzügen für reißerische Sprache.</li>`)
+  bits.push(`<li><b>Faktenscore ${item.fact}/100 („${esc(item.factLabel)}“):</b> aus Quellengüte, Konkretheit des Textes, Zeitstempel, Zuschreibungen („laut …“) und Abzügen für reißerische Sprache.</li>`)
   if (item.also) {
-    bits.push(`<li><b>Mehrfach bestätigt:</b> ${item.also.length + 1} unabhängige Redaktionen berichten dasselbe. Das ist das stärkste verfügbare Signal gegen eine Falschmeldung.</li>`)
+    bits.push(`<li><b>Mehrfach bestätigt:</b> ${item.also.length + 1} unabhängige Redaktionen berichten dasselbe. Das ist das stärkste automatisch verfügbare Signal gegen eine Falschmeldung.</li>`)
   } else {
     bits.push(`<li><b>Einzelquelle:</b> bisher berichtet nur ${esc(item.source)}. Bei überraschenden Behauptungen lohnt ein Gegencheck.</li>`)
   }
@@ -360,13 +614,13 @@ function ruleBasedDetail(item) {
     bits.push(`<li><b>Veröffentlicht:</b> ${new Date(item.published).toLocaleString('de-AT', { dateStyle: 'medium', timeStyle: 'short' })}</li>`)
   }
   if (item.linkWarn) {
-    bits.push(`<li class="warn"><b>Hinweis:</b> Der Original-Link antwortete beim letzten Test nicht. Er kann verschoben worden sein.</li>`)
+    bits.push(`<li class="warn"><b>Hinweis:</b> Der Original-Link antwortete beim letzten Test nicht.</li>`)
   }
   if (item.translated) {
     bits.push(`<li><b>Maschinell übersetzt</b> aus dem ${esc(item.fromLang)}.
       Originaltitel: <i>„${esc(item.origTitle)}“</i><br>
       <span class="warn">Maschinelle Übersetzung kann die Aussage verdrehen — etwa wer wen
-      verklagt oder bestraft. Bei wichtigen Details ins Original schauen.</span></li>`)
+      bestraft. Bei wichtigen Details ins Original schauen.</span></li>`)
   }
   return `
     <h4>Regelbasierte Einordnung</h4>
@@ -376,12 +630,8 @@ function ruleBasedDetail(item) {
 }
 
 async function aiDetail(item, slot) {
-  const key = settings.apiKey
   slot.innerHTML = `<div class="detail"><h4>Claude analysiert …</h4><div class="skeleton" style="height:60px"></div></div>`
 
-  // Bei übersetzten Meldungen bekommt Claude das Original — maschinelle
-  // Übersetzung kann die Aussage verdrehen, und darauf soll die Analyse
-  // nicht aufbauen.
   const prompt = `Du bist ein nüchterner Nachrichtenanalyst. Ordne die folgende Meldung ein.
 
 Titel: ${item.origTitle || item.title}
@@ -393,7 +643,7 @@ ${item.also ? `Auch berichtet von: ${item.also.map(a => a.source).join(', ')}` :
 Antworte auf Deutsch, kompakt, in genau diesen vier Abschnitten mit diesen Überschriften:
 WORUM GEHT ES: 2 Sätze, rein faktisch.
 WARUM RELEVANT: 2 Sätze, konkrete Auswirkungen.
-EINZUORDNEN: 1-3 Stichpunkte — was an der Meldung unsicher, umstritten oder noch offen ist.
+EINZUORDNEN: 1-3 Stichpunkte — was unsicher, umstritten oder noch offen ist.
 VORSICHT: 1 Satz — welche Behauptung man ohne Zweitquelle nicht übernehmen sollte. Wenn nichts auffällt, schreibe "Keine Auffälligkeiten in der Quellenlage."
 
 Keine Einleitung, keine Floskeln. Erfinde keine Fakten, die nicht oben stehen.`
@@ -403,7 +653,7 @@ Keine Einleitung, keine Floskeln. Erfinde keine Fakten, die nicht oben stehen.`
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': key,
+        'x-api-key': settings.apiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
@@ -413,10 +663,7 @@ Keine Einleitung, keine Floskeln. Erfinde keine Fakten, die nicht oben stehen.`
         messages: [{ role: 'user', content: prompt }],
       }),
     })
-    if (!res.ok) {
-      const body = await res.text()
-      throw new Error(`${res.status} — ${body.slice(0, 160)}`)
-    }
+    if (!res.ok) throw new Error(`${res.status} — ${(await res.text()).slice(0, 160)}`)
     const json = await res.json()
     const text = (json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim()
     slot.innerHTML = `<div class="detail">
@@ -479,17 +726,10 @@ async function placeName(lat, lon) {
   } catch { return null }
 }
 
-async function renderWeather({ force = false } = {}) {
-  const el = $('#weather')
-  if (state.weather && !force) return paintWeather(el)
-
-  el.innerHTML = `<div class="skeleton" style="height:200px"></div>
-                  <div class="skeleton" style="height:90px"></div>`
-
+async function loadWeather({ force = false } = {}) {
+  if (state.weather && !force) return
   const pos = await getPosition()
   const p = pos || FALLBACK_POS
-  const usedFallback = !pos
-
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}`
       + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m`
@@ -499,15 +739,29 @@ async function renderWeather({ force = false } = {}) {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     state.weather = await res.json()
-    state.weatherPlace = usedFallback
-      ? `${FALLBACK_POS.name} (Standort nicht freigegeben)`
-      : (await placeName(p.lat, p.lon)) || `${p.lat.toFixed(2)}, ${p.lon.toFixed(2)}`
-    paintWeather(el)
+    state.weatherPlace = pos
+      ? (await placeName(p.lat, p.lon)) || `${p.lat.toFixed(2)}, ${p.lon.toFixed(2)}`
+      : `${FALLBACK_POS.name} (Standort nicht freigegeben)`
   } catch (err) {
-    el.innerHTML = `<div class="card-lite"><h3>Wetter nicht verfügbar</h3>
-      <p class="muted small">${esc(err.message)}</p>
-      <div class="row"><button class="btn btn-ghost" data-act="wx-retry">Erneut versuchen</button></div></div>`
+    state.weather = null
+    state.weatherError = err.message
   }
+}
+
+async function renderWeather({ force = false } = {}) {
+  const el = $('#weather')
+  if (!state.weather || force) {
+    el.innerHTML = `<div class="skeleton" style="height:200px"></div><div class="skeleton" style="height:90px"></div>`
+    await loadWeather({ force })
+    renderTicker()
+  }
+  if (!state.weather) {
+    el.innerHTML = `<div class="card-lite"><h3>Wetter nicht verfügbar</h3>
+      <p class="muted small">${esc(state.weatherError || '')}</p>
+      <div class="row"><button class="btn btn-ghost" data-act="wx-retry">Erneut versuchen</button></div></div>`
+    return
+  }
+  paintWeather(el)
 }
 
 function paintWeather(el) {
@@ -545,6 +799,7 @@ function paintWeather(el) {
   const sunset = new Date(w.daily.sunset[0]).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' })
 
   el.innerHTML = `
+    ${state.warnings.length ? `<div class="wx-warn">⚠ ${state.warnings.map(w2 => esc(w2.text)).join('<br>⚠ ')}</div>` : ''}
     <div class="wx-now">
       <div class="wx-place">📍 ${esc(state.weatherPlace || '')}</div>
       <div class="wx-icon">${icon}</div>
@@ -561,36 +816,82 @@ function paintWeather(el) {
     <div class="wx-actions">
       <button class="btn btn-ghost" data-act="wx-retry">↻ Standort neu bestimmen</button>
     </div>
-    <p class="muted small" style="text-align:center">Daten: Open-Meteo · Ort: BigDataCloud · beide ohne Tracking</p>`
+    <p class="muted small" style="text-align:center">Wetter: Open-Meteo · Warnungen: GeoSphere Austria · Ort: BigDataCloud</p>`
 }
 
 // --------------------------------------------------------- Einstellungs-UI
 
+const AI_EXPLAIN = `
+<p class="small">Der Knopf <b>💡 Einordnung</b> hat zwei Ausbaustufen.</p>
+<p class="small"><b>Ohne Schlüssel</b> siehst du eine regelbasierte Analyse der <i>Quellenlage</i>:
+Wie verlässlich ist die Redaktion, berichten mehrere unabhängige Häuser dasselbe, wie alt ist die
+Meldung, wurde sie maschinell übersetzt. Das sagt nichts über den Inhalt — nur darüber, wie gut
+die Meldung abgesichert ist.</p>
+<p class="small"><b>Mit Schlüssel</b> liest Claude Titel und Kurztext und schreibt dir vier Absätze:
+<i>Worum geht es</i> (rein faktisch), <i>Warum relevant</i> (konkrete Auswirkungen),
+<i>Einzuordnen</i> (was unsicher oder umstritten ist) und <i>Vorsicht</i> (welche Behauptung du
+ohne Zweitquelle nicht übernehmen solltest). Bei übersetzten Meldungen bekommt Claude das
+Original, nicht die Übersetzung.</p>
+<p class="small warn">Wichtig: Claude sieht nur Titel und Kurztext, nicht den ganzen Artikel.
+Die Einordnung ersetzt das Lesen des Originals nicht.</p>
+<details class="howto">
+  <summary>So bekommst du einen Anthropic-API-Key</summary>
+  <ol class="small">
+    <li>Auf <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer">console.anthropic.com</a>
+        mit E-Mail registrieren.</li>
+    <li>Links auf <b>Billing</b> und ein Guthaben aufladen — 5 $ sind das Minimum und reichen
+        für Monate. Ohne Guthaben liefert der Schlüssel nur Fehler.</li>
+    <li>Unter <b>Limits</b> ein monatliches Ausgabenlimit setzen, z. B. 5 $. Das ist die
+        Bremse, falls etwas schiefgeht.</li>
+    <li>Links auf <b>API Keys</b> → <b>Create Key</b>, Namen vergeben (z. B. „Faktum“).</li>
+    <li>Den Schlüssel <b>sofort kopieren</b> — er wird nur einmal angezeigt — und unten einfügen.</li>
+  </ol>
+  <p class="small muted">Kosten: eine Einordnung liegt im Bereich von deutlich unter einem Cent.
+  Selbst bei zwanzig Einordnungen am Tag bleibst du unter 1 € im Monat.</p>
+</details>
+<p class="muted small warn">⚠ Der Schlüssel liegt im Speicher deines Browsers und geht direkt an
+api.anthropic.com. Das ist bequem, aber kein Tresor — setze das Ausgabenlimit.</p>
+`
+
 function openSheet() {
+  $('#ai-explain').innerHTML = AI_EXPLAIN
   renderLearnSummary()
   renderSourceReport()
-  $('#opt-hide-rejected').checked = settings.hideRejected
+  renderStorageInfo()
+  $('#opt-hide-read').checked = settings.hideRead
   $('#opt-hide-lowfact').checked = settings.hideLowFact
   $('#opt-images').checked = settings.images
+  $('#opt-ticker').checked = settings.ticker
   $('#opt-apikey').value = settings.apiKey || ''
   $('#sheet').hidden = false
 }
 
+function renderStorageInfo() {
+  const bytes = Object.values(LS).reduce((n, k) => n + (localStorage.getItem(k)?.length || 0), 0)
+  $('#storage-info').textContent =
+    `${Object.keys(saved).length} gemerkt · ${Object.keys(readMap).length} gelesen · `
+    + `${history.length} Einträge in der Historie · ${(bytes / 1024).toFixed(0)} KB belegt`
+}
+
 function renderLearnSummary() {
   const n = Object.keys(prefs.votes).length
-  const up = Object.values(prefs.votes).filter(v => v === 1).length
+  const up = Object.values(prefs.votes).filter(v => v.v === 1).length
   $('#learn-summary').textContent = n === 0
-    ? 'Noch keine Bewertungen. Tippe bei den Meldungen auf 👍 oder 👎 — die Sortierung in „Für dich“ passt sich an.'
-    : `${n} Bewertungen (${up}× relevant, ${n - up}× nicht relevant). Die Reihenfolge in „Für dich“ richtet sich danach.`
+    ? 'Noch keine Bewertungen. Tippe bei den Meldungen auf 👍 oder 👎 — „Für dich“ richtet sich danach.'
+    : `${n} Bewertungen (${up}× relevant, ${n - up}× eher nicht). Das Lernprofil wächst weiter, auch wenn die Meldungen selbst nach 3 Tagen gelöscht werden.`
 
   const top = (arr, min) => arr.filter(([, v]) => Math.abs(v) >= min)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12)
 
   const html = []
-  // Themen erst ab dem zweiten Treffer zeigen — ein einzelnes Wort aus einer
-  // einzigen Meldung ist noch kein Interesse.
-  const kws = top(Object.entries(prefs.keywords), 1.3)
+  const focus = top(Object.entries(prefs.focus), 0.5)
   const srcs = top(Object.entries(prefs.sources), 0.7)
+  const kws = top(Object.entries(prefs.keywords), 1.3)
+
+  if (focus.length) {
+    html.push(`<p class="muted small" style="margin:10px 0 0">Fokusthemen</p><div class="tag-list">${
+      focus.map(([k, v]) => `<span class="tag ${v > 0 ? 'pos' : 'neg'}">${esc(k)}</span>`).join('')}</div>`)
+  }
   if (srcs.length) {
     html.push(`<p class="muted small" style="margin:10px 0 0">Quellen</p><div class="tag-list">${
       srcs.map(([k, v]) => `<span class="tag ${v > 0 ? 'pos' : 'neg'}">${esc(k)} ${v > 0 ? '+' : ''}${v.toFixed(1)}</span>`).join('')}</div>`)
@@ -610,11 +911,24 @@ function renderSourceReport() {
       ? `<p class="muted small warn" style="margin:0 0 6px">${problems} von ${rep.length} Quellen mit Problemen.</p>`
       : `<p class="muted small" style="margin:0 0 6px">Alle ${rep.length} Quellen liefern aktuell.</p>`)
     + (rep.map(r => {
-      const status = !r.ok ? 'nicht erreichbar'
-        : r.stale ? 'veraltet'
-        : `${r.items} Meldungen`
+      const status = !r.ok ? 'nicht erreichbar' : r.stale ? 'veraltet' : `${r.items} Meldungen`
       return `<div class="${!r.ok || r.stale ? 'bad' : ''}"><span>${esc(r.source)}</span><span>${status}</span></div>`
     }).join('') || '<div class="muted">Kein Bericht verfügbar.</div>')
+}
+
+// ---------------------------------------------------------------- Lightbox
+
+function openLightbox(item) {
+  $('#lightbox-img').src = item.image
+  $('#lightbox-cap').textContent = `${item.source} — ${item.title}`
+  $('#lightbox').hidden = false
+  document.body.style.overflow = 'hidden'
+}
+
+function closeLightbox() {
+  $('#lightbox').hidden = true
+  $('#lightbox-img').src = ''
+  document.body.style.overflow = ''
 }
 
 // ------------------------------------------------------------------ Events
@@ -634,18 +948,20 @@ document.addEventListener('click', ev => {
   const act = ev.target.closest('[data-act]')?.dataset.act
 
   if (card && act) {
-    const item = state.data.items.find(i => i.id === card.dataset.id)
+    const item = findItem(card.dataset.id)
     if (!item) return
-    if (act === 'up' || act === 'down') {
-      vote(item, act === 'up' ? 1 : -1)
-      if (act === 'down' && settings.hideRejected) {
-        card.style.transition = 'opacity .2s, transform .2s'
-        card.style.opacity = '0'
-        card.style.transform = 'scale(.97)'
-        setTimeout(render, 200)
-      } else {
-        render()
-      }
+    if (act === 'up') {
+      vote(item, 1)
+      render()
+    } else if (act === 'down') {
+      vote(item, -1)
+      card.style.transition = 'opacity .2s, transform .2s'
+      card.style.opacity = '0'
+      card.style.transform = 'scale(.97)'
+      setTimeout(render, 200)
+    } else if (act === 'save') {
+      toggleSave(item)
+      render()
     } else if (act === 'detail') {
       toggleDetail(card, item)
     } else if (act === 'zoom') {
@@ -656,34 +972,79 @@ document.addEventListener('click', ev => {
 
   if (act === 'wx-retry') { renderWeather({ force: true }); return }
 
-  if (ev.target.closest('#btn-refresh')) { fetchNews({ force: true }); if (state.tab === 'wetter') renderWeather({ force: true }); return }
+  if (ev.target.closest('#btn-refresh')) {
+    fetchNews({ force: true })
+    fetchWarnings().then(renderTicker)
+    if (state.tab === 'wetter') renderWeather({ force: true })
+    return
+  }
+  if (ev.target.closest('#btn-search')) { toggleSearch(); return }
+  if (ev.target.closest('#btn-search-clear')) { toggleSearch(false); return }
   if (ev.target.closest('#btn-settings')) { openSheet(); return }
   if (ev.target.closest('[data-close]')) { $('#sheet').hidden = true; return }
 })
 
-$('#opt-hide-rejected').addEventListener('change', e => {
-  settings.hideRejected = e.target.checked; save(LS_SETTINGS, settings); render()
+function toggleSearch(show) {
+  const bar = $('#searchbar')
+  const open = show === undefined ? bar.hidden : show
+  bar.hidden = !open
+  if (open) {
+    $('#search-input').focus()
+  } else {
+    $('#search-input').value = ''
+    state.search = ''
+    render()
+  }
+}
+
+let searchTimer = null
+$('#search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    state.search = e.target.value.trim()
+    render()
+  }, 180)
 })
-$('#opt-hide-lowfact').addEventListener('change', e => {
-  settings.hideLowFact = e.target.checked; save(LS_SETTINGS, settings); render()
+
+const bindToggle = (sel, key) => $(sel).addEventListener('change', e => {
+  settings[key] = e.target.checked
+  save(LS.settings, settings)
+  render()
+  renderTicker()
 })
-$('#opt-images').addEventListener('change', e => {
-  settings.images = e.target.checked; save(LS_SETTINGS, settings); render()
-})
+bindToggle('#opt-hide-read', 'hideRead')
+bindToggle('#opt-hide-lowfact', 'hideLowFact')
+bindToggle('#opt-images', 'images')
+bindToggle('#opt-ticker', 'ticker')
+
 $('#btn-save-key').addEventListener('click', () => {
-  settings.apiKey = $('#opt-apikey').value.trim(); save(LS_SETTINGS, settings)
+  settings.apiKey = $('#opt-apikey').value.trim()
+  save(LS.settings, settings)
   $('#btn-save-key').textContent = settings.apiKey ? '✓ Gespeichert' : '✓ Entfernt'
   setTimeout(() => { $('#btn-save-key').textContent = 'Speichern' }, 1800)
 })
 $('#btn-clear-key').addEventListener('click', () => {
-  settings.apiKey = ''; $('#opt-apikey').value = ''; save(LS_SETTINGS, settings)
+  settings.apiKey = ''
+  $('#opt-apikey').value = ''
+  save(LS.settings, settings)
 })
 $('#btn-reset-learning').addEventListener('click', () => {
-  if (!confirm('Alle gelernten Vorlieben und Bewertungen löschen?')) return
-  prefs = defaultPrefs(); save(LS_PREFS, prefs); renderLearnSummary(); render()
+  if (!confirm('Alle gelernten Vorlieben und Bewertungen löschen? Gemerktes bleibt erhalten.')) return
+  prefs = defaults.prefs()
+  save(LS.prefs, prefs)
+  renderLearnSummary()
+  render()
+})
+$('#btn-clear-history').addEventListener('click', () => {
+  if (!confirm('Historie und Lesestatus leeren? Gemerktes und das Lernprofil bleiben erhalten.')) return
+  history = []
+  readMap = {}
+  save(LS.history, history)
+  save(LS.read, readMap)
+  renderStorageInfo()
+  render()
 })
 
-// Stündlich nachladen, solange die App offen ist, und beim Zurückkehren.
 setInterval(() => fetchNews(), CHECK_INTERVAL_MS)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchNews() })
 window.addEventListener('online', () => fetchNews({ force: true }))
@@ -691,16 +1052,21 @@ document.addEventListener('keydown', ev => {
   if (ev.key !== 'Escape') return
   if (!$('#lightbox').hidden) closeLightbox()
   else if (!$('#sheet').hidden) $('#sheet').hidden = true
+  else if (!$('#searchbar').hidden) toggleSearch(false)
 })
 
 // ------------------------------------------------------------------- Start
 
+purgeOld()
 $('#feed').innerHTML = Array.from({ length: 4 }, () => '<div class="skeleton"></div>').join('')
 setStatus('Lade Meldungen …')
 
-const cached = tryCache()
-if (cached) { state.data = cached; render() }
+const cached = load(LS.cache, () => null)
+if (cached?.items?.length) { state.data = cached; render() }
+
 fetchNews({ force: true })
+loadWeather().then(() => { renderTicker(); if (state.tab === 'wetter') renderWeather() })
+fetchWarnings().then(renderTicker)
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}))

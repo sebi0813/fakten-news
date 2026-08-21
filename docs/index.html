@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<title>Fakten</title>
+<title>Faktum</title>
 <meta name="description" content="Werbefreie, faktenorientierte Nachrichten aus geprüften Quellen.">
 <meta name="theme-color" content="#0b1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Fakten">
+<meta name="apple-mobile-web-app-title" content="Faktum">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -19,12 +19,20 @@
 
 <header class="topbar">
   <div class="topbar-row">
-    <h1 class="brand"><span class="brand-check">✓</span> Fakten</h1>
+    <h1 class="brand"><span class="brand-check">✓</span> Faktum</h1>
     <div class="topbar-actions">
-      <button id="btn-refresh" class="icon-btn" title="Aktualisieren" aria-label="Aktualisieren">↻</button>
+      <button id="btn-search" class="icon-btn" title="Suchen" aria-label="Suchen">⌕</button>
+      <button id="btn-refresh" class="icon-btn" title="Jetzt aktualisieren" aria-label="Aktualisieren">↻</button>
       <button id="btn-settings" class="icon-btn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
     </div>
   </div>
+
+  <div class="searchbar" id="searchbar" hidden>
+    <input type="search" id="search-input" placeholder="In Titeln und Texten suchen …"
+           autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+    <button class="icon-btn" id="btn-search-clear" aria-label="Suche schließen">✕</button>
+  </div>
+
   <nav class="tabs" id="tabs" role="tablist"></nav>
   <div class="status" id="status"></div>
 </header>
@@ -34,6 +42,12 @@
   <section id="weather" class="weather" hidden></section>
   <div id="empty" class="empty" hidden></div>
 </main>
+
+<!-- Laufband -->
+<div id="ticker" class="ticker" hidden>
+  <span class="ticker-label" id="ticker-label">i</span>
+  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track"></div></div>
+</div>
 
 <!-- Bild-Vollbild -->
 <div id="lightbox" class="lightbox" hidden>
@@ -53,7 +67,7 @@
     <div class="sheet-body">
 
       <section class="card-lite">
-        <h3>Was du gelernt hast</h3>
+        <h3>Was Faktum über dich gelernt hat</h3>
         <p class="muted" id="learn-summary">Noch keine Bewertungen.</p>
         <div id="learn-top"></div>
         <div class="row">
@@ -64,8 +78,9 @@
       <section class="card-lite">
         <h3>Anzeige</h3>
         <label class="switch">
-          <input type="checkbox" id="opt-hide-rejected" checked>
-          <span>Als „nicht relevant“ markierte Meldungen ausblenden</span>
+          <input type="checkbox" id="opt-hide-read" checked>
+          <span>Gelesene und bewertete Meldungen ausblenden
+            <small class="muted">Sie bleiben unter „Historie“ einsehbar.</small></span>
         </label>
         <label class="switch">
           <input type="checkbox" id="opt-hide-lowfact">
@@ -75,20 +90,30 @@
           <input type="checkbox" id="opt-images" checked>
           <span>Bilder laden</span>
         </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-ticker" checked>
+          <span>Laufband am unteren Rand anzeigen</span>
+        </label>
       </section>
 
       <section class="card-lite">
-        <h3>KI-Einordnung <span class="pill pill-muted">optional</span></h3>
+        <h3>Speicher</h3>
+        <p class="muted small" id="storage-info"></p>
         <p class="muted small">
-          Ohne Schlüssel liefert der Button „Einordnung“ eine regelbasierte Analyse
-          (Quellengüte, Mehrfachbestätigung, Aktualität). Mit einem Anthropic-API-Key
-          erstellt Claude zusätzlich eine inhaltliche Einordnung.
+          Meldungen und der Lesestatus werden nach 3 Tagen automatisch gelöscht.
+          Gemerktes bleibt dauerhaft — mit vollem Text, auch wenn die Quelle den
+          Artikel entfernt. Deine Bewertungen fließen weiter ins Lernprofil ein,
+          damit es über Wochen wächst statt sich alle drei Tage zurückzusetzen.
         </p>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-clear-history">Historie leeren</button>
+        </div>
+      </section>
+
+      <section class="card-lite" id="ai-section">
+        <h3>Die KI-Einordnung <span class="pill pill-muted">optional</span></h3>
+        <div id="ai-explain"></div>
         <input type="password" id="opt-apikey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
-        <p class="muted small warn">
-          ⚠ Der Schlüssel wird nur lokal auf diesem Gerät gespeichert (localStorage) und
-          direkt an api.anthropic.com gesendet. Nutze einen Key mit engem Limit.
-        </p>
         <div class="row">
           <button class="btn btn-ghost" id="btn-save-key">Speichern</button>
           <button class="btn btn-ghost" id="btn-clear-key">Löschen</button>
@@ -97,16 +122,8 @@
 
       <section class="card-lite">
         <h3>Quellen</h3>
-        <p class="muted small">Stündlich automatisch abgerufen. Status des letzten Laufs:</p>
+        <p class="muted small">Stündlich von 5:30 bis 23:00 Uhr abgerufen. Status des letzten Laufs:</p>
         <div id="source-report" class="source-report"></div>
-      </section>
-
-      <section class="card-lite">
-        <h3>Aufs iPhone legen</h3>
-        <p class="muted small">
-          Safari öffnen → Teilen-Symbol <b>⎋</b> → <b>Zum Home-Bildschirm</b>.
-          Danach startet die App als eigenes Icon im Vollbild.
-        </p>
       </section>
 
     </div>

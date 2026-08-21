@@ -15,15 +15,65 @@
 // Unabhängigkeit, die "akkreditierte Berichterstattung" ausmacht.
 
 export const CATEGORIES = [
+  { id: 'fokus', label: 'Fokus', icon: '🎯' },
   { id: 'wirtschaft-int', label: 'Wirtschaft international', icon: '🌍' },
   { id: 'wirtschaft-at', label: 'Wirtschaft Österreich', icon: '🇦🇹' },
-  { id: 'sport-int', label: 'Sport international', icon: '⚽' },
+  { id: 'sport-int', label: 'Sport', icon: '⚽' },
+  { id: 'wissenschaft', label: 'Wissenschaft', icon: '🔬' },
   { id: 'welt', label: 'Welt', icon: '🗺' },
   { id: 'oesterreich', label: 'Österreich', icon: '📰' },
   { id: 'korneuburg', label: 'Korneuburg', icon: '📍' },
 ]
 
 export const SOURCES = [
+  // ---------- Fokus: KI-Sektor ----------
+  // Eigene Quellen für die Fokusthemen. Meldungen aus allen anderen
+  // Kategorien, die auf FOCUS_TOPICS passen, landen zusätzlich im Fokus-Tab.
+  { name: 'Ars Technica AI', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://arstechnica.com/ai/feed/', site: 'arstechnica.com' },
+  { name: 'TechCrunch AI', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://techcrunch.com/category/artificial-intelligence/feed/', site: 'techcrunch.com' },
+  { name: 'The Verge AI', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', site: 'theverge.com' },
+  { name: 'MIT Technology Review', cat: 'fokus', trust: 3, lang: 'en',
+    url: 'https://www.technologyreview.com/feed/', site: 'technologyreview.com' },
+  { name: 'Google DeepMind', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://deepmind.google/blog/rss.xml', site: 'deepmind.google' },
+  { name: 'The Register AI', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://www.theregister.com/software/ai_ml/headlines.atom', site: 'theregister.com' },
+  { name: 'heise', cat: 'fokus', trust: 2, lang: 'de',
+    url: 'https://www.heise.de/rss/heise-atom.xml', site: 'heise.de', focusOnly: true },
+  { name: 'Golem', cat: 'fokus', trust: 2, lang: 'de',
+    url: 'https://www.golem.de/rss.php?feed=RSS2.0', site: 'golem.de', focusOnly: true },
+  { name: 't3n', cat: 'fokus', trust: 2, lang: 'de',
+    url: 'https://t3n.de/rss.xml', site: 't3n.de', focusOnly: true },
+  // Agile Coaching kommt in Nachrichtenfeeds praktisch nicht vor. Ohne diese
+  // Fachquellen bliebe das Thema dauerhaft leer.
+  { name: 'InfoQ Agile', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://feed.infoq.com/agile/', site: 'infoq.com' },
+  { name: 'InfoQ Kultur & Methoden', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://feed.infoq.com/culture-methods/', site: 'infoq.com' },
+  { name: 'Scrum.org', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://www.scrum.org/resources/blog/rss.xml', site: 'scrum.org' },
+
+  // ---------- Wissenschaft ----------
+  { name: 'ORF Science', cat: 'wissenschaft', trust: 3, lang: 'de',
+    url: 'https://rss.orf.at/science.xml', site: 'orf.at' },
+  { name: 'DER STANDARD Wissenschaft', cat: 'wissenschaft', trust: 2, lang: 'de',
+    url: 'https://www.derstandard.at/rss/wissenschaft', site: 'derstandard.at' },
+  { name: 'scinexx', cat: 'wissenschaft', trust: 2, lang: 'de',
+    url: 'https://www.scinexx.de/feed/', site: 'scinexx.de' },
+  { name: 'Spektrum der Wissenschaft', cat: 'wissenschaft', trust: 3, lang: 'de',
+    url: 'https://www.spektrum.de/alias/rss/spektrum-de-rss-feed/996406', site: 'spektrum.de' },
+  { name: 'tagesschau Wissen', cat: 'wissenschaft', trust: 3, lang: 'de',
+    url: 'https://www.tagesschau.de/wissen/index~rss2.xml', site: 'tagesschau.de' },
+  { name: 'Nature', cat: 'wissenschaft', trust: 3, lang: 'en',
+    url: 'https://www.nature.com/nature.rss', site: 'nature.com' },
+  { name: 'ScienceDaily', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/all.xml', site: 'sciencedaily.com' },
+  { name: 'phys.org', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://phys.org/rss-feed/', site: 'phys.org' },
+
   // ---------- Wirtschaft international ----------
   { name: 'BBC Business', cat: 'wirtschaft-int', trust: 3, lang: 'en',
     url: 'https://feeds.bbci.co.uk/news/business/rss.xml', site: 'bbc.com' },
@@ -81,6 +131,12 @@ export const SOURCES = [
     url: 'https://www.diepresse.com/rss/Sport', site: 'diepresse.com' },
   { name: 'MARCA', cat: 'sport-int', trust: 2, lang: 'es',
     url: 'https://e00-marca.uecdn.es/rss/portada.xml', site: 'marca.com' },
+  // Österreichischer Sport. rss.orf.at/sport.xml wurde beim ersten Anlauf
+  // fälschlich als leer verworfen — der Feed liefert 17 aktuelle Meldungen.
+  { name: 'ORF Sport', cat: 'sport-int', trust: 3, lang: 'de',
+    url: 'https://rss.orf.at/sport.xml', site: 'orf.at' },
+  { name: 'vienna.at Sport', cat: 'sport-int', trust: 1, lang: 'de',
+    url: 'https://www.vienna.at/rss/sport', site: 'vienna.at' },
 
   // ---------- Welt (international, fremdsprachig -> übersetzt) ----------
   { name: 'BBC World', cat: 'welt', trust: 3, lang: 'en',
@@ -146,6 +202,108 @@ export const SOURCES = [
     url: 'https://rss.orf.at/noe.xml', site: 'orf.at', requireLocal: true },
 ]
 
+// ---------------------------------------------------------------- Fokusthemen
+//
+// Meldungen, die hier treffen, landen zusätzlich im Fokus-Tab und werden in
+// "Für dich" bevorzugt — unabhängig davon, aus welcher Kategorie sie stammen.
+// `strong` verlangt eine wörtliche Nennung, `weak` zählt nur zusammen mit
+// einem weiteren Treffer. Das verhindert, dass jedes "agil" oder jedes
+// beiläufige "KI" eine Meldung zum Fokusthema macht.
+
+export const FOCUS_TOPICS = [
+  {
+    id: 'raiffeisen',
+    label: 'Raiffeisen / RBI',
+    icon: '🏦',
+    strong: [
+      'raiffeisen', 'rbi ', ' rbi', 'raiffeisen bank international',
+      'raiffeisenlandesbank', 'rzb', 'raiffeisen-holding',
+    ],
+    weak: ['bankensektor', 'osteuropa-geschäft', 'russland-geschäft', 'bawag', 'erste group'],
+  },
+  {
+    id: 'agile',
+    label: 'Agile Coaching',
+    icon: '🔄',
+    strong: [
+      'agile coach', 'agiles coaching', 'scrum master', 'scrum-master',
+      'agile transformation', 'agiles arbeiten', 'agile methoden',
+      'product owner', 'kanban', 'scaled agile', 'safe framework',
+      'retrospektive', 'agile leadership',
+    ],
+    weak: ['scrum', 'agilität', 'agile', 'new work', 'selbstorganisation', 'teamentwicklung'],
+  },
+  {
+    id: 'ki',
+    label: 'KI & neue Modelle',
+    icon: '🤖',
+    strong: [
+      'künstliche intelligenz', 'artificial intelligence', 'ki-modell', 'ai model',
+      'sprachmodell', 'language model', ' llm', 'llm ', 'openai', 'anthropic',
+      'deepmind', 'chatgpt', 'claude ', 'gemini', 'llama', 'mistral',
+      'nvidia', 'ki-chip', 'transformer-modell', 'generative ki', 'generative ai',
+      'machine learning', 'maschinelles lernen', 'neuronales netz', 'ki-agent',
+      'ai agent', 'foundation model', 'ki-verordnung', 'ai act',
+    ],
+    weak: ['algorithmus', 'automatisierung', 'chatbot', 'roboter', 'rechenzentrum', ' ki '],
+  },
+]
+
+// ----------------------------------------------------------------- Flash-News
+//
+// Schwere Unfälle, Katastrophen und Warnungen. Bewusst eng gehalten: lieber
+// eine Meldung zu wenig als ein Tab voller Alltagskriminalität.
+
+export const FLASH_PATTERNS = {
+  // Ereignis muss vorliegen ...
+  event: [
+    /\bschwerer? unfall\b/i, /\bverkehrsunfall\b/i, /\bmassenkarambolage\b/i,
+    /\bzugunglück\b/i, /\bflugzeugabsturz\b/i, /\babsturz\b/i,
+    /\bexplosion\b/i, /\bgroßbrand\b/i, /\bbrandkatastrophe\b/i,
+    /\berdbeben\b/i, /\bhochwasser\b/i, /\büberschwemmung\b/i, /\bmure\b/i,
+    /\blawine\b/i, /\bunwetter\b/i, /\borkan\b/i, /\btornado\b/i,
+    /\bevakuier/i, /\bkatastrophenalarm\b/i, /\bausnahmezustand\b/i,
+    /\bamoklauf\b/i, /\banschlag\b/i, /\bterror/i, /\bgeiselnahme\b/i,
+    /\bschussabgabe\b/i, /\bmesserattacke\b/i,
+    /\bvermisst\b/i, /\bgroßeinsatz\b/i, /\bsperre der\b/i,
+    /\bstromausfall\b/i, /\bblackout\b/i, /\btrinkwasser/i,
+    /\brückruf\b/i, /\bseuche\b/i, /\bpandemie\b/i,
+    /\bwarnung\b/i, /\bwarnstufe\b/i, /\bzivilschutz/i,
+  ],
+  // ... und Schwere oder Regionalbezug dazukommen
+  severity: [
+    /\btot\b/i, /\bgetötet\b/i, /\btote[nr]?\b/i, /\bopfer\b/i,
+    /\bschwer verletzt\b/i, /\bschwerverletzt/i, /\blebensgefahr\b/i,
+    /\bmehrere verletzte\b/i, /\bnotarzt\b/i, /\brettungshubschrauber\b/i,
+    /\bfeuerwehr\b/i, /\bkrisenstab\b/i, /\bgesperrt\b/i,
+  ],
+}
+
+// ------------------------------------------------------------------ ÖBB-Ticker
+//
+// Der offizielle ÖBB-Feed liefert 300 Einträge, überwiegend Auslastungs-
+// hinweise und bundesweite Bauarbeiten, und wiederholt dieselbe Störung je
+// betroffenem Zug. Beides muss gefiltert bzw. zusammengefasst werden.
+
+export const OEBB_FEED = 'https://fahrplan.oebb.at/bin/help.exe/dn?tpl=rss_feed'
+
+// Bahnhöfe und Strecken rund um Korneuburg (Nordwestbahn, Franz-Josefs-Bahn,
+// S-Bahn S3). Nur Meldungen, die eine davon nennen, kommen in den Ticker.
+export const REGION_STATIONS = [
+  'korneuburg', 'bisamberg', 'langenzersdorf', 'leobendorf', 'burgstall',
+  'spillern', 'stockerau', 'tulln', 'absdorf', 'hippersdorf', 'stetten',
+  'wien floridsdorf', 'floridsdorf', 'wien franz-josefs-bahnhof',
+  'franz-josefs-bahnhof', 'wien praterstern', 'wien heiligenstadt',
+  'nordwestbahn', 'franz-josefs-bahn', 'weinviertel', 'ernstbrunn',
+  'wolkersdorf', 'gerasdorf', 'hollabrunn', 'retz',
+]
+
+// Reine Komfort-Hinweise, die nicht in den Ticker gehören.
+export const OEBB_NOISE = [
+  /sehr hohe auslastung/i, /sitzplatzreservierung/i, /fahrradmitnahme/i,
+  /nicht barrierefrei/i, /bordrestaurant/i, /klimaanlage/i, /wlan\b/i,
+]
+
 // Ortsbezug für die Korneuburg-Kategorie: Bezirk Korneuburg + direkte Nachbarn.
 export const LOCAL_TERMS = [
   'korneuburg', 'bisamberg', 'stockerau', 'langenzersdorf', 'leobendorf',
@@ -181,6 +339,10 @@ export const OPINION_PATTERNS = [
   /\bopinie\b/i, /\bcommentaar\b/i, /\bcolumn\b/i,
   /\bledare\b/i, /\bdebatt\b/i, /\bkr[øö]nike\b/i, /\bkommentator\b/i,
   /\b社説\b/, /\b解説\b/,
+  // Leseraufrufe und Umfragen sind Redaktionsanfragen, keine Meldungen
+  /appel à témoignages/i, /rufen sie nach testimonials/i, /\baufruf zu\b/i,
+  /\berzählen sie uns\b/i, /\bihre erfahrungen\b/i, /\bshare your\b/i,
+  /\btell us about\b/i, /\bhaben sie\b.*\berlebt\b/i,
 ]
 
 // URL-Pfade, die typischerweise keine Nachricht sind.

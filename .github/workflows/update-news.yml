@@ -2,9 +2,11 @@ name: News aktualisieren
 
 on:
   schedule:
-    # Jede volle Stunde (UTC). GitHub verschiebt Cron-Läufe bei Last um
-    # einige Minuten — das ist normal und für stündliche News unkritisch.
-    - cron: '4 * * * *'
+    # Cron kennt keine Zeitzonen und keine Sommerzeit. Das Fenster ist hier
+    # deshalb großzügig in UTC gesetzt (deckt MEZ und MESZ ab); ob wirklich
+    # gebaut wird, entscheidet build-news.mjs anhand der echten Wiener Zeit.
+    # Gewünscht: stündlich 5:30 bis 23:00, nachts Ruhe.
+    - cron: '34 3-22 * * *'
   workflow_dispatch:        # Manuell im Actions-Tab auslösbar
   push:
     branches: [main]
