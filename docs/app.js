@@ -549,8 +549,9 @@ async function fetchWarnings() {
 function tickerEntries() {
   const out = []
   out.push(...state.warnings)
+  const PREFIX = { oebb: '🚆 ÖBB: ', traffic: '🚗 ', flash: '⚡ ' }
   for (const t of state.data?.ticker || []) {
-    out.push({ kind: t.kind, text: t.kind === 'oebb' ? `ÖBB: ${t.text}` : `⚡ ${t.text}` })
+    out.push({ kind: t.kind, text: (PREFIX[t.kind] || '') + t.text })
   }
   // Nichts los? Dann das Wetter der nächsten drei Stunden.
   if (!out.length && state.weather?.hourly) {
@@ -579,22 +580,30 @@ function renderTicker() {
   const entries = tickerEntries()
   if (!entries.length) { el.hidden = true; document.body.classList.remove('has-ticker'); return }
 
-  const priority = entries.some(e => e.kind === 'warn') ? 'warn'
-    : entries.some(e => e.kind === 'flash') ? 'flash'
-    : entries.some(e => e.kind === 'oebb') ? 'oebb' : 'wx'
-  const LABEL = { warn: '⚠', flash: '⚡', oebb: '🚆', wx: '🌤' }
+  // Die dringlichste vorhandene Art bestimmt Symbol und Farbe des Laufbands.
+  const ORDER = ['warn', 'flash', 'traffic', 'oebb', 'wx']
+  const priority = ORDER.find(k => entries.some(e => e.kind === k)) || 'wx'
+  const LABEL = { warn: '⚠', flash: '⚡', traffic: '🚗', oebb: '🚆', wx: '🌤' }
 
   $('#ticker-label').textContent = LABEL[priority]
   el.dataset.kind = priority
 
-  const text = entries.map(e => e.text).join('       •       ')
+  // Mehr als acht Einträge machen die Schleife unzumutbar lang.
+  const text = entries.slice(0, 8).map(e => e.text).join('       •       ')
+  const track = $('#ticker-track')
   // Zweimal hintereinander, damit die Schleife ohne Sprung durchläuft.
-  $('#ticker-track').innerHTML = `<span>${esc(text)}</span><span aria-hidden="true">${esc(text)}</span>`
-  // Tempo an die Textlänge koppeln: gleichbleibende Lesegeschwindigkeit.
-  $('#ticker-track').style.animationDuration = `${Math.max(18, text.length * 0.22)}s`
+  track.innerHTML = `<span>${esc(text)}</span><span aria-hidden="true">${esc(text)}</span>`
 
   el.hidden = false
   document.body.classList.add('has-ticker')
+
+  // Tempo aus der tatsächlich gerenderten Breite, nicht aus der Zeichenzahl.
+  // Die Zeichenschätzung lag um Faktor zwei daneben: 8 Einträge ergaben
+  // 216 Sekunden pro Durchlauf. Mit fester Geschwindigkeit in Pixeln pro
+  // Sekunde liest es sich unabhängig von der Textmenge gleich angenehm.
+  const PIXEL_PRO_SEKUNDE = 90
+  const breite = track.scrollWidth / 2      // eine der beiden Kopien
+  track.style.animationDuration = `${Math.max(12, Math.round(breite / PIXEL_PRO_SEKUNDE))}s`
 }
 
 // -------------------------------------------------------------- Einordnung

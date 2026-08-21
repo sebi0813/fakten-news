@@ -154,15 +154,46 @@ Intelligenz" beiläufig vorkam, als KI-Meldung.
 
 Unten läuft ein Ticker mit, in dieser Rangfolge:
 
-1. **Wetterwarnungen** von GeoSphere Austria (ehemals ZAMG) für deinen Standort
-2. **ÖBB-Störungen** deiner Region — Korneuburg, Stockerau, Floridsdorf,
-   Franz-Josefs-Bahn, Nordwestbahn und Nachbarn
-3. **Flash-News**
-4. Ist nichts davon aktuell: **Wetter der nächsten 3 Stunden**
+1. **Wetterwarnungen** von GeoSphere Austria für deinen Standort
+2. **Autobahnmeldungen** zu A22, A23, A5, S1 und der B3
+3. **ÖBB-Streckensperren** der Region Wien/Niederösterreich
+4. **ÖBB-Zugmeldungen** aus dem Fahrplanfeed
+5. **Flash-News**
+6. Ist nichts davon aktuell: **Wetter der nächsten 3 Stunden**
 
-Der ÖBB-Feed braucht besondere Behandlung: Seine `<title>`-Elemente sind leer, rund ein
-Drittel sind reine Auslastungshinweise, und dieselbe Störung erscheint einmal pro
-betroffenem Zug — teils zwanzigmal. Alles drei wird gefiltert bzw. zusammengefasst.
+Tempo: 90 Pixel pro Sekunde, aus der gerenderten Breite berechnet. Die erste Fassung
+schätzte über die Zeichenzahl und kam bei acht Einträgen auf 216 Sekunden pro Durchlauf.
+
+Höhe: `calc(40px + var(--safe-b))`. Mit `box-sizing: border-box` zählt das Padding in
+die Höhe hinein — stand dort nur `38px`, blieb auf dem iPhone nach Abzug der
+Home-Indicator-Zone ein 4-Pixel-Streifen übrig und der Text war abgeschnitten.
+
+### Woher die Verkehrsdaten kommen — und woher nicht
+
+**Streckensperren:** von der offiziellen Baustellenübersicht der ÖBB
+(`oebb.at/de/fahrplan/baustelleninformation`). Das ist **kein Feed, sondern eine
+Website**, die ausgelesen wird. Ihre Linktexte enthalten Strecke und Zeitraum
+vollständig, das ist stabil genug — wenn ÖBB die Seite umbaut, meldet der Build
+„Keine Links gefunden" und der Ticker bleibt bei diesem Punkt leer.
+
+Der ÖBB-**RSS-Feed** taugt dafür nicht: Er listet einzelne Zugausfälle und hatte für
+Wien/NÖ zuletzt nur Einträge vom **Dezember 2025**. Die monatelangen Sperren
+(Franz-Josefs-Bahn, Nordbahn, Stammstrecke) stehen ausschließlich auf der HTML-Seite.
+
+**Autobahnen: keine Livedaten.** ASFINAG beantwortet automatisierte Abrufe mit
+HTTP 403, `data.gv.at` liefert auf allen Katalogpfaden 404, VOR und die
+ÖBB-Verkehrsinfo-Seiten ebenfalls 404. Wiener Linien hat zwar eine offene
+Schnittstelle, die deckt aber nur Straßenbahn, Bus und U-Bahn ab — keine Autobahnen
+und keine S-Bahn.
+
+Was stattdessen passiert: Meldungen aus den vorhandenen Nachrichtenquellen werden
+erkannt, wenn sie **eine Strecke nennen und ein Ereignis beschreiben**. Beides muss
+zutreffen — „A22 Radweg feierlich eröffnet" nennt zwar die Strecke, beschreibt aber
+kein Verkehrsereignis und wird verworfen.
+
+> Das heißt konkret: Du siehst einen Stau auf der A23, **sobald eine Redaktion darüber
+> berichtet** — nicht in dem Moment, in dem er entsteht. Für Echtzeitdaten führt kein
+> Weg an der ASFINAG-Entwicklerregistrierung vorbei.
 
 ---
 

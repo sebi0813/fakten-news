@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url'
 import {
   SOURCES, CATEGORIES, LOCAL_TERMS, OPINION_PATTERNS,
   URL_BLOCKLIST, CLICKBAIT_PATTERNS, FOCUS_TOPICS, FLASH_PATTERNS,
-  OEBB_FEED, REGION_STATIONS, OEBB_NOISE,
+  OEBB_FEED, REGION_STATIONS, OEBB_NOISE, OEBB_BAUINFO, OEBB_REGION_LINES,
+  REGION_MOTORWAYS, TRAFFIC_EVENT,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 
@@ -517,6 +518,81 @@ async function buildOebbTicker(now) {
   return out
 }
 
+/**
+ * Die großen Streckensperren von der offiziellen ÖBB-Baustellenübersicht.
+ *
+ * Der RSS-Feed enthält sie nicht — er listet einzelne Zugausfälle und hatte
+ * für Wien/NÖ zuletzt nur Einträge vom Dezember 2025. Die Sperren, die
+ * monatelang gelten (Franz-Josefs-Bahn, Nordbahn, Stammstrecke), stehen nur
+ * auf der HTML-Seite. Deren Linktexte enthalten Strecke und Zeitraum
+ * vollständig, deshalb genügt es, die Links einzusammeln.
+ */
+async function buildOebbClosures() {
+  let html
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 20000)
+    const res = await fetch(OEBB_BAUINFO, {
+      signal: ctrl.signal,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15'
+          + ' (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+        'accept-language': 'de-AT,de;q=0.9',
+      },
+    })
+    clearTimeout(timer)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    html = await res.text()
+  } catch (err) {
+    console.warn(`  ÖBB-Baustellenübersicht nicht erreichbar: ${err.message}`)
+    return []
+  }
+
+  const links = [...html.matchAll(/<a[^>]+href="([^"]*baustelleninformation\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+    .map(m => [m[1], clean(m[2])])
+    .filter(([, t]) => t.length > 10)
+
+  const seen = new Set()
+  const out = []
+  for (const [href, title] of links) {
+    if (seen.has(title)) continue
+    seen.add(title)
+    const lower = title.toLowerCase()
+    if (!OEBB_REGION_LINES.some(l => lower.includes(l))) continue
+    out.push({
+      kind: 'oebb',
+      text: title,
+      link: href.startsWith('http') ? href : `https://www.oebb.at${href}`,
+      ts: Date.now(),
+    })
+  }
+
+  if (!links.length) {
+    console.warn('  ⚠ Keine Links auf der ÖBB-Baustellenseite gefunden — Seitenaufbau geändert?')
+  }
+  return out
+}
+
+/**
+ * Autobahnmeldungen für den Ticker.
+ *
+ * ASFINAG beantwortet automatisierte Abrufe mit HTTP 403, es gibt also keine
+ * Livedaten zur Verkehrslage. Was bleibt: Meldungen aus den bereits
+ * vorhandenen Nachrichtenquellen erkennen, die eine der relevanten Strecken
+ * nennen UND ein Verkehrsereignis beschreiben.
+ */
+function trafficTicker(items) {
+  const out = []
+  for (const it of items) {
+    const hay = `${it.title} ${it.summary || ''}`
+    if (!REGION_MOTORWAYS.some(re => re.test(hay))) continue
+    if (!TRAFFIC_EVENT.some(re => re.test(hay))) continue
+    out.push({ kind: 'traffic', text: it.title, link: it.link, ts: it.ts })
+    if (out.length >= 4) break
+  }
+  return out
+}
+
 // ----------------------------------------------------------------------- Main
 
 /**
@@ -669,11 +745,15 @@ async function main() {
 
   // Laufband: ÖBB-Störungen der Region plus die jüngsten Flash-News.
   console.log('\nTicker …')
-  const oebb = await buildOebbTicker(now)
+  const [closures, oebb] = await Promise.all([buildOebbClosures(), buildOebbTicker(now)])
+  const traffic = trafficTicker(items)
   const flashTicker = items.filter(i => i.flash).slice(0, 5)
     .map(i => ({ kind: 'flash', text: i.title, ts: i.ts, link: i.link }))
-  const ticker = [...oebb, ...flashTicker]
-  console.log(`  ${oebb.length} ÖBB-Meldungen (Region), ${flashTicker.length} Flash-News`)
+  // Reihenfolge = Dringlichkeit: Autobahn und Streckensperren zuerst.
+  const ticker = [...traffic, ...closures, ...oebb, ...flashTicker]
+  console.log(`  ${traffic.length} Autobahn, ${closures.length} Streckensperren,`
+    + ` ${oebb.length} ÖBB-Zugmeldungen, ${flashTicker.length} Flash-News`)
+  for (const c of closures) console.log(`     ${c.text.slice(0, 90)}`)
 
   const payload = {
     generated: new Date(now).toISOString(),

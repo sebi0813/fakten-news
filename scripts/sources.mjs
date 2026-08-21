@@ -287,6 +287,42 @@ export const FLASH_PATTERNS = {
 
 export const OEBB_FEED = 'https://fahrplan.oebb.at/bin/help.exe/dn?tpl=rss_feed'
 
+// Offizielle Baustellenübersicht der ÖBB. Der RSS-Feed oben kennt nur
+// einzelne Zugausfälle und hatte für die Region zuletzt nur Einträge vom
+// Dezember 2025 — die großen Streckensperren stehen ausschließlich hier.
+// Kein Feed, sondern HTML: Die Einträge stecken in Links, deren Linktext
+// bereits "Bauarbeiten Franz-Josefs-Bahn von 4. Juli bis 7. September 2026"
+// lautet. Das ist stabil genug zum Auslesen, aber eine Website — wenn ÖBB
+// sie umbaut, meldet der Build "keine Sperren gefunden".
+export const OEBB_BAUINFO = 'https://www.oebb.at/de/fahrplan/baustelleninformation'
+
+// Strecken und Linien, die für den Raum Korneuburg–Wien zählen.
+export const OEBB_REGION_LINES = [
+  'franz-josefs-bahn', 'nordwestbahn', 'nordbahn', 'stammstrecke',
+  'pottendorfer', 's40', 's80', 's60', 's1 ', 's2 ', 's3 ', 's7 ',
+  'wien', 'korneuburg', 'stockerau', 'floridsdorf', 'tulln',
+  'klosterneuburg', 'praterstern', 'hauptbahnhof', 'meidling',
+  'himberg', 'gänserndorf', 'hollabrunn', 'niederösterreich',
+]
+
+// Autobahnen, die für Sebastians Wege zählen. Da ASFINAG automatisierte
+// Abrufe mit HTTP 403 blockt, gibt es keine Livedaten — stattdessen werden
+// Nachrichtenmeldungen erkannt, die diese Strecken nennen.
+export const REGION_MOTORWAYS = [
+  /\bA\s?22\b/i, /\bdonauufer(autobahn|straße)?\b/i,
+  /\bA\s?23\b/i, /\bsüdosttangente\b/i,
+  /\bA\s?5\b/i, /\bnordautobahn\b/i,
+  /\bS\s?1\b.{0,20}(schnellstraße|ring)/i, /\bkorneuburger schnellstraße\b/i,
+  /\bB\s?3\b.{0,25}(korneuburg|stockerau|langenzersdorf)/i,
+]
+
+// Ereignisse, die einen Autobahn-Eintrag im Ticker rechtfertigen.
+export const TRAFFIC_EVENT = [
+  /\bstau\b/i, /\bstockend/i, /\bgesperrt\b/i, /\bsperre\b/i, /\bvollsperrung\b/i,
+  /\bunfall\b/i, /\bkarambolage\b/i, /\bumleitung\b/i, /\bbaustelle\b/i,
+  /\bverzögerung/i, /\bwartezeit/i, /\bkilometer lang/i,
+]
+
 // Bahnhöfe und Strecken rund um Korneuburg (Nordwestbahn, Franz-Josefs-Bahn,
 // S-Bahn S3). Nur Meldungen, die eine davon nennen, kommen in den Ticker.
 export const REGION_STATIONS = [

@@ -362,7 +362,11 @@ input[type=password], input[type=text] {
 .ticker {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
   display: flex; align-items: center; gap: 10px;
-  height: 38px;
+  /* box-sizing: border-box rechnet das Padding in die Höhe hinein. Stünde
+     hier nur 38px, bliebe auf dem iPhone nach Abzug der Home-Indicator-Zone
+     (safe-area-inset-bottom, rund 34px) ein 4px-Streifen übrig und der Text
+     wäre oben abgeschnitten. Die Zone muss also zur Höhe addiert werden. */
+  height: calc(40px + var(--safe-b));
   padding: 0 calc(12px + var(--safe-r)) var(--safe-b) calc(12px + var(--safe-l));
   background: rgba(11,18,32,.96);
   backdrop-filter: saturate(180%) blur(12px);
@@ -370,7 +374,9 @@ input[type=password], input[type=text] {
   border-top: 1px solid var(--line);
   font-size: 13px;
 }
-body.has-ticker { padding-bottom: calc(46px + var(--safe-b)); }
+/* Muss mindestens der Ticker-Höhe entsprechen, sonst verschwindet die
+   letzte Karte darunter. 40px Ticker + Zone + 12px Luft. */
+body.has-ticker { padding-bottom: calc(52px + var(--safe-b)); }
 
 .ticker-label {
   flex: 0 0 auto; width: 24px; height: 24px; border-radius: 7px;
@@ -380,6 +386,7 @@ body.has-ticker { padding-bottom: calc(46px + var(--safe-b)); }
 .ticker[data-kind="warn"]  .ticker-label { background: rgba(251,191,36,.2); }
 .ticker[data-kind="flash"] .ticker-label { background: rgba(248,113,113,.22); }
 .ticker[data-kind="oebb"]  .ticker-label { background: rgba(96,165,250,.2); }
+.ticker[data-kind="traffic"] .ticker-label { background: rgba(251,146,60,.22); }
 
 .ticker-viewport { flex: 1 1 auto; overflow: hidden; position: relative; height: 100%; }
 .ticker-track {
