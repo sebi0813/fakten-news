@@ -13,6 +13,10 @@
  */
 'use strict'
 
+// Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
+// neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
+const APP_VERSION = 'v3 (22.08.2026)'
+
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
 const CHECK_INTERVAL_MS = 5 * 60 * 1000
@@ -868,9 +872,10 @@ function openSheet() {
 
 function renderStorageInfo() {
   const bytes = Object.values(LS).reduce((n, k) => n + (localStorage.getItem(k)?.length || 0), 0)
-  $('#storage-info').textContent =
+  $('#storage-info').innerHTML =
     `${Object.keys(saved).length} gemerkt · ${Object.keys(readMap).length} gelesen · `
     + `${history.length} Einträge in der Historie · ${(bytes / 1024).toFixed(0)} KB belegt`
+    + `<br><b>App-Fassung ${esc(APP_VERSION)}</b>`
 }
 
 function renderLearnSummary() {
@@ -1068,6 +1073,31 @@ fetchNews({ force: true })
 loadWeather().then(() => { renderTicker(); if (state.tab === 'wetter') renderWeather() })
 fetchWarnings().then(renderTicker)
 
+/* Update-Erkennung.
+ *
+ * iOS hält installierte Web-Apps hartnäckig fest. Damit eine neue Fassung
+ * ankommt, braucht es drei Dinge:
+ *   1. updateViaCache:'none' — sonst kommt sw.js selbst aus dem HTTP-Cache
+ *      und der Browser bemerkt die Änderung nie.
+ *   2. registration.update() bei jedem Start und jedem Zurückwechseln.
+ *   3. Beim Wechsel des aktiven Workers einmal neu laden, damit die neue
+ *      Fassung sofort greift statt erst beim übernächsten Start.
+ */
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}))
+  let reloading = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return
+    reloading = true
+    location.reload()
+  })
+
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      reg.update()
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update()
+      })
+    } catch { /* ohne Service Worker läuft die App auch, nur ohne Offline-Modus */ }
+  })
 }

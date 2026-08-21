@@ -1,7 +1,12 @@
 /* Service Worker: App-Hülle offline verfügbar halten,
  * Nachrichten aber immer zuerst aus dem Netz holen. */
 
-const VERSION = 'fakten-v1'
+// WICHTIG: Diese Zeichenkette bei jeder Änderung an index.html, app.js oder
+// style.css hochzählen. Der activate-Handler löscht alle Caches, die anders
+// heißen — bleibt der Name gleich, überlebt der alte Inhalt jedes Update.
+// Genau das ist passiert: Version blieb auf v1, das iPhone zeigte tagelang
+// die erste Fassung, obwohl der Server längst die neue auslieferte.
+const VERSION = 'faktum-v3'
 const SHELL = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/apple-touch-icon.png', './icons/favicon-32.png',
