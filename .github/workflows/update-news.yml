@@ -42,15 +42,33 @@ jobs:
         run: |
           git config user.name  "news-bot"
           git config user.email "news-bot@users.noreply.github.com"
-          # Der i18n-Cache MUSS mit committet werden, sonst übersetzt jeder
-          # Lauf alle Meldungen neu statt nur die neu hinzugekommenen.
-          git add docs/data/news.json docs/data/i18n-cache.json
-          if git diff --staged --quiet; then
-            echo "Keine Änderung."
-          else
-            git commit -m "News: $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
-          fi
+
+          # Zwischen Checkout und Push können Minuten liegen. Landet in dieser
+          # Zeit ein anderer Push, lehnt GitHub ab. Deshalb bis zu fünf
+          # Versuche: bei Ablehnung den neuen Remote-Stand holen, den Zweig
+          # darauf setzen und die frisch gebauten Daten erneut committen.
+          # Die Daten dieses Laufs gewinnen immer — sie sind die aktuelleren.
+          for versuch in 1 2 3 4 5; do
+            # Der i18n-Cache MUSS mit, sonst übersetzt jeder Lauf alles neu.
+            git add docs/data/news.json docs/data/i18n-cache.json
+            if git diff --staged --quiet; then
+              echo "Keine Änderung — nichts zu committen."
+              exit 0
+            fi
+            git commit -q -m "News: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            if git push -q 2>/dev/null; then
+              echo "Gepusht im Versuch $versuch."
+              exit 0
+            fi
+            echo "Push abgelehnt (Versuch $versuch) — Remote hat sich bewegt, hole nach."
+            git fetch -q origin main
+            # Zeiger auf den neuen Remote-Stand, Arbeitsverzeichnis behalten:
+            # die eben gebauten Dateien bleiben liegen und werden neu committet.
+            git reset -q --mixed origin/main
+            sleep $((versuch * 3))
+          done
+          echo "::error::Push nach 5 Versuchen fehlgeschlagen."
+          exit 1
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
