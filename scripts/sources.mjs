@@ -65,8 +65,10 @@ export const SOURCES = [
   // ---------- Sport international ----------
   { name: 'BBC Sport', cat: 'sport-int', trust: 3, lang: 'en',
     url: 'https://feeds.bbci.co.uk/sport/rss.xml', site: 'bbc.com' },
-  { name: 'ESPN', cat: 'sport-int', trust: 2, lang: 'en',
-    url: 'https://www.espn.com/espn/rss/news', site: 'espn.com' },
+  // ESPN entfernt: liefert lokal 42 Meldungen, aus GitHub Actions aber 0 —
+  // der Anbieter sperrt Rechenzentrums-IPs aus. Da der Build dort läuft,
+  // ist die Quelle für uns wertlos und würde nur dauerhaft als "veraltet"
+  // im Quellenbericht stehen.
   { name: 'Sky Sports', cat: 'sport-int', trust: 2, lang: 'en',
     url: 'https://www.skysports.com/rss/12040', site: 'skysports.com' },
   { name: 'Sportschau', cat: 'sport-int', trust: 3, lang: 'de',
