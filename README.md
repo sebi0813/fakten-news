@@ -3,8 +3,8 @@
 Eine werbefreie, faktenorientierte Nachrichten-App als PWA. Läuft auf GitHub Pages,
 kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 
-**Kategorien:** Für dich · Flash · Fokus · Wirtschaft international · Wirtschaft Österreich ·
-Sport · Wissenschaft · Welt · Österreich · Korneuburg · Gemerkt · Wetter · Historie
+**Kategorien:** Für dich · Flash · Fokus · Wirtschaft · Sport · Wissenschaft · Welt ·
+Österreich · Korneuburg · Termine · Gemerkt · Wetter · Historie
 
 **72 Quellen in 8 Sprachen** — alles Fremdsprachige wird automatisch ins Deutsche übersetzt.
 
@@ -150,50 +150,41 @@ Intelligenz" beiläufig vorkam, als KI-Meldung.
 
 ---
 
-## Das Laufband
+## Der Info-Block
 
-Unten läuft ein Ticker mit, in dieser Rangfolge:
+Über den Meldungen in **Für dich** und **Flash** steht eine Liste mit dem, was gerade
+in der Umgebung zählt:
 
-1. **Wetterwarnungen** von GeoSphere Austria für deinen Standort
-2. **Autobahnmeldungen** zu A22, A23, A5, S1 und der B3
+1. **Wetterwarnungen** von GeoSphere Austria für den aktuellen Standort
+2. **Straßenmeldungen** zu A22, A23, A5, S1 und der B3
 3. **ÖBB-Streckensperren** der Region Wien/Niederösterreich
-4. **ÖBB-Zugmeldungen** aus dem Fahrplanfeed
-5. **Flash-News**
-6. Ist nichts davon aktuell: **Wetter der nächsten 3 Stunden**
+4. **Wetter** am Standort plus die nächsten drei Stunden
 
-Tempo: 90 Pixel pro Sekunde, aus der gerenderten Breite berechnet. Die erste Fassung
-schätzte über die Zeichenzahl und kam bei acht Einträgen auf 216 Sekunden pro Durchlauf.
-
-Höhe: `calc(40px + var(--safe-b))`. Mit `box-sizing: border-box` zählt das Padding in
-die Höhe hinein — stand dort nur `38px`, blieb auf dem iPhone nach Abzug der
-Home-Indicator-Zone ein 4-Pixel-Streifen übrig und der Text war abgeschnitten.
+Zuerst war das ein Laufband am unteren Rand. Das war die schlechtere Idee: Ein Ticker
+zwingt zum Warten, bis die gewünschte Zeile vorbeikommt, und die Höhenberechnung
+kollidierte auf dem iPhone mit der Home-Indicator-Zone. Als Liste ist alles auf einen
+Blick da.
 
 ### Woher die Verkehrsdaten kommen — und woher nicht
 
 **Streckensperren:** von der offiziellen Baustellenübersicht der ÖBB
 (`oebb.at/de/fahrplan/baustelleninformation`). Das ist **kein Feed, sondern eine
 Website**, die ausgelesen wird. Ihre Linktexte enthalten Strecke und Zeitraum
-vollständig, das ist stabil genug — wenn ÖBB die Seite umbaut, meldet der Build
-„Keine Links gefunden" und der Ticker bleibt bei diesem Punkt leer.
+vollständig — wenn ÖBB die Seite umbaut, meldet der Build „Keine Links gefunden".
 
 Der ÖBB-**RSS-Feed** taugt dafür nicht: Er listet einzelne Zugausfälle und hatte für
-Wien/NÖ zuletzt nur Einträge vom **Dezember 2025**. Die monatelangen Sperren
-(Franz-Josefs-Bahn, Nordbahn, Stammstrecke) stehen ausschließlich auf der HTML-Seite.
+Wien/NÖ zuletzt nur Einträge vom **Dezember 2025**.
 
 **Autobahnen: keine Livedaten.** ASFINAG beantwortet automatisierte Abrufe mit
-HTTP 403, `data.gv.at` liefert auf allen Katalogpfaden 404, VOR und die
-ÖBB-Verkehrsinfo-Seiten ebenfalls 404. Wiener Linien hat zwar eine offene
-Schnittstelle, die deckt aber nur Straßenbahn, Bus und U-Bahn ab — keine Autobahnen
-und keine S-Bahn.
+HTTP 403, `data.gv.at` liefert 404, VOR ebenfalls. Wiener Linien hat eine offene
+Schnittstelle, die deckt aber nur Straßenbahn, Bus und U-Bahn ab.
 
-Was stattdessen passiert: Meldungen aus den vorhandenen Nachrichtenquellen werden
-erkannt, wenn sie **eine Strecke nennen und ein Ereignis beschreiben**. Beides muss
-zutreffen — „A22 Radweg feierlich eröffnet" nennt zwar die Strecke, beschreibt aber
-kein Verkehrsereignis und wird verworfen.
+Stattdessen werden Meldungen aus den vorhandenen Nachrichtenquellen erkannt, wenn sie
+**eine Strecke nennen und ein Ereignis beschreiben** — „A22 Radweg feierlich eröffnet"
+nennt die Strecke, beschreibt aber kein Ereignis und wird verworfen.
 
-> Das heißt konkret: Du siehst einen Stau auf der A23, **sobald eine Redaktion darüber
-> berichtet** — nicht in dem Moment, in dem er entsteht. Für Echtzeitdaten führt kein
-> Weg an der ASFINAG-Entwicklerregistrierung vorbei.
+> Du siehst einen Stau, **sobald eine Redaktion darüber berichtet** — nicht wenn er
+> entsteht. Für Echtzeit führt kein Weg an einer ASFINAG-Registrierung vorbei.
 
 ---
 
@@ -384,6 +375,42 @@ Konflikte in den generierten Dateien automatisch auf:
 Auch der Bot selbst kann in diesen Wettlauf geraten: Er checkt aus, baut mehrere
 Minuten und pusht dann. Landet in dieser Zeit ein anderer Push, wird er abgelehnt.
 Der Workflow versucht es deshalb bis zu fünfmal mit wachsender Pause.
+
+---
+
+## Termine
+
+Ein eigener Tab zeigt Veranstaltungen der **nächsten zwei Wochen** für Korneuburg,
+Stockerau und Wien, nach Tagen gruppiert und chronologisch sortiert.
+
+Auch hier gibt es keine Schnittstelle: Wien liefert auf seinem Veranstaltungsdienst
+HTTP 500, `data.gv.at` 404, die Stadt Korneuburg hat keinen Kalenderexport, Falter und
+events.at ebenfalls 404. meinbezirk.at stellt seine Terminlisten aber in gleichmäßigem
+HTML dar (`<ul class="content-card-date-location">` mit Datum, Ort und Gemeinde),
+das sich zuverlässig auslesen lässt.
+
+---
+
+## Hintergrund zu laufenden Themen
+
+Meldungen zu wiederkehrenden Themen tragen ein kleines **(i)** neben der Überschrift.
+Ein Tipp darauf öffnet zwei Dinge:
+
+- **Hintergrund** — gesicherte Eckdaten aus einer kuratierten Sammlung: Beginn,
+  Beteiligte, Verlauf in groben Zügen. Bewusst **ohne Tagesaktuelles**, denn ein
+  „aktueller Stand" in einer statischen Datei veraltet sofort und wäre dann schlechter
+  als gar nichts.
+- **Aktuell dazu in Faktum** — die jüngsten eigenen Meldungen zum selben Thema. Das ist
+  der aktuelle Stand, und er hält sich von selbst frisch.
+
+Themen: Ukraine-Krieg, Nahost, Handelskonflikte, EZB und Inflation, Klimapolitik,
+KI-Regulierung, österreichische Innenpolitik, Raiffeisen. Erweiterbar in
+`CONTEXT_TOPICS` in [`scripts/sources.mjs`](scripts/sources.mjs).
+
+Die Zuordnung verlangt **mindestens zwei Treffer** — ein beiläufiges „Moskau" soll
+keinen ganzen Kriegshintergrund einblenden. Kurze Begriffe bis drei Zeichen werden
+beidseitig auf Wortgrenzen festgenagelt: Ohne diese Regel galt „De Zerbi" als
+Raiffeisen-Meldung, weil „rbi" darin steckt, und jedes „Kind" als KI-Thema.
 
 ---
 

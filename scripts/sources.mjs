@@ -16,8 +16,9 @@
 
 export const CATEGORIES = [
   { id: 'fokus', label: 'Fokus', icon: '🎯' },
-  { id: 'wirtschaft-int', label: 'Wirtschaft international', icon: '🌍' },
-  { id: 'wirtschaft-at', label: 'Wirtschaft Österreich', icon: '🇦🇹' },
+  // Wirtschaft ist eine Kategorie. Österreichische Meldungen stehen darin
+  // oben, internationale darunter — sortiert über das Feld `at` am Eintrag.
+  { id: 'wirtschaft', label: 'Wirtschaft', icon: '💶' },
   { id: 'sport-int', label: 'Sport', icon: '⚽' },
   { id: 'wissenschaft', label: 'Wissenschaft', icon: '🔬' },
   { id: 'welt', label: 'Welt', icon: '🗺' },
@@ -74,42 +75,62 @@ export const SOURCES = [
   { name: 'phys.org', cat: 'wissenschaft', trust: 2, lang: 'en',
     url: 'https://phys.org/rss-feed/', site: 'phys.org' },
 
+  // Schwerpunkte: Ernährungswissenschaft, Diätologie, Astronomie.
+  // ScienceDaily hat pro Fachgebiet eigene Feeds — deutlich treffsicherer,
+  // als den Sammelfeed nach Stichwörtern zu durchsuchen.
+  { name: 'ScienceDaily Ernährung', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/health_medicine/nutrition.xml', site: 'sciencedaily.com' },
+  { name: 'ScienceDaily Diät', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/health_medicine/diet_and_weight_loss.xml', site: 'sciencedaily.com' },
+  { name: 'Ernährungs-Umschau', cat: 'wissenschaft', trust: 3, lang: 'de',
+    url: 'https://www.ernaehrungs-umschau.de/rss/', site: 'ernaehrungs-umschau.de' },
+  { name: 'ScienceDaily Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/space_time/astronomy.xml', site: 'sciencedaily.com' },
+  { name: 'NASA', cat: 'wissenschaft', trust: 3, lang: 'en',
+    url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', site: 'nasa.gov' },
+  { name: 'ESA', cat: 'wissenschaft', trust: 3, lang: 'en',
+    url: 'https://www.esa.int/rssfeed/Our_Activities/Space_Science', site: 'esa.int' },
+  { name: 'Sky & Telescope', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://skyandtelescope.org/feed/', site: 'skyandtelescope.org' },
+  { name: 'phys.org Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://phys.org/rss-feed/space-news/astronomy/', site: 'phys.org' },
+
   // ---------- Wirtschaft international ----------
-  { name: 'BBC Business', cat: 'wirtschaft-int', trust: 3, lang: 'en',
+  { name: 'BBC Business', cat: 'wirtschaft', trust: 3, lang: 'en',
     url: 'https://feeds.bbci.co.uk/news/business/rss.xml', site: 'bbc.com' },
-  { name: 'Guardian Business', cat: 'wirtschaft-int', trust: 2, lang: 'en',
+  { name: 'Guardian Business', cat: 'wirtschaft', trust: 2, lang: 'en',
     url: 'https://www.theguardian.com/uk/business/rss', site: 'theguardian.com' },
-  { name: 'CNBC World', cat: 'wirtschaft-int', trust: 2, lang: 'en',
+  { name: 'CNBC World', cat: 'wirtschaft', trust: 2, lang: 'en',
     url: 'https://www.cnbc.com/id/10001147/device/rss/rss.html', site: 'cnbc.com' },
-  { name: 'Financial Times', cat: 'wirtschaft-int', trust: 3, lang: 'en',
+  { name: 'Financial Times', cat: 'wirtschaft', trust: 3, lang: 'en',
     url: 'https://www.ft.com/rss/home', site: 'ft.com' },
-  { name: 'tagesschau Wirtschaft', cat: 'wirtschaft-int', trust: 3, lang: 'de',
+  { name: 'tagesschau Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'de',
     url: 'https://www.tagesschau.de/wirtschaft/index~rss2.xml', site: 'tagesschau.de' },
-  { name: 'Euronews Business', cat: 'wirtschaft-int', trust: 2, lang: 'en',
+  { name: 'Euronews Business', cat: 'wirtschaft', trust: 2, lang: 'en',
     url: 'https://www.euronews.com/rss?level=theme&name=business', site: 'euronews.com' },
-  { name: 'Handelsblatt', cat: 'wirtschaft-int', trust: 2, lang: 'de',
+  { name: 'Handelsblatt', cat: 'wirtschaft', trust: 2, lang: 'de',
     url: 'https://www.handelsblatt.com/contentexport/feed/schlagzeilen', site: 'handelsblatt.com' },
-  { name: 'ANSA Wirtschaft', cat: 'wirtschaft-int', trust: 3, lang: 'it',
+  { name: 'ANSA Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'it',
     url: 'https://www.ansa.it/sito/notizie/economia/economia_rss.xml', site: 'ansa.it' },
-  { name: 'Il Sole 24 Ore', cat: 'wirtschaft-int', trust: 3, lang: 'it',
+  { name: 'Il Sole 24 Ore', cat: 'wirtschaft', trust: 3, lang: 'it',
     url: 'https://www.ilsole24ore.com/rss/mondo.xml', site: 'ilsole24ore.com' },
-  { name: 'El País Wirtschaft', cat: 'wirtschaft-int', trust: 2, lang: 'es',
+  { name: 'El País Wirtschaft', cat: 'wirtschaft', trust: 2, lang: 'es',
     url: 'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/economia/portada', site: 'elpais.com' },
-  { name: 'Le Monde Wirtschaft', cat: 'wirtschaft-int', trust: 3, lang: 'fr',
+  { name: 'Le Monde Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'fr',
     url: 'https://www.lemonde.fr/economie/rss_full.xml', site: 'lemonde.fr' },
-  { name: 'Le Figaro Wirtschaft', cat: 'wirtschaft-int', trust: 2, lang: 'fr',
+  { name: 'Le Figaro Wirtschaft', cat: 'wirtschaft', trust: 2, lang: 'fr',
     url: 'https://www.lefigaro.fr/rss/figaro_economie.xml', site: 'lefigaro.fr' },
-  { name: 'POLITICO Europe', cat: 'wirtschaft-int', trust: 2, lang: 'en',
+  { name: 'POLITICO Europe', cat: 'wirtschaft', trust: 2, lang: 'en',
     url: 'https://www.politico.eu/feed/', site: 'politico.eu' },
 
-  // ---------- Wirtschaft Österreich ----------
-  { name: 'DER STANDARD Wirtschaft', cat: 'wirtschaft-at', trust: 2, lang: 'de',
+  // ---------- Wirtschaft Österreich (at:true -> steht im Tab oben) ----------
+  { name: 'DER STANDARD Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
     url: 'https://www.derstandard.at/rss/wirtschaft', site: 'derstandard.at' },
-  { name: 'Die Presse Wirtschaft', cat: 'wirtschaft-at', trust: 2, lang: 'de',
+  { name: 'Die Presse Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
     url: 'https://www.diepresse.com/rss/Wirtschaft', site: 'diepresse.com' },
-  { name: 'KURIER Wirtschaft', cat: 'wirtschaft-at', trust: 2, lang: 'de',
+  { name: 'KURIER Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
     url: 'https://kurier.at/wirtschaft/xml/rss', site: 'kurier.at' },
-  { name: 'ORF Konsument', cat: 'wirtschaft-at', trust: 3, lang: 'de',
+  { name: 'ORF Konsument', cat: 'wirtschaft', at: true, trust: 3, lang: 'de',
     url: 'https://rss.orf.at/help.xml', site: 'orf.at' },
 
   // ---------- Sport international ----------
@@ -210,13 +231,16 @@ export const SOURCES = [
 // einem weiteren Treffer. Das verhindert, dass jedes "agil" oder jedes
 // beiläufige "KI" eine Meldung zum Fokusthema macht.
 
+// Kurze Begriffe (bis 3 Zeichen) werden beim Suchen beidseitig auf Wortgrenzen
+// festgenagelt, längere nur am Wortanfang. Ohne diese Regel galt "De Zerbi" als
+// Raiffeisen-Meldung, weil "rbi" darin steckt, und jedes "Kind" als KI-Thema.
 export const FOCUS_TOPICS = [
   {
     id: 'raiffeisen',
     label: 'Raiffeisen / RBI',
     icon: '🏦',
     strong: [
-      'raiffeisen', 'rbi ', ' rbi', 'raiffeisen bank international',
+      'raiffeisen', 'rbi', 'raiffeisen bank international',
       'raiffeisenlandesbank', 'rzb', 'raiffeisen-holding',
     ],
     weak: ['bankensektor', 'osteuropa-geschäft', 'russland-geschäft', 'bawag', 'erste group'],
@@ -239,13 +263,163 @@ export const FOCUS_TOPICS = [
     icon: '🤖',
     strong: [
       'künstliche intelligenz', 'artificial intelligence', 'ki-modell', 'ai model',
-      'sprachmodell', 'language model', ' llm', 'llm ', 'openai', 'anthropic',
-      'deepmind', 'chatgpt', 'claude ', 'gemini', 'llama', 'mistral',
+      'sprachmodell', 'language model', 'llm', 'openai', 'anthropic',
+      'deepmind', 'chatgpt', 'claude', 'gemini', 'llama', 'mistral',
       'nvidia', 'ki-chip', 'transformer-modell', 'generative ki', 'generative ai',
       'machine learning', 'maschinelles lernen', 'neuronales netz', 'ki-agent',
       'ai agent', 'foundation model', 'ki-verordnung', 'ai act',
     ],
-    weak: ['algorithmus', 'automatisierung', 'chatbot', 'roboter', 'rechenzentrum', ' ki '],
+    weak: ['algorithmus', 'automatisierung', 'chatbot', 'roboter', 'rechenzentrum', 'ki'],
+  },
+]
+
+// ------------------------------------------------- Wissenschafts-Schwerpunkte
+//
+// Meldungen aus der Kategorie Wissenschaft, die eines dieser Felder treffen,
+// werden im Tab nach oben gereiht. Der Rest bleibt sichtbar — nur eben unten.
+
+export const SCIENCE_FOCUS = [
+  // Ernährungswissenschaft und Diätologie
+  'ernährung', 'ernährungswissenschaft', 'diätolog', 'diät', 'nutrition',
+  'nährstoff', 'vitamin', 'mikronährstoff', 'protein', 'ballaststoff',
+  'darmflora', 'mikrobiom', 'übergewicht', 'adipositas', 'abnehmen',
+  'stoffwechsel', 'blutzucker', 'insulin', 'cholesterin', 'lebensmittel',
+  'obesity', 'weight loss', 'dietary', 'diet ', 'gut microbiome',
+  'metabolism', 'intermittier', 'fasten', 'mittelmeerdiät', 'zucker',
+  // Astronomie und Raumfahrt
+  'astronomie', 'astronom', 'astrophysik', 'teleskop', 'galaxie', 'galaxien',
+  'exoplanet', 'schwarzes loch', 'schwarze löcher', 'supernova', 'nebel',
+  'sternwarte', 'milchstraße', 'sonnensystem', 'planet', 'komet', 'asteroid',
+  'mondfinsternis', 'sonnenfinsternis', 'meteorit', 'raumsonde', 'weltraum',
+  'astronomy', 'telescope', 'galaxy', 'black hole', 'exoplanet', 'nebula',
+  'supernova', 'cosmic', 'spacecraft', 'orbit', 'james webb', 'hubble',
+]
+
+// ------------------------------------------------------------ Veranstaltungen
+//
+// Für Termine gibt es in Österreich keinen brauchbaren Feed und keine offene
+// Schnittstelle (geprüft: Wien VADB liefert HTTP 500, data.gv.at 404, die
+// Stadt-Korneuburg-Seite hat keinen Kalenderexport). meinbezirk.at stellt
+// seine Terminlisten aber in sauber ausleserbarem HTML dar.
+
+export const EVENT_PAGES = [
+  { region: 'Korneuburg', url: 'https://www.meinbezirk.at/korneuburg/veranstaltungen', near: 'korneuburg' },
+  { region: 'Wien', url: 'https://www.meinbezirk.at/wien/veranstaltungen', near: 'wien' },
+  { region: 'Stockerau', url: 'https://www.meinbezirk.at/korneuburg/stockerau/veranstaltungen', near: 'korneuburg' },
+]
+
+export const EVENT_DAYS_AHEAD = 14
+
+// ------------------------------------------------------------- Themenkontext
+//
+// Hintergrund zu wiederkehrenden Themen, abrufbar über das (i) an der Meldung.
+//
+// Bewusst nur zeitlose, gesicherte Fakten: Beginn, Beteiligte, Verlauf in
+// groben Zügen. KEIN "aktueller Stand" — der veraltet in einer statischen
+// Datei sofort und wäre dann schlechter als gar nichts. Den aktuellen Stand
+// liefert die App selbst, indem sie die jüngsten eigenen Meldungen zum selben
+// Thema darunter listet.
+
+export const CONTEXT_TOPICS = [
+  {
+    id: 'ukraine',
+    label: 'Russlands Krieg gegen die Ukraine',
+    match: ['ukraine', 'ukrainisch', 'selenskyj', 'selensky', 'kyjiw', 'kiew', 'charkiw',
+      'donezk', 'luhansk', 'krim', 'mariupol', 'odessa', 'odesa', 'putin', 'kreml',
+      'russische armee', 'russischen angriff', 'russischer angriff', 'moskau'],
+    since: '24. Februar 2022',
+    background: [
+      'Russland überfiel die Ukraine am 24. Februar 2022 in vollem Umfang. Vorausgegangen war die Annexion der Krim im März 2014 und der von Russland unterstützte bewaffnete Konflikt im Donbas ab April 2014.',
+      'Die UN-Generalversammlung verurteilte den Angriff am 2. März 2022 mit 141 zu 5 Stimmen und forderte den sofortigen Rückzug. Die EU, die USA und weitere Staaten verhängten seither mehrere Sanktionspakete.',
+      'Der Internationale Strafgerichtshof erließ im März 2023 einen Haftbefehl gegen Wladimir Putin wegen der Verschleppung ukrainischer Kinder.',
+      'Österreich ist militärisch neutral, beteiligt sich aber an den EU-Sanktionen und leistet humanitäre Hilfe. Waffenlieferungen erfolgen nicht.',
+    ],
+  },
+  {
+    id: 'nahost',
+    label: 'Krieg in Gaza und im Nahen Osten',
+    match: ['gaza', 'israel', 'israelisch', 'hamas', 'westjordanland', 'netanyahu',
+      'netanjahu', 'palästinens', 'rafah', 'hisbollah', 'libanon', 'idf'],
+    since: '7. Oktober 2023',
+    background: [
+      'Die Hamas verübte am 7. Oktober 2023 einen Großangriff auf Israel mit rund 1.200 Toten und etwa 250 Verschleppten. Israel begann daraufhin eine großangelegte Militäroperation im Gazastreifen.',
+      'Der Konflikt reicht weit zurück: Israel wurde 1948 gegründet, es folgten mehrere Kriege mit arabischen Nachbarstaaten. Der Gazastreifen wird seit 2007 von der Hamas kontrolliert.',
+      'Der Internationale Gerichtshof befasst sich seit Dezember 2023 mit einer Klage Südafrikas wegen mutmaßlichen Völkermords; ein Urteil in der Hauptsache steht aus.',
+      'Zahlenangaben zu Opfern stammen je nach Meldung von unterschiedlichen Stellen — der von der Hamas geführten Gesundheitsbehörde, israelischen Angaben oder UN-Organisationen. Sie sind selten unabhängig überprüfbar.',
+    ],
+  },
+  {
+    id: 'zoelle',
+    label: 'Handelskonflikte und Zölle',
+    match: ['zoll', 'zölle', 'zollsatz', 'strafzoll', 'handelskonflikt', 'handelskrieg',
+      'tariff', 'handelsabkommen', 'wto', 'importzoll'],
+    since: '2018',
+    background: [
+      'Die USA erhoben ab 2018 unter Präsident Trump Zölle auf Stahl, Aluminium und zahlreiche chinesische Waren. China antwortete mit Gegenzöllen. Teile davon blieben auch unter der Nachfolgeregierung bestehen.',
+      'Die EU ist als Zollunion für die Handelspolitik ihrer Mitgliedsstaaten zuständig — Österreich verhandelt also nicht selbst, sondern die Europäische Kommission.',
+      'Zölle wirken auf zwei Wegen: Sie verteuern eingeführte Waren für Verbraucher im Einfuhrland und treffen Exporteure im Ausland. Wer die Kosten trägt, ist wirtschaftswissenschaftlich umstritten.',
+    ],
+  },
+  {
+    id: 'ezb',
+    label: 'Inflation und Zinspolitik der EZB',
+    match: ['ezb', 'europäische zentralbank', 'leitzins', 'zinssatz', 'inflation',
+      'inflationsrate', 'verbraucherpreis', 'geldpolitik', 'notenbank', 'lagarde'],
+    since: 'Juli 2022',
+    background: [
+      'Die Europäische Zentralbank hat als vorrangiges Ziel Preisstabilität, definiert als 2 Prozent Inflation mittelfristig. Sie steuert darüber den Leitzins für den gesamten Euroraum.',
+      'Nach Jahren mit Null- und Negativzinsen begann die EZB im Juli 2022 mit Zinserhöhungen, um die stark gestiegene Inflation zu dämpfen — ausgelöst unter anderem durch Energiepreise und Lieferengpässe.',
+      'Österreich lag bei der Inflationsrate über Jahre über dem Euroraum-Durchschnitt. Die Gründe dafür sind umstritten; genannt werden unter anderem Energiepreise, Mietanpassungen und der Gastronomiesektor.',
+    ],
+  },
+  {
+    id: 'klima',
+    label: 'Klimapolitik und Klimaziele',
+    match: ['klimawandel', 'klimaziel', 'klimaneutral', 'co2', 'emission', 'treibhausgas',
+      'erderwärmung', 'klimapolitik', 'pariser abkommen', 'klimagesetz', 'dürre',
+      'hitzerekord', 'gletscher'],
+    since: '2015',
+    background: [
+      'Im Pariser Abkommen von 2015 verpflichteten sich fast alle Staaten, die Erderwärmung deutlich unter 2 Grad gegenüber dem vorindustriellen Niveau zu halten und 1,5 Grad anzustreben.',
+      'Die EU hat sich auf Klimaneutralität bis 2050 festgelegt und Zwischenziele für 2030 beschlossen. Österreich strebt Klimaneutralität bis 2040 an — früher als die EU-Vorgabe.',
+      'Der Weltklimarat IPCC fasst regelmäßig den Forschungsstand zusammen. Dass die Erwärmung überwiegend menschengemacht ist, gilt dort als gesichert; umstritten sind Tempo, regionale Folgen und Gegenmaßnahmen.',
+    ],
+  },
+  {
+    id: 'ki-regulierung',
+    label: 'Regulierung künstlicher Intelligenz',
+    match: ['ai act', 'ki-verordnung', 'ki-gesetz', 'ki-regulierung', 'ki-aufsicht',
+      'algorithmentransparenz', 'ki-haftung'],
+    since: '2021',
+    background: [
+      'Die Europäische Kommission legte 2021 den Entwurf für den AI Act vor, die weltweit erste umfassende Regulierung künstlicher Intelligenz. Er stuft Anwendungen nach Risiko ein und verbietet einige ganz.',
+      'Das Gesetz gilt für Anbieter, die ihre Systeme im EU-Markt anbieten — unabhängig davon, wo sie sitzen. Die Pflichten greifen gestaffelt über mehrere Jahre.',
+      'Kritik kommt von zwei Seiten: Teilen der Industrie, die Wettbewerbsnachteile befürchten, und Bürgerrechtsorganisationen, denen die Ausnahmen für Sicherheitsbehörden zu weit gehen.',
+    ],
+  },
+  {
+    id: 'at-politik',
+    label: 'Österreichische Innenpolitik',
+    match: ['nationalrat', 'bundesregierung', 'bundeskanzler', 'koalition', 'övp',
+      'spö', 'fpö', 'grüne', 'neos', 'landtagswahl', 'nationalratswahl',
+      'bundespräsident', 'u-ausschuss'],
+    since: null,
+    background: [
+      'Österreich ist eine parlamentarische Demokratie. Der Nationalrat mit 183 Abgeordneten wird alle fünf Jahre gewählt; die Regierung braucht dessen Vertrauen.',
+      'Der Bundespräsident wird direkt gewählt, ernennt die Regierung und kann sie entlassen — eine Befugnis, die historisch selten genutzt wurde.',
+      'Untersuchungsausschüsse sind ein Minderheitsrecht: Ein Viertel der Abgeordneten kann einen einsetzen, ohne Zustimmung der Mehrheit.',
+    ],
+  },
+  {
+    id: 'raiffeisen',
+    label: 'Raiffeisen Bank International',
+    match: ['raiffeisen', 'rbi', 'raiffeisenlandesbank', 'rzb'],
+    since: null,
+    background: [
+      'Die Raiffeisen Bank International (RBI) ist eine der größten Banken Österreichs mit Schwerpunkt in Zentral- und Osteuropa. Sie ging 2010 aus der Fusion von RZB-Teilen und Raiffeisen International hervor.',
+      'Der Raiffeisen-Sektor ist genossenschaftlich aufgebaut: lokale Raiffeisenbanken, darüber Landesbanken, darüber die RBI. Diese Struktur erklärt, warum Entscheidungen oft mehrere Ebenen betreffen.',
+      'Das Russland-Geschäft der RBI steht seit dem Angriff auf die Ukraine unter besonderer Beobachtung von EZB und US-Behörden. Ein Rückzug wurde mehrfach angekündigt und verzögerte sich.',
+    ],
   },
 ]
 

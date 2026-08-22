@@ -43,10 +43,16 @@
   <div id="empty" class="empty" hidden></div>
 </main>
 
-<!-- Laufband -->
-<div id="ticker" class="ticker" hidden>
-  <span class="ticker-label" id="ticker-label">i</span>
-  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track"></div></div>
+<!-- Hintergrund zu einem Thema -->
+<div id="context" class="sheet" hidden>
+  <div class="sheet-backdrop" data-ctx-close></div>
+  <div class="sheet-panel" role="dialog" aria-label="Hintergrund">
+    <div class="sheet-head">
+      <h2 id="context-title">Hintergrund</h2>
+      <button class="icon-btn" data-ctx-close aria-label="Schließen">✕</button>
+    </div>
+    <div class="sheet-body" id="context-body"></div>
+  </div>
 </div>
 
 <!-- Bild-Vollbild -->
@@ -91,8 +97,9 @@
           <span>Bilder laden</span>
         </label>
         <label class="switch">
-          <input type="checkbox" id="opt-ticker" checked>
-          <span>Laufband am unteren Rand anzeigen</span>
+          <input type="checkbox" id="opt-info" checked>
+          <span>Info-Block oben anzeigen
+            <small class="muted">Bahn, Straße und Wetter über den Meldungen.</small></span>
         </label>
       </section>
 

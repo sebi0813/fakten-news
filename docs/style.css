@@ -357,48 +357,68 @@ input[type=password], input[type=text] {
 }
 .searchbar input::-webkit-search-cancel-button { filter: invert(.6); }
 
-/* --------------------------------------------------------------- Laufband */
+/* ------------------------------------------------------------- Info-Block */
 
-.ticker {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-  display: flex; align-items: center; gap: 10px;
-  /* box-sizing: border-box rechnet das Padding in die Höhe hinein. Stünde
-     hier nur 38px, bliebe auf dem iPhone nach Abzug der Home-Indicator-Zone
-     (safe-area-inset-bottom, rund 34px) ein 4px-Streifen übrig und der Text
-     wäre oben abgeschnitten. Die Zone muss also zur Höhe addiert werden. */
-  height: calc(40px + var(--safe-b));
-  padding: 0 calc(12px + var(--safe-r)) var(--safe-b) calc(12px + var(--safe-l));
-  background: rgba(11,18,32,.96);
-  backdrop-filter: saturate(180%) blur(12px);
-  -webkit-backdrop-filter: saturate(180%) blur(12px);
-  border-top: 1px solid var(--line);
-  font-size: 13px;
+.infoblock {
+  background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
 }
-/* Muss mindestens der Ticker-Höhe entsprechen, sonst verschwindet die
-   letzte Karte darunter. 40px Ticker + Zone + 12px Luft. */
-body.has-ticker { padding-bottom: calc(52px + var(--safe-b)); }
+.info-head {
+  margin: 0; padding: 11px 14px 9px;
+  font-size: 13px; font-weight: 700; letter-spacing: .03em;
+  color: var(--muted); text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+}
+.info-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 14px; font-size: 13.5px; line-height: 1.45;
+  color: var(--text); text-decoration: none;
+  border-top: 1px solid rgba(34,49,78,.5);
+}
+.info-row:first-of-type { border-top: 0; }
+.info-icon { flex: 0 0 auto; font-size: 15px; line-height: 1.35; }
+.info-text { min-width: 0; }
+.info-text b { color: var(--blue); font-weight: 600; }
+.info-row[data-kind="warn"] { color: var(--amber); }
+.info-row[data-kind="warn"] .info-text b { color: var(--amber); }
+a.info-row:active { background: var(--bg-elev-2); }
 
-.ticker-label {
-  flex: 0 0 auto; width: 24px; height: 24px; border-radius: 7px;
-  display: grid; place-items: center; font-size: 13px;
-  background: var(--bg-elev-2);
-}
-.ticker[data-kind="warn"]  .ticker-label { background: rgba(251,191,36,.2); }
-.ticker[data-kind="flash"] .ticker-label { background: rgba(248,113,113,.22); }
-.ticker[data-kind="oebb"]  .ticker-label { background: rgba(96,165,250,.2); }
-.ticker[data-kind="traffic"] .ticker-label { background: rgba(251,146,60,.22); }
+/* ---------------------------------------------------------------- Termine */
 
-.ticker-viewport { flex: 1 1 auto; overflow: hidden; position: relative; height: 100%; }
-.ticker-track {
-  position: absolute; top: 0; left: 0; height: 100%;
-  display: flex; align-items: center; white-space: nowrap;
-  will-change: transform;
-  animation: marquee linear infinite;
+.event-day {
+  margin: 14px 4px 2px; font-size: 14px; font-weight: 700;
+  color: var(--muted); text-transform: capitalize;
 }
-.ticker-track span { padding-right: 60px; }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.ticker[data-kind="warn"]  .ticker-track { color: var(--amber); }
-.ticker[data-kind="flash"] .ticker-track { color: #fca5a5; }
+.event-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: 11px; padding: 11px 13px; margin-bottom: 7px;
+  text-decoration: none; color: var(--text);
+}
+.event-time {
+  flex: 0 0 46px; font-size: 13px; font-weight: 700; color: var(--accent);
+  font-variant-numeric: tabular-nums; padding-top: 1px;
+}
+.event-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.event-text b { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.event-text small { font-size: 12px; }
+
+/* -------------------------------------------------------- Hintergrund (i) */
+
+.ctx-btn {
+  display: inline-grid; place-items: center;
+  width: 19px; height: 19px; margin-left: 7px; padding: 0;
+  vertical-align: middle;
+  border-radius: 50%; border: 1px solid var(--blue);
+  background: rgba(96,165,250,.14); color: var(--blue);
+  font-size: 12px; font-weight: 700; font-style: italic;
+  font-family: Georgia, serif; line-height: 1; cursor: pointer;
+}
+.ctx-btn:active { transform: scale(.9); }
+
+.ctx-p { margin: 0 0 9px; line-height: 1.6; }
+.ctx-p:last-of-type { margin-bottom: 0; }
+.ctx-note { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
 
 /* ---------------------------------------------------------------- Flash */
 

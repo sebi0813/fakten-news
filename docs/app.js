@@ -2,7 +2,7 @@
  *
  * Die Meldungen kommen aus docs/data/news.json, das stündlich (5:30–23:00)
  * von einer GitHub Action serverseitig gebaut wird. Der Client macht daraus
- * Darstellung, Lernprofil, Merkliste, Wetter und Laufband.
+ * Darstellung, Lernprofil, Merkliste, Wetter, Termine und Info-Block.
  *
  * Speichermodell:
  *   faktum.prefs     Lernprofil und Bewertungen — bleibt dauerhaft
@@ -15,7 +15,7 @@
 
 // Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
 // neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
-const APP_VERSION = 'v3 (22.08.2026)'
+const APP_VERSION = 'v4 (22.08.2026)'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -51,7 +51,7 @@ const state = {
 
 const defaults = {
   prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {} }),
-  settings: () => ({ hideRead: true, hideLowFact: false, images: true, ticker: true, apiKey: '' }),
+  settings: () => ({ hideRead: true, hideLowFact: false, images: true, info: true, apiKey: '' }),
   read: () => ({}),
   saved: () => ({}),
   history: () => ([]),
@@ -235,7 +235,6 @@ async function fetchNews({ force = false } = {}) {
     state.lastFetch = Date.now()
     save(LS.cache, data)
     render()
-    renderTicker()
     setStatus(`${data.items.length} Meldungen · Stand ${relTime(new Date(data.generated).getTime())}`)
   } catch (err) {
     const cached = load(LS.cache, () => null)
@@ -264,6 +263,7 @@ function setStatus(text, isErr = false) {
 const CLIENT_TABS = {
   'fuer-dich': { label: 'Für dich', icon: '⭐' },
   flash: { label: 'Flash', icon: '⚡' },
+  termine: { label: 'Termine', icon: '📅' },
   gemerkt: { label: 'Gemerkt', icon: '🔖' },
   historie: { label: 'Historie', icon: '🕘' },
   wetter: { label: 'Wetter', icon: '🌤' },
@@ -304,6 +304,15 @@ function visibleItems() {
         .sort((a, b) => b.s - a.s)
       return diversify(scored)
     }
+    case 'wirtschaft':
+      // Österreich zuerst, darunter international — innerhalb beider Blöcke
+      // nach Aktualität.
+      return items.filter(i => i.cat === 'wirtschaft' && !isHidden(i))
+        .sort((a, b) => (Number(!!b.at) - Number(!!a.at)) || (b.ts - a.ts))
+    case 'wissenschaft':
+      // Ernährung, Diätologie und Astronomie stehen oben.
+      return items.filter(i => i.cat === 'wissenschaft' && !isHidden(i))
+        .sort((a, b) => (Number(!!b.sciFocus) - Number(!!a.sciFocus)) || (b.ts - a.ts))
     default:
       return items.filter(i => i.cat === state.tab && !isHidden(i)).sort((a, b) => b.ts - a.ts)
   }
@@ -351,6 +360,7 @@ function renderTabs() {
         ? items.filter(i => (i.cat === 'fokus' || i.focus) && !isHidden(i)).length
         : items.filter(i => i.cat === c.id && !isHidden(i)).length,
     })),
+    { id: 'termine', ...CLIENT_TABS.termine, count: (state.data?.events || []).length },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt, count: Object.keys(saved).length },
     { id: 'wetter', ...CLIENT_TABS.wetter },
     { id: 'historie', ...CLIENT_TABS.historie },
@@ -378,11 +388,20 @@ function render() {
   $('#feed').hidden = false
 
   if (state.tab === 'historie') { renderHistory(); return }
+  if (state.tab === 'termine') { renderEvents(); return }
+
+  // Der Info-Block steht über dem Hauptfeed und über Flash — dort, wo man
+  // ohnehin zuerst hinschaut.
+  const info = (state.tab === 'fuer-dich' || state.tab === 'flash') ? infoBlockHTML() : ''
 
   const items = visibleItems()
-  if (!items.length) { $('#feed').innerHTML = ''; renderEmptyFor(state.tab); return }
+  if (!items.length) {
+    $('#feed').innerHTML = info
+    renderEmptyFor(state.tab)
+    return
+  }
 
-  $('#feed').innerHTML = items.map(cardHTML).join('')
+  $('#feed').innerHTML = info + items.map(cardHTML).join('')
   startReadTracking()
 }
 
@@ -427,6 +446,48 @@ function renderHistory() {
     </a>`).join('')
 }
 
+/** Termine der nächsten zwei Wochen, nach Nähe zum Standort gruppiert. */
+function renderEvents() {
+  let events = (state.data?.events || []).filter(e => e.ts > Date.now() - 12 * 3600_000)
+  if (state.search) {
+    const q = state.search.toLowerCase()
+    events = events.filter(e => `${e.title} ${e.place} ${e.venue}`.toLowerCase().includes(q))
+  }
+  if (!events.length) {
+    $('#feed').innerHTML = ''
+    return showEmpty('📅', 'Keine Termine',
+      state.search ? `Zu „${state.search}“ gibt es keinen Termin in den nächsten zwei Wochen.`
+        : 'Für die nächsten zwei Wochen liegen gerade keine Veranstaltungen vor.')
+  }
+
+  // Chronologisch, damit die Uhrzeiten innerhalb eines Tages nicht
+  // zurückspringen. Die Nähe zum Standort entscheidet nur bei gleicher Zeit.
+  const hier = (state.weatherPlace || '').toLowerCase()
+  const nah = e => hier.includes(e.near) ? 0 : (e.near === 'korneuburg' ? 1 : 2)
+  events.sort((a, b) => (a.ts - b.ts) || (nah(a) - nah(b)))
+
+  const tage = {}
+  for (const e of events) {
+    const d = new Date(e.ts)
+    const key = d.toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' })
+    ;(tage[key] ||= []).push(e)
+  }
+
+  $('#feed').innerHTML = `<p class="muted small hist-note">${events.length} Termine in den nächsten zwei Wochen · Quelle: meinbezirk.at</p>`
+    + Object.entries(tage).map(([tag, liste]) => `
+      <h3 class="event-day">${esc(tag)}</h3>
+      ${liste.map(e => `
+        <a class="event-row" href="${esc(e.link)}" target="_blank" rel="noopener noreferrer">
+          <span class="event-time">${new Date(e.ts).getHours() || new Date(e.ts).getMinutes()
+            ? new Date(e.ts).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' })
+            : '–'}</span>
+          <span class="event-text">
+            <b>${esc(e.title)}</b>
+            <small class="muted">${esc([e.venue, e.place].filter(Boolean).join(' · '))}</small>
+          </span>
+        </a>`).join('')}`).join('')
+}
+
 function cardHTML(item) {
   const v = prefs.votes[item.id]?.v || 0
   const showImg = settings.images && item.image
@@ -452,7 +513,9 @@ function cardHTML(item) {
       </div>
       <div class="card-main">
         <div class="card-text">
-          <h2>${esc(item.title)}</h2>
+          <h2>${esc(item.title)}${item.context
+            ? `<button class="ctx-btn" data-act="context" title="Hintergrund zum Thema"
+                       aria-label="Hintergrund zum Thema">i</button>` : ''}</h2>
           ${item.summary ? `<p class="sum">${esc(item.summary)}</p>` : ''}
         </div>
         ${showImg ? `<button class="thumb" data-act="zoom" aria-label="Bild vergrößern">
@@ -531,7 +594,7 @@ function findItem(id) {
   return allItems().find(i => i.id === id) || saved[id] || null
 }
 
-// ---------------------------------------------------------------- Laufband
+// -------------------------------------------------------------- Info-Block
 
 async function fetchWarnings() {
   const p = await getPosition() || FALLBACK_POS
@@ -546,64 +609,63 @@ async function fetchWarnings() {
   } catch { state.warnings = [] }
 }
 
-function tickerEntries() {
+/**
+ * Der Info-Block über den Meldungen: Warnungen, Straße, Bahn, Wetter.
+ *
+ * Ersetzt das frühere Laufband. Ein Ticker zwingt zum Warten, bis die
+ * gewünschte Zeile vorbeikommt — als Liste ist alles auf einen Blick da.
+ */
+function infoEntries() {
   const out = []
-  out.push(...state.warnings)
-  const PREFIX = { oebb: '🚆 ÖBB: ', traffic: '🚗 ', flash: '⚡ ' }
-  for (const t of state.data?.ticker || []) {
-    out.push({ kind: t.kind, text: (PREFIX[t.kind] || '') + t.text })
+
+  for (const w of state.warnings) out.push({ kind: 'warn', icon: '⚠', text: w.text })
+
+  const ICON = { traffic: '🚗', oebb: '🚆' }
+  const LABEL = { traffic: 'Straße', oebb: 'Bahn' }
+  for (const t of state.data?.info || []) {
+    out.push({ kind: t.kind, icon: ICON[t.kind] || 'ℹ', label: LABEL[t.kind], text: t.text, link: t.link })
   }
-  // Nichts los? Dann das Wetter der nächsten drei Stunden.
-  if (!out.length && state.weather?.hourly) {
+
+  // Wetter am aktuellen Standort — immer, nicht nur als Notnagel.
+  if (state.weather?.hourly) {
     const w = state.weather
-    const now = new Date()
-    const start = w.hourly.time.findIndex(t => new Date(t) > now)
-    if (start >= 0) {
-      const parts = []
-      for (let k = 0; k < 3; k++) {
-        const i = start + k
-        if (!w.hourly.time[i]) break
-        const [icon] = wmo(w.hourly.weather_code[i])
-        parts.push(`${new Date(w.hourly.time[i]).getHours()}:00 ${icon} ${Math.round(w.hourly.temperature_2m[i])}°`
-          + ` (${w.hourly.precipitation_probability[i] ?? 0} % Regen)`)
-      }
-      if (parts.length) out.push({ kind: 'wx', text: `${state.weatherPlace || 'Wetter'} — ${parts.join('   ·   ')}` })
+    const jetzt = new Date()
+    const start = w.hourly.time.findIndex(t => new Date(t) > jetzt)
+    const teile = []
+    for (let k = 0; k < 3 && start >= 0; k++) {
+      const i = start + k
+      if (!w.hourly.time[i]) break
+      const [icon] = wmo(w.hourly.weather_code[i])
+      teile.push(`${new Date(w.hourly.time[i]).getHours()}:00 ${icon} ${Math.round(w.hourly.temperature_2m[i])}°`
+        + ` · ${w.hourly.precipitation_probability[i] ?? 0}%`)
     }
+    const [nowIcon, nowDesc] = wmo(w.current.weather_code)
+    out.push({
+      kind: 'wx',
+      icon: nowIcon,
+      label: state.weatherPlace || 'Wetter',
+      text: `${Math.round(w.current.temperature_2m)}°, ${nowDesc}`
+        + (teile.length ? ` — danach ${teile.join('  ·  ')}` : ''),
+    })
   }
   return out
 }
 
-function renderTicker() {
-  const el = $('#ticker')
-  if (!settings.ticker) { el.hidden = true; document.body.classList.remove('has-ticker'); return }
+function infoBlockHTML() {
+  if (!settings.info) return ''
+  const entries = infoEntries()
+  if (!entries.length) return ''
 
-  const entries = tickerEntries()
-  if (!entries.length) { el.hidden = true; document.body.classList.remove('has-ticker'); return }
-
-  // Die dringlichste vorhandene Art bestimmt Symbol und Farbe des Laufbands.
-  const ORDER = ['warn', 'flash', 'traffic', 'oebb', 'wx']
-  const priority = ORDER.find(k => entries.some(e => e.kind === k)) || 'wx'
-  const LABEL = { warn: '⚠', flash: '⚡', traffic: '🚗', oebb: '🚆', wx: '🌤' }
-
-  $('#ticker-label').textContent = LABEL[priority]
-  el.dataset.kind = priority
-
-  // Mehr als acht Einträge machen die Schleife unzumutbar lang.
-  const text = entries.slice(0, 8).map(e => e.text).join('       •       ')
-  const track = $('#ticker-track')
-  // Zweimal hintereinander, damit die Schleife ohne Sprung durchläuft.
-  track.innerHTML = `<span>${esc(text)}</span><span aria-hidden="true">${esc(text)}</span>`
-
-  el.hidden = false
-  document.body.classList.add('has-ticker')
-
-  // Tempo aus der tatsächlich gerenderten Breite, nicht aus der Zeichenzahl.
-  // Die Zeichenschätzung lag um Faktor zwei daneben: 8 Einträge ergaben
-  // 216 Sekunden pro Durchlauf. Mit fester Geschwindigkeit in Pixeln pro
-  // Sekunde liest es sich unabhängig von der Textmenge gleich angenehm.
-  const PIXEL_PRO_SEKUNDE = 90
-  const breite = track.scrollWidth / 2      // eine der beiden Kopien
-  track.style.animationDuration = `${Math.max(12, Math.round(breite / PIXEL_PRO_SEKUNDE))}s`
+  return `<section class="infoblock">
+    <h2 class="info-head">📍 In deiner Umgebung</h2>
+    ${entries.map(e => {
+      const inner = `<span class="info-icon">${e.icon}</span>
+        <span class="info-text">${e.label ? `<b>${esc(e.label)}</b> ` : ''}${esc(e.text)}</span>`
+      return e.link
+        ? `<a class="info-row" data-kind="${e.kind}" href="${esc(e.link)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+        : `<div class="info-row" data-kind="${e.kind}">${inner}</div>`
+    }).join('')}
+  </section>`
 }
 
 // -------------------------------------------------------------- Einordnung
@@ -766,7 +828,7 @@ async function renderWeather({ force = false } = {}) {
   if (!state.weather || force) {
     el.innerHTML = `<div class="skeleton" style="height:200px"></div><div class="skeleton" style="height:90px"></div>`
     await loadWeather({ force })
-    renderTicker()
+    render()
   }
   if (!state.weather) {
     el.innerHTML = `<div class="card-lite"><h3>Wetter nicht verfügbar</h3>
@@ -874,7 +936,7 @@ function openSheet() {
   $('#opt-hide-read').checked = settings.hideRead
   $('#opt-hide-lowfact').checked = settings.hideLowFact
   $('#opt-images').checked = settings.images
-  $('#opt-ticker').checked = settings.ticker
+  $('#opt-info').checked = settings.info
   $('#opt-apikey').value = settings.apiKey || ''
   $('#sheet').hidden = false
 }
@@ -930,6 +992,55 @@ function renderSourceReport() {
     }).join('') || '<div class="muted">Kein Bericht verfügbar.</div>')
 }
 
+// ------------------------------------------------------------ Themenkontext
+
+/**
+ * Hintergrund zu einem laufenden Thema.
+ *
+ * Zwei Teile: gesicherte, zeitlose Fakten aus einer kuratierten Sammlung —
+ * und darunter die jüngsten Meldungen zum selben Thema aus dem eigenen
+ * Bestand. Der statische Teil kann nicht veralten, weil er bewusst keinen
+ * "aktuellen Stand" behauptet; den liefern die Schlagzeilen darunter.
+ */
+function openContext(item) {
+  const topic = (state.data?.contextTopics || []).find(t => t.id === item.context)
+  if (!topic) return
+
+  const verwandt = allItems()
+    .filter(i => i.context === topic.id && i.id !== item.id)
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 6)
+
+  $('#context-title').textContent = topic.label
+  $('#context-body').innerHTML = `
+    <section class="card-lite">
+      <h3>Hintergrund${topic.since ? ` <span class="pill pill-muted">seit ${esc(topic.since)}</span>` : ''}</h3>
+      ${topic.background.map(p => `<p class="small ctx-p">${esc(p)}</p>`).join('')}
+      <p class="muted small ctx-note">Gesicherte Eckdaten, bewusst ohne Tagesaktuelles —
+      eine feste Zusammenfassung würde sonst veralten. Was gerade passiert, steht unten.</p>
+    </section>
+
+    <section class="card-lite">
+      <h3>Aktuell dazu in Faktum</h3>
+      ${verwandt.length
+        ? verwandt.map(i => `
+          <a class="hist-row" href="${esc(i.link)}" target="_blank" rel="noopener noreferrer">
+            <span class="hist-icon">›</span>
+            <span class="hist-text"><b>${esc(i.title)}</b>
+              <small class="muted">${esc(i.source)} · ${relTime(i.ts)}</small></span>
+          </a>`).join('')
+        : '<p class="muted small">Derzeit keine weiteren Meldungen zu diesem Thema.</p>'}
+    </section>
+
+    ${settings.apiKey ? `<section class="card-lite">
+      <h3>Vertiefen</h3>
+      <p class="muted small">Die Einordnung durch Claude an der Meldung selbst geht auf
+      den konkreten Vorgang ein — dieser Hintergrund auf das Thema insgesamt.</p>
+    </section>` : ''}`
+
+  $('#context').hidden = false
+}
+
 // ---------------------------------------------------------------- Lightbox
 
 function openLightbox(item) {
@@ -949,6 +1060,7 @@ function closeLightbox() {
 
 document.addEventListener('click', ev => {
   if (ev.target.closest('[data-lb-close]') || ev.target.id === 'lightbox') { closeLightbox(); return }
+  if (ev.target.closest('[data-ctx-close]')) { $('#context').hidden = true; return }
 
   const tab = ev.target.closest('.tab')
   if (tab) {
@@ -980,6 +1092,8 @@ document.addEventListener('click', ev => {
       toggleDetail(card, item)
     } else if (act === 'zoom') {
       openLightbox(item)
+    } else if (act === 'context') {
+      openContext(item)
     }
     return
   }
@@ -988,7 +1102,7 @@ document.addEventListener('click', ev => {
 
   if (ev.target.closest('#btn-refresh')) {
     fetchNews({ force: true })
-    fetchWarnings().then(renderTicker)
+    fetchWarnings().then(render)
     if (state.tab === 'wetter') renderWeather({ force: true })
     return
   }
@@ -1024,12 +1138,11 @@ const bindToggle = (sel, key) => $(sel).addEventListener('change', e => {
   settings[key] = e.target.checked
   save(LS.settings, settings)
   render()
-  renderTicker()
 })
 bindToggle('#opt-hide-read', 'hideRead')
 bindToggle('#opt-hide-lowfact', 'hideLowFact')
 bindToggle('#opt-images', 'images')
-bindToggle('#opt-ticker', 'ticker')
+bindToggle('#opt-info', 'info')
 
 $('#btn-save-key').addEventListener('click', () => {
   settings.apiKey = $('#opt-apikey').value.trim()
@@ -1065,6 +1178,7 @@ window.addEventListener('online', () => fetchNews({ force: true }))
 document.addEventListener('keydown', ev => {
   if (ev.key !== 'Escape') return
   if (!$('#lightbox').hidden) closeLightbox()
+  else if (!$('#context').hidden) $('#context').hidden = true
   else if (!$('#sheet').hidden) $('#sheet').hidden = true
   else if (!$('#searchbar').hidden) toggleSearch(false)
 })
@@ -1079,8 +1193,8 @@ const cached = load(LS.cache, () => null)
 if (cached?.items?.length) { state.data = cached; render() }
 
 fetchNews({ force: true })
-loadWeather().then(() => { renderTicker(); if (state.tab === 'wetter') renderWeather() })
-fetchWarnings().then(renderTicker)
+loadWeather().then(() => { render(); if (state.tab === 'wetter') renderWeather() })
+fetchWarnings().then(render)
 
 /* Update-Erkennung.
  *

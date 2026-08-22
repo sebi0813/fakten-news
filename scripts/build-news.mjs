@@ -12,7 +12,8 @@ import {
   SOURCES, CATEGORIES, LOCAL_TERMS, OPINION_PATTERNS,
   URL_BLOCKLIST, CLICKBAIT_PATTERNS, FOCUS_TOPICS, FLASH_PATTERNS,
   OEBB_FEED, REGION_STATIONS, OEBB_NOISE, OEBB_BAUINFO, OEBB_REGION_LINES,
-  REGION_MOTORWAYS, TRAFFIC_EVENT,
+  REGION_MOTORWAYS, TRAFFIC_EVENT, SCIENCE_FOCUS, CONTEXT_TOPICS,
+  EVENT_PAGES, EVENT_DAYS_AHEAD,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 
@@ -45,7 +46,12 @@ function capPerCategory(items, now, limit) {
 
   const out = []
   for (const cat of CATEGORIES) {
+    // Österreichische Wirtschaftsmeldungen bekommen beim Auswählen Vorrang,
+    // sonst füllen die dreizehn internationalen Quellen die Kategorie fast
+    // allein und im Tab stünden oben nur eine Handvoll heimische Meldungen.
     const rank = it => it.fact * 0.35 + freshness(it.ts, now) * 0.65
+      + (it.at ? 18 : 0)
+      + (it.sciFocus ? 10 : 0)
     const cap = sourceCap(SOURCES.filter(s => s.cat === cat.id).length)
     const perSource = {}
     const list = []
@@ -317,6 +323,7 @@ function parseFeed(xml, src, now) {
       source: src.name,
       site: src.site,
       cat: src.cat,
+      at: !!src.at,                    // österreichische Wirtschaft steht im Tab oben
       lang: src.lang,
       trust: src.trust,
       published: date ? date.toISOString() : null,
@@ -441,14 +448,13 @@ function setsEqual(a, b) {
 
 /** Welche Fokusthemen trifft die Meldung? Siehe FOCUS_TOPICS. */
 function detectFocus(item) {
-  const title = item.title.toLowerCase()
-  const body = (item.summary || '').toLowerCase()
-  const hay = `${title} ${body}`
+  const title = item.title
+  const hay = `${item.title} ${item.summary || ''}`
   const hits = []
-  for (const topic of FOCUS_TOPICS) {
-    const inTitle = topic.strong.some(t => title.includes(t))
-    const strong = topic.strong.filter(t => hay.includes(t)).length
-    const weak = topic.weak.filter(t => hay.includes(t)).length
+  for (const topic of FOCUS_RE) {
+    const inTitle = topic.strong.some(re => re.test(title))
+    const strong = topic.strong.filter(re => re.test(hay)).length
+    const weak = topic.weak.filter(re => re.test(hay)).length
     // Ein starker Treffer im Titel genügt. Steht der Begriff nur im Fließtext,
     // braucht es ein zweites Signal — sonst gilt ein Leseraufruf, in dem
     // "künstliche Intelligenz" beiläufig vorkommt, als KI-Meldung.
@@ -593,6 +599,141 @@ function trafficTicker(items) {
   return out
 }
 
+// ---------------------------------------------------------- Veranstaltungen
+
+const MONATE = {
+  jänner: 0, januar: 0, februar: 1, märz: 2, maerz: 2, april: 3, mai: 4,
+  juni: 5, juli: 6, august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
+}
+
+/** "26. August 2026 um 18:30" -> Date. Ohne Jahr wird das laufende genommen. */
+function parseGermanDate(s, now) {
+  const m = s.match(/(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)\s*(\d{4})?(?:\s*um\s*(\d{1,2}):(\d{2}))?/)
+  if (!m) return null
+  const monat = MONATE[m[2].toLowerCase()]
+  if (monat === undefined) return null
+  const jahr = m[3] ? Number(m[3]) : new Date(now).getFullYear()
+  const d = new Date(jahr, monat, Number(m[1]), m[4] ? Number(m[4]) : 0, m[5] ? Number(m[5]) : 0)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+/**
+ * Termine der nächsten zwei Wochen.
+ *
+ * Es gibt für Österreich keinen Veranstaltungs-Feed und keine offene
+ * Schnittstelle — Wien liefert HTTP 500, data.gv.at 404, die Stadt Korneuburg
+ * hat keinen Kalenderexport. meinbezirk.at stellt seine Listen aber in
+ * gleichmäßigem HTML dar: eine <ul class="content-card-date-location"> mit
+ * Datum, Ort und Gemeinde, gefolgt von der Überschrift.
+ */
+async function buildEvents(now) {
+  const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15'
+    + ' (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
+  const cutoff = now + EVENT_DAYS_AHEAD * 86400_000
+  const alle = []
+
+  for (const seite of EVENT_PAGES) {
+    try {
+      const ctrl = new AbortController()
+      const timer = setTimeout(() => ctrl.abort(), 20000)
+      const res = await fetch(seite.url, { signal: ctrl.signal, headers: { 'user-agent': UA } })
+      clearTimeout(timer)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const html = await res.text()
+
+      const re = /<ul class="content-card-date-location">([\s\S]*?)<\/ul>([\s\S]{0,900}?)<h3[^>]*class="[^"]*content-card-headline[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi
+      let n = 0
+      for (const m of html.matchAll(re)) {
+        const felder = [...m[1].matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)]
+          .map(x => clean(x[1])).filter(Boolean)
+        const titel = clean(m[3])
+        if (!felder.length || !titel) continue
+
+        const wann = parseGermanDate(felder[0], now)
+        if (!wann) continue
+        const ts = wann.getTime()
+        if (ts < now - 12 * 3600_000 || ts > cutoff) continue
+
+        // Link zur Veranstaltung steckt im Block davor.
+        const linkM = m[2].match(/href="(\/[^"]+)"/) || m[0].match(/href="(\/[^"]+)"/)
+        alle.push({
+          id: hashId(`${titel}|${felder[0]}`),
+          title: titel,
+          when: wann.toISOString(),
+          ts,
+          venue: felder[1] || '',
+          place: felder[2] || felder[1] || seite.region,
+          region: seite.region,
+          near: seite.near,
+          link: linkM ? `https://www.meinbezirk.at${linkM[1]}` : seite.url,
+        })
+        n++
+      }
+      console.log(`  ${String(n).padStart(3)}  ${seite.region}`)
+    } catch (err) {
+      console.warn(`  FEHLER    ${seite.region}: ${err.message}`)
+    }
+  }
+
+  // Dubletten über mehrere Seiten (Korneuburg und Stockerau überschneiden sich)
+  const gesehen = new Set()
+  return alle
+    .filter(e => { const k = `${e.title}|${e.ts}`; if (gesehen.has(k)) return false; gesehen.add(k); return true })
+    .sort((a, b) => a.ts - b.ts)
+    .slice(0, 80)
+}
+
+// -------------------------------------------------------------- Themenkontext
+
+/**
+ * Suchmuster für den Themenkontext, einmalig vorbereitet.
+ *
+ * Verankert am Wortanfang, nicht als beliebige Teilzeichenkette. Ohne diese
+ * Grenze ordnete "De Zerbi" dem Thema Raiffeisen zu, weil "rbi" darin steckt.
+ * Am Wortende bleibt es offen, damit "ukraine" auch "ukrainische" trifft.
+ */
+/**
+ * Suchmuster aus einem Stichwort.
+ *
+ * Kurze Begriffe bis drei Zeichen werden beidseitig auf Wortgrenzen
+ * festgenagelt, längere nur am Anfang — damit "ukraine" auch "ukrainische"
+ * trifft, "rbi" aber nicht in "De Zerbi" und "ki" nicht in "Kind".
+ */
+function termRegex(term) {
+  const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(term.length <= 3 ? `\\b${esc}\\b` : `\\b${esc}`, 'i')
+}
+
+const CONTEXT_RE = CONTEXT_TOPICS.map(t => ({ id: t.id, res: t.match.map(termRegex) }))
+
+const FOCUS_RE = FOCUS_TOPICS.map(t => ({
+  id: t.id,
+  strong: t.strong.map(termRegex),
+  weak: t.weak.map(termRegex),
+}))
+
+/**
+ * Passt die Meldung zu einem Thema mit hinterlegtem Hintergrund?
+ * Ein einzelner kurzer Treffer genügt nicht — sonst reicht ein beiläufiges
+ * "Moskau" oder "Israel", um einen ganzen Kriegshintergrund einzublenden.
+ */
+function detectContext(item) {
+  const hay = `${item.title} ${item.summary || ''}`
+  let best = null
+  let bestTreffer = 0
+  for (const t of CONTEXT_RE) {
+    const treffer = t.res.filter(re => re.test(hay)).length
+    if (treffer >= 2 && treffer > bestTreffer) { bestTreffer = treffer; best = t.id }
+  }
+  return best
+}
+
+/** Trifft die Meldung einen der Wissenschafts-Schwerpunkte? */
+function isScienceFocus(item) {
+  const hay = `${item.title} ${item.summary || ''}`.toLowerCase()
+  return SCIENCE_FOCUS.some(t => hay.includes(t))
+}
+
 // ----------------------------------------------------------------------- Main
 
 /**
@@ -723,14 +864,18 @@ async function main() {
   })
   console.log(`  ${beforeDedupe2 - items.length} sprachübergreifende Dubletten zusammengeführt`)
 
-  // Fokusthemen und Flash-News markieren
-  let nFocus = 0, nFlash = 0
+  // Fokusthemen, Flash-News, Themenkontext und Wissenschafts-Schwerpunkte
+  let nFocus = 0, nFlash = 0, nCtx = 0, nSci = 0
   for (const it of items) {
     const f = detectFocus(it)
     if (f.length) { it.focus = f; nFocus++ }
     if (isFlash(it)) { it.flash = true; nFlash++ }
+    const ctx = detectContext(it)
+    if (ctx) { it.context = ctx; nCtx++ }
+    if (it.cat === 'wissenschaft' && isScienceFocus(it)) { it.sciFocus = true; nSci++ }
   }
-  console.log(`  ${nFocus} Meldungen zu Fokusthemen, ${nFlash} Flash-News`)
+  console.log(`  ${nFocus} Fokusthemen, ${nFlash} Flash-News, ${nCtx} mit Hintergrund,`
+    + ` ${nSci} Wissenschaft im Schwerpunkt`)
 
   // Endgültige Begrenzung
   items = capPerCategory(items, now, MAX_PER_CATEGORY)
@@ -743,27 +888,32 @@ async function main() {
 
   items.sort((a, b) => b.ts - a.ts)
 
-  // Laufband: ÖBB-Störungen der Region plus die jüngsten Flash-News.
-  console.log('\nTicker …')
+  // Info-Block: Verkehr und Bahn. Das Wetter kommt clientseitig dazu, weil es
+  // vom aktuellen Standort abhängt und der beim Bauen nicht bekannt ist.
+  console.log('\nInfo-Block …')
   const [closures, oebb] = await Promise.all([buildOebbClosures(), buildOebbTicker(now)])
   const traffic = trafficTicker(items)
-  const flashTicker = items.filter(i => i.flash).slice(0, 5)
-    .map(i => ({ kind: 'flash', text: i.title, ts: i.ts, link: i.link }))
-  // Reihenfolge = Dringlichkeit: Autobahn und Streckensperren zuerst.
-  const ticker = [...traffic, ...closures, ...oebb, ...flashTicker]
-  console.log(`  ${traffic.length} Autobahn, ${closures.length} Streckensperren,`
-    + ` ${oebb.length} ÖBB-Zugmeldungen, ${flashTicker.length} Flash-News`)
+  const info = [...traffic, ...closures, ...oebb]
+  console.log(`  ${traffic.length} Straße, ${closures.length} Streckensperren, ${oebb.length} Zugmeldungen`)
   for (const c of closures) console.log(`     ${c.text.slice(0, 90)}`)
+
+  console.log('\nVeranstaltungen (nächste 2 Wochen) …')
+  const events = await buildEvents(now)
+  console.log(`  ${events.length} Termine gesamt`)
 
   const payload = {
     generated: new Date(now).toISOString(),
-    version: 2,
+    version: 3,
     categories: CATEGORIES,
     focusTopics: FOCUS_TOPICS.map(t => ({ id: t.id, label: t.label, icon: t.icon })),
+    contextTopics: CONTEXT_TOPICS.map(t => ({
+      id: t.id, label: t.label, since: t.since, background: t.background,
+    })),
     counts: Object.fromEntries(CATEGORIES.map(c => [c.id, items.filter(i => i.cat === c.id).length])),
     flashCount: items.filter(i => i.flash).length,
     focusCount: items.filter(i => i.focus).length,
-    ticker,
+    info,
+    events,
     sourceReport: report,
     items,
   }
