@@ -37,6 +37,12 @@ jobs:
 
       - name: Feeds holen und news.json bauen
         run: node scripts/build-news.mjs
+        env:
+          # Optional. Ist das Repository-Secret ANTHROPIC_API_KEY gesetzt,
+          # übersetzt Claude genau die Texte, an denen der kostenlose Dienst
+          # gescheitert ist. Ohne Secret bleibt der Wert leer und der
+          # Rückfall ist schlicht inaktiv — der Build läuft trotzdem durch.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Änderung committen
         run: |

@@ -14,10 +14,22 @@ import { dirname } from 'node:path'
 
 const ENDPOINT = 'https://translate.googleapis.com/translate_a/single'
 const SEP = '\n\n'                  // im Test verlustfrei durch die Übersetzung getragen
-const MAX_BATCH_CHARS = 1400
-const MAX_BATCH_ITEMS = 25
+
+// Größere Bündel bedeuten weniger Anfragen. Der Dienst drosselt nach Anzahl
+// der Aufrufe, nicht nach Textmenge — 200 kleine Anfragen führten zu HTTP 429,
+// wonach der ganze Lauf unübersetzt blieb.
+const MAX_BATCH_CHARS = 3000
+const MAX_BATCH_ITEMS = 40
+
 const CACHE_TTL_DAYS = 21
-const RETRIES = 3
+const RETRIES = 4
+const PAUSE_ZWISCHEN_BATCHES = 600
+
+// Bei Drosselung braucht es Minuten, nicht Millisekunden.
+const BACKOFF = [5000, 15000, 45000]
+
+// Sind wir gesperrt, hat es keinen Sinn, den Rest des Laufs weiter anzuklopfen.
+let gedrosselt = false
 
 /** Stabiler Schlüssel für den Cache. */
 function hash(s) {
@@ -63,6 +75,11 @@ async function callService(texts, sl) {
       signal: ctrl.signal,
       headers: { 'user-agent': 'Mozilla/5.0 (compatible; FaktenNews/1.0)' },
     })
+    if (res.status === 429 || res.status === 503) {
+      const err = new Error(`HTTP ${res.status}`)
+      err.gedrosselt = true
+      throw err
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     if (!Array.isArray(data?.[0])) throw new Error('unerwartete Antwortstruktur')
@@ -77,9 +94,12 @@ async function callService(texts, sl) {
 
 /** Mit Wiederholung; bei Segment-Fehlern einzeln nachziehen. */
 async function translateBatch(texts, sl) {
+  if (gedrosselt) return texts.map(() => null)
+
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
     try {
-      return await callService(texts, sl)
+      const res = await callService(texts, sl)
+      return res
     } catch (err) {
       const isSplitError = /Segmente/.test(err.message)
       if (isSplitError && texts.length > 1) {
@@ -88,18 +108,106 @@ async function translateBatch(texts, sl) {
         for (const t of texts) {
           try { out.push((await callService([t], sl))[0]) }
           catch { out.push(null) }
-          await sleep(120)
+          await sleep(200)
         }
         return out
       }
+
+      if (err.gedrosselt) {
+        if (attempt === RETRIES) {
+          // Weiter anzuklopfen verlängert die Sperre nur. Der Rest des Laufs
+          // bleibt unübersetzt; beim nächsten Lauf fehlen diese Texte im
+          // Cache und werden erneut versucht.
+          gedrosselt = true
+          console.warn(`    ${sl}: Dienst drosselt (${err.message}) — Übersetzung für diesen Lauf ausgesetzt.`)
+          return texts.map(() => null)
+        }
+        const warte = BACKOFF[Math.min(attempt - 1, BACKOFF.length - 1)]
+        console.warn(`    ${sl}: gedrosselt, warte ${warte / 1000}s (Versuch ${attempt}/${RETRIES})`)
+        await sleep(warte)
+        continue
+      }
+
       if (attempt === RETRIES) {
         console.warn(`    Übersetzung ${sl} fehlgeschlagen: ${err.message}`)
         return texts.map(() => null)
       }
-      await sleep(500 * attempt)
+      await sleep(800 * attempt)
     }
   }
   return texts.map(() => null)
+}
+
+// ------------------------------------------------- Rückfallebene: Claude
+//
+// Der kostenlose Dienst drosselt nach Anzahl der Aufrufe und sperrt dann die
+// ganze Adresse für Stunden. Liegt ANTHROPIC_API_KEY in der Umgebung, springt
+// Claude für genau die Texte ein, die dort durchgefallen sind. Ohne Schlüssel
+// bleibt alles wie bisher — die Meldungen erscheinen dann in der
+// Originalsprache und werden im nächsten Lauf erneut versucht.
+
+const CLAUDE_MODELL = 'claude-haiku-4-5-20251001'
+
+export function claudeVerfügbar() {
+  return !!process.env.ANTHROPIC_API_KEY
+}
+
+/** Antwort von Claude einlesen: erwartet ein JSON-Array gleicher Länge. */
+export function parseClaudeAntwort(text, erwartet) {
+  const roh = String(text || '').trim()
+  const start = roh.indexOf('[')
+  const ende = roh.lastIndexOf(']')
+  if (start < 0 || ende <= start) throw new Error('kein JSON-Array in der Antwort')
+  const liste = JSON.parse(roh.slice(start, ende + 1))
+  if (!Array.isArray(liste)) throw new Error('Antwort ist kein Array')
+  if (liste.length !== erwartet) throw new Error(`${liste.length} Übersetzungen statt ${erwartet}`)
+  return liste.map(x => (typeof x === 'string' ? x.trim() : ''))
+}
+
+async function translateWithClaude(texts, sl) {
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key) return texts.map(() => null)
+
+  const liste = texts.map((t, i) => `${i + 1}. ${t.replace(/\n/g, ' ')}`).join('\n')
+  const prompt = `Übersetze die folgenden ${texts.length} Nachrichten-Textteile aus dem `
+    + `${LANG_NAMES[sl] || sl} ins Deutsche.
+
+${liste}
+
+Regeln:
+- Antworte AUSSCHLIESSLICH mit einem JSON-Array aus ${texts.length} Zeichenketten, in derselben Reihenfolge.
+- Keine Nummerierung, keine Erklärung, kein Text davor oder danach.
+- Übersetze wörtlich und nüchtern. Verdrehe niemals, wer etwas tut und wer betroffen ist.
+- Eigennamen, Vereins- und Firmennamen bleiben unverändert.
+- Ist ein Text bereits deutsch, gib ihn unverändert zurück.`
+
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 60000)
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: CLAUDE_MODELL,
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${(await res.text()).slice(0, 120)}`)
+    const json = await res.json()
+    const text = (json.content || []).filter(c => c.type === 'text').map(c => c.text).join('')
+    return parseClaudeAntwort(text, texts.length)
+  } catch (err) {
+    console.warn(`    Claude-Rückfall ${sl} fehlgeschlagen: ${err.message}`)
+    return texts.map(() => null)
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 function chunk(texts) {
@@ -122,6 +230,7 @@ function chunk(texts) {
  * nach origTitle/origSummary.
  */
 export async function translateItems(items, cache) {
+  gedrosselt = false
   const now = Date.now()
   const needed = new Map()   // sl -> Set<text>
 
@@ -138,11 +247,14 @@ export async function translateItems(items, cache) {
 
   let translated = 0
   let failed = 0
+  let viaClaude = 0
 
   for (const [sl, set] of needed) {
     const texts = [...set]
     const batches = chunk(texts)
     console.log(`  ${sl}: ${texts.length} neue Texte in ${batches.length} Batches`)
+
+    const offen = []          // was der kostenlose Dienst nicht geschafft hat
     for (const batch of batches) {
       const res = await translateBatch(batch, sl)
       res.forEach((out, k) => {
@@ -150,10 +262,27 @@ export async function translateItems(items, cache) {
           cache[hash(`${sl}|${batch[k]}`)] = { t: out, s: now }
           translated++
         } else {
-          failed++
+          offen.push(batch[k])
         }
       })
-      await sleep(200)   // freundlich zum Dienst bleiben
+      await sleep(PAUSE_ZWISCHEN_BATCHES)
+    }
+
+    if (offen.length && claudeVerfügbar()) {
+      console.log(`    ${offen.length} Texte an Claude weitergereicht`)
+      for (const batch of chunk(offen)) {
+        const res = await translateWithClaude(batch, sl)
+        res.forEach((out, k) => {
+          if (out) {
+            cache[hash(`${sl}|${batch[k]}`)] = { t: out, s: now }
+            translated++; viaClaude++
+          } else {
+            failed++
+          }
+        })
+      }
+    } else {
+      failed += offen.length
     }
   }
 
@@ -170,7 +299,7 @@ export async function translateItems(items, cache) {
     applied++
   }
 
-  return { translated, failed, applied, foreign: foreign.length }
+  return { translated, failed, applied, viaClaude, foreign: foreign.length, gedrosselt }
 }
 
 export const LANG_NAMES = {

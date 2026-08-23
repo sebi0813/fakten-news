@@ -22,7 +22,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(__dirname, '../docs/data/news.json')
 const CACHE = resolve(__dirname, '../docs/data/i18n-cache.json')
 
-const MAX_AGE_H = { korneuburg: 24 * 7, default: 48 }
+/**
+ * Wie alt eine Meldung höchstens sein darf, je Kategorie.
+ *
+ * Nachrichten altern in Stunden, Forschung nicht. Nature erscheint alle paar
+ * Tage, ESA und die Ernährungs-Umschau noch seltener — mit dem 48-Stunden-
+ * Fenster für alles trugen sie schlicht nichts bei und wurden zusätzlich
+ * fälschlich als tote Feeds gemeldet.
+ */
+const MAX_AGE_H = {
+  korneuburg: 24 * 7,
+  wissenschaft: 24 * 7,
+  fokus: 24 * 5,
+  default: 48,
+}
 const MAX_PER_CATEGORY = 70
 const STALE_FEED_DAYS = 7          // ab hier gilt ein Feed als aufgegeben
 
@@ -825,8 +838,14 @@ async function main() {
     // sein — genau so verhielten sich WSJ, Corriere und Gazzetta.
     // Manche Feeds (z.B. Sky Sports) führen gar keine Datumsangaben. Das ist
     // unschön, aber kein Grund zur Warnung — solange Meldungen ankommen.
+    // Entscheidend ist das Alter des jüngsten Eintrags, NICHT ob Meldungen
+    // durchs Zeitfenster kamen. Ein Feed, der alle drei Tage publiziert, ist
+    // nicht tot — er ist langsam. Die frühere Bedingung meldete zwölf solcher
+    // Feeds als aufgegeben.
     const ageDays = r.value.newest ? (now - r.value.newest) / 86400_000 : null
-    const isStale = (ageDays !== null && ageDays > STALE_FEED_DAYS) || r.value.items.length === 0
+    const isStale = ageDays !== null
+      ? ageDays > STALE_FEED_DAYS
+      : r.value.items.length === 0
     if (isStale) {
       stale.push(`${src.name} (${ageDays === null ? 'keine Einträge, keine Datumsangaben'
         : Math.round(ageDays) + ' Tage alt'})`)
@@ -877,6 +896,11 @@ async function main() {
   const { kept, dropped } = await saveCache(CACHE, cache)
   console.log(`  ${tr.applied}/${tr.foreign} fremdsprachige Meldungen übersetzt`
     + ` (${tr.translated} neu, ${tr.failed} fehlgeschlagen)`)
+  if (tr.gedrosselt) {
+    console.warn('  ⚠ Der Übersetzungsdienst hat gedrosselt. Die betroffenen Meldungen')
+    console.warn('    bleiben in der Originalsprache und werden im nächsten Lauf erneut')
+    console.warn('    versucht — sie fehlen im Cache und gelten dort wieder als neu.')
+  }
   console.log(`  Cache: ${kept} Einträge, ${dropped} verfallene entfernt`)
 
   // Die Meinungs- und Prognosefilter liefen bisher gegen den Originaltitel.
@@ -889,7 +913,15 @@ async function main() {
   if (droppedAfterTr) console.log(`  ${droppedAfterTr} übersetzte Meldungen nachträglich als Meinung/Prognose aussortiert`)
 
   for (const it of items) {
-    if (!it.translated) continue
+    if (!it.translated) {
+      // Fremdsprachig und nicht übersetzt: sichtbar kennzeichnen, statt den
+      // Leser wortlos mit Englisch oder Italienisch sitzen zu lassen.
+      if (it.lang !== 'de') {
+        it.untranslated = true
+        it.fromLang = LANG_NAMES[it.lang] || it.lang.toUpperCase()
+      }
+      continue
+    }
     it.fromLang = LANG_NAMES[it.lang] || it.lang.toUpperCase()
     // Faktenscore auf Basis des deutschen Textes korrigieren; reißerische
     // Sprache wird oft erst in der Übersetzung sichtbar.
@@ -962,6 +994,12 @@ async function main() {
       id: t.id, label: t.label, since: t.since, background: t.background,
     })),
     counts: Object.fromEntries(CATEGORIES.map(c => [c.id, items.filter(i => i.cat === c.id).length])),
+    translation: {
+      foreign: items.filter(i => i.lang !== 'de').length,
+      translated: items.filter(i => i.translated).length,
+      untranslated: items.filter(i => i.untranslated).length,
+      rateLimited: !!tr.gedrosselt,
+    },
     flashCount: items.filter(i => i.flash).length,
     focusCount: items.filter(i => i.focus).length,
     info,

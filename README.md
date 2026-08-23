@@ -275,6 +275,32 @@ Drei Dinge, die beim Bauen wichtig wurden:
 - **Cache.** Übersetztes landet in `docs/data/i18n-cache.json` und wird mitcommittet.
   Nach dem ersten Lauf müssen pro Stunde nur die neuen Meldungen übersetzt werden —
   typisch unter 10 statt knapp 300.
+- **Drosselung aushalten.** Der Dienst begrenzt nach *Anzahl der Aufrufe*, nicht nach
+  Textmenge. Nach dem Ausbau auf 79 Quellen kamen 22 Anfragen pro Sprache zusammen und
+  der Dienst antwortete mit HTTP 429 — woraufhin 167 von 178 Meldungen unübersetzt
+  blieben. Behoben durch größere Bündel (40 Texte statt 25), echte Wartezeiten
+  (5 s → 15 s → 45 s statt 0,5 s) und Aufgabe für den Rest des Laufs, statt die Sperre
+  durch weiteres Anklopfen zu verlängern.
+
+### Wenn die Übersetzung ausfällt
+
+Betroffene Meldungen bleiben in der Originalsprache und tragen ein **oranges
+Sprachkennzeichen** („Englisch", „Italienisch"). Sie erscheinen nicht wortlos fremd,
+und die Statuszeile nennt die Zahl. Beim nächsten Lauf fehlen sie im Cache und werden
+erneut versucht.
+
+### Rückfallebene: Claude
+
+Ist im Repository das Secret `ANTHROPIC_API_KEY` hinterlegt, übersetzt Claude
+(Haiku 4.5) genau die Texte, an denen der kostenlose Dienst gescheitert ist. Ohne
+Secret ist der Rückfall schlicht inaktiv, der Build läuft unverändert durch.
+
+Einrichten: **Settings → Secrets and variables → Actions → New repository secret**,
+Name `ANTHROPIC_API_KEY`, Wert der Schlüssel aus der Anthropic-Konsole.
+
+Kosten: Es geht nur um Überschriften und Kurztexte, und nur um die, die durchgefallen
+sind. Selbst ein kompletter Ausfall über einen ganzen Tag bewegt sich im Bereich
+weniger Cent.
 
 > ⚠ **Maschinelle Übersetzung kann die Aussage verdrehen.** Im Test wurde aus dem
 > französischen *„Uber condamné à une amende"* (Uber **wurde** bestraft) das deutsche
@@ -284,6 +310,21 @@ Drei Dinge, die beim Bauen wichtig wurden:
 
 Nicht aufgenommen wurde Finnisch (Yle): die Übersetzung lieferte unbrauchbares Deutsch.
 Germanische und romanische Sprachen sind deutlich zuverlässiger.
+
+---
+
+## Wie alt Meldungen sein dürfen
+
+| Kategorie | Fenster |
+|---|---|
+| Wissenschaft, Korneuburg | 7 Tage |
+| Fokus | 5 Tage |
+| alles Übrige | 48 Stunden |
+
+Nachrichten altern in Stunden, Forschung nicht. Mit 48 Stunden für alles trugen Nature,
+ESA und die Ernährungs-Umschau nichts bei — sie publizieren seltener — und wurden
+zusätzlich fälschlich als tote Feeds gemeldet. Die Totmelder-Erkennung schaut jetzt auf
+das Alter des jüngsten Eintrags, nicht darauf, ob Meldungen durchs Zeitfenster kamen.
 
 ---
 

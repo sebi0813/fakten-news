@@ -6,7 +6,7 @@
 // heißen — bleibt der Name gleich, überlebt der alte Inhalt jedes Update.
 // Genau das ist passiert: Version blieb auf v1, das iPhone zeigte tagelang
 // die erste Fassung, obwohl der Server längst die neue auslieferte.
-const VERSION = 'faktum-v5'
+const VERSION = 'faktum-v6'
 const SHELL = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/apple-touch-icon.png', './icons/favicon-32.png',

@@ -488,3 +488,6 @@ a.info-row:active { background: var(--bg-elev-2); }
   background: var(--accent); border-color: var(--accent); color: #05230f;
 }
 .profile-chip:active { transform: scale(.96); }
+
+/* Fremdsprachig, aber nicht übersetzt — der Dienst hat gedrosselt. */
+.pill-orig { background: rgba(251,146,60,.18); color: #fdba74; }

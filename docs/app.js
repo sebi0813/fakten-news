@@ -15,7 +15,7 @@
 
 // Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
 // neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
-const APP_VERSION = 'v5 (23.08.2026)'
+const APP_VERSION = 'v6 (23.08.2026)'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -242,8 +242,13 @@ function personalScore(item) {
 
   // Fokusthemen bekommen eine feste Grundbevorzugung, unabhängig davon, ob
   // schon Bewertungen vorliegen — sie sind ausdrücklich gewünscht.
+  //
+  // KI liegt bewusst niedriger: Der Sektor produziert ein Vielfaches dessen,
+  // was Raiffeisen und Agile Coaching liefern. Mit gleichem Gewicht besetzte
+  // KI den halben Hauptfeed und verdrängte die seltenen Themen.
+  const GRUNDGEWICHT = { ki: 8, raiffeisen: 20, agile: 20 }
   for (const t of item.focus || []) {
-    boost += 18 + (prefs.focus[t] || 0) * 2.5
+    boost += (GRUNDGEWICHT[t] ?? 15) + (prefs.focus[t] || 0) * 2.5
   }
 
   let kw = 0
@@ -313,7 +318,10 @@ async function fetchNews({ force = false } = {}) {
     state.lastFetch = Date.now()
     save(LS.cache, data)
     render()
-    setStatus(`${data.items.length} Meldungen · Stand ${relTime(new Date(data.generated).getTime())}`)
+    const t = data.translation
+    const rest = t?.untranslated || 0
+    setStatus(`${data.items.length} Meldungen · Stand ${relTime(new Date(data.generated).getTime())}`
+      + (rest > 3 ? ` · ${rest} noch in Originalsprache` : ''), rest > 20)
   } catch (err) {
     const cached = load(LS.cache, () => null)
     if (cached?.items?.length) {
@@ -599,6 +607,7 @@ function cardHTML(item) {
         <span>${relTime(item.ts)}</span>
         <span class="pill pill-${item.factLabel}">Fakten ${esc(item.factLabel)}</span>
         ${item.translated ? `<span class="pill pill-tr">übersetzt</span>` : ''}
+        ${item.untranslated ? `<span class="pill pill-orig">${esc(sprachKurz(item.lang))}</span>` : ''}
         ${item.also ? `<span class="pill pill-muted">${item.also.length + 1} Quellen</span>` : ''}
         ${item.linkWarn ? `<span class="pill pill-warn">Link prüfen</span>` : ''}
         ${matched ? `<span class="pill pill-match">passt zu dir</span>` : ''}
@@ -630,6 +639,13 @@ function cardHTML(item) {
     <div class="detail-slot"></div>
   </article>`
 }
+
+const SPRACHE_KURZ = {
+  en: 'Englisch', fr: 'Französisch', es: 'Spanisch', it: 'Italienisch',
+  nl: 'Niederländisch', sv: 'Schwedisch', no: 'Norwegisch', da: 'Dänisch',
+  fi: 'Finnisch', pt: 'Portugiesisch', ja: 'Japanisch',
+}
+const sprachKurz = l => SPRACHE_KURZ[l] || String(l || '').toUpperCase()
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c =>
