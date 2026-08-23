@@ -474,3 +474,17 @@ a.info-row:active { background: var(--bg-elev-2); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ----------------------------------------------------------------- Profile */
+
+.profile-list { display: flex; flex-wrap: wrap; gap: 7px; }
+.profile-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg-elev-2);
+  color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.profile-chip.on {
+  background: var(--accent); border-color: var(--accent); color: #05230f;
+}
+.profile-chip:active { transform: scale(.96); }

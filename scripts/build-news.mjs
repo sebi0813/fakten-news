@@ -13,7 +13,8 @@ import {
   URL_BLOCKLIST, CLICKBAIT_PATTERNS, FOCUS_TOPICS, FLASH_PATTERNS,
   OEBB_FEED, REGION_STATIONS, OEBB_NOISE, OEBB_BAUINFO, OEBB_REGION_LINES,
   REGION_MOTORWAYS, TRAFFIC_EVENT, SCIENCE_FOCUS, CONTEXT_TOPICS,
-  EVENT_PAGES, EVENT_DAYS_AHEAD,
+  EVENT_PAGES, EVENT_DAYS_AHEAD, EVENT_GENRES, EVENT_EXCLUDE,
+  SPORT_FOCUS, KI_SIGNIFICANT,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 
@@ -52,6 +53,7 @@ function capPerCategory(items, now, limit) {
     const rank = it => it.fact * 0.35 + freshness(it.ts, now) * 0.65
       + (it.at ? 18 : 0)
       + (it.sciFocus ? 10 : 0)
+      + (it.sport === 0 ? 16 : it.sport === 1 ? 8 : 0)
     const cap = sourceCap(SOURCES.filter(s => s.cat === cat.id).length)
     const perSource = {}
     const list = []
@@ -458,7 +460,10 @@ function detectFocus(item) {
     // Ein starker Treffer im Titel genügt. Steht der Begriff nur im Fließtext,
     // braucht es ein zweites Signal — sonst gilt ein Leseraufruf, in dem
     // "künstliche Intelligenz" beiläufig vorkommt, als KI-Meldung.
-    if (inTitle || strong >= 2 || (strong >= 1 && weak >= 1) || weak >= 3) hits.push(topic.id)
+    if (!(inTitle || strong >= 2 || (strong >= 1 && weak >= 1) || weak >= 3)) continue
+    // KI nur, wenn wirklich etwas passiert ist.
+    if (topic.id === 'ki' && !isKiSignificant(item)) continue
+    hits.push(topic.id)
   }
   return hits
 }
@@ -601,6 +606,9 @@ function trafficTicker(items) {
 
 // ---------------------------------------------------------- Veranstaltungen
 
+const EVENT_GENRES_RE = EVENT_GENRES.map(g => ({ ...g, res: g.terms.map(termRegex) }))
+const EVENT_EXCLUDE_RE = EVENT_EXCLUDE.map(termRegex)
+
 const MONATE = {
   jänner: 0, januar: 0, februar: 1, märz: 2, maerz: 2, april: 3, mai: 4,
   juni: 5, juli: 6, august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
@@ -656,9 +664,17 @@ async function buildEvents(now) {
 
         // Link zur Veranstaltung steckt im Block davor.
         const linkM = m[2].match(/href="(\/[^"]+)"/) || m[0].match(/href="(\/[^"]+)"/)
+        // Wortgrenzen statt Teilzeichenketten: Sonst galt das Feuerwehrfest
+        // in "Großrußbach" als Klassikkonzert, weil "bach" darin steckt.
+        const hay = `${titel} ${felder.join(' ')}`
+        const genres = EVENT_GENRES_RE.filter(g => g.res.some(re => re.test(hay))).map(g => g.id)
+        const ausgeschlossen = EVENT_EXCLUDE_RE.some(re => re.test(hay))
+
         alle.push({
           id: hashId(`${titel}|${felder[0]}`),
           title: titel,
+          genres,
+          fits: genres.length > 0 && !ausgeschlossen,
           when: wann.toISOString(),
           ts,
           venue: felder[1] || '',
@@ -726,6 +742,29 @@ function detectContext(item) {
     if (treffer >= 2 && treffer > bestTreffer) { bestTreffer = treffer; best = t.id }
   }
   return best
+}
+
+const SPORT_RE = SPORT_FOCUS.map(g => ({ rank: g.rank, res: g.terms.map(termRegex) }))
+const KI_SIG_RE = KI_SIGNIFICANT.map(termRegex)
+
+/**
+ * Sport-Rang: 0 = Fußball (Österreich, Barcelona, Champions League),
+ * 1 = Formel 1 und Tennis, 2 = alles Übrige. Bestimmt die Reihenfolge im Tab.
+ */
+function sportRank(item) {
+  const hay = `${item.title} ${item.summary || ''}`
+  for (const g of SPORT_RE) if (g.res.some(re => re.test(hay))) return g.rank
+  return 2
+}
+
+/**
+ * Beschreibt die KI-Meldung ein echtes Modell-Update oder einen Durchbruch?
+ * Ohne diese Hürde besteht der Fokus-Tab zu drei Vierteln aus Branchen-
+ * geplauder und verdrängt Raiffeisen und Agile Coaching.
+ */
+function isKiSignificant(item) {
+  const hay = `${item.title} ${item.summary || ''}`
+  return KI_SIG_RE.some(re => re.test(hay))
 }
 
 /** Trifft die Meldung einen der Wissenschafts-Schwerpunkte? */
@@ -811,7 +850,16 @@ async function main() {
   // Quellen mit focusOnly (heise, Golem) sind allgemeine Tech-Feeds. Aus
   // ihnen ist nur interessant, was ein Fokusthema trifft.
   const focusOnlySources = new Set(SOURCES.filter(s => s.focusOnly).map(s => s.name))
-  let items = all.filter(it => !focusOnlySources.has(it.source) || detectFocus(it).length > 0)
+  const aiSources = new Set(SOURCES.filter(s => s.ai).map(s => s.name))
+  const vorAI = all.length
+  let items = all.filter(it => {
+    if (focusOnlySources.has(it.source) && detectFocus(it).length === 0) return false
+    // KI-Quellen: nur Modell-Updates, Durchbrüche und Entscheidungen mit
+    // Tragweite — nicht jede Ankündigung aus der Branche.
+    if (aiSources.has(it.source) && !isKiSignificant(it)) return false
+    return true
+  })
+  console.log(`  ${vorAI - items.length} Meldungen als KI-Alltagsrauschen aussortiert`)
 
   // Durchlauf 1: Dubletten innerhalb einer Sprache, konservative Schwelle.
   items = dedupe(items, { threshold: 0.62 })
@@ -873,9 +921,13 @@ async function main() {
     const ctx = detectContext(it)
     if (ctx) { it.context = ctx; nCtx++ }
     if (it.cat === 'wissenschaft' && isScienceFocus(it)) { it.sciFocus = true; nSci++ }
+    if (it.cat === 'sport-int') it.sport = sportRank(it)
   }
+  const sportVerteilung = [0, 1, 2].map(r => items.filter(i => i.sport === r).length)
   console.log(`  ${nFocus} Fokusthemen, ${nFlash} Flash-News, ${nCtx} mit Hintergrund,`
     + ` ${nSci} Wissenschaft im Schwerpunkt`)
+  console.log(`  Sport: ${sportVerteilung[0]} Fußball, ${sportVerteilung[1]} F1/Tennis,`
+    + ` ${sportVerteilung[2]} übrige Sportarten`)
 
   // Endgültige Begrenzung
   items = capPerCategory(items, now, MAX_PER_CATEGORY)

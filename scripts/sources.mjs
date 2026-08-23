@@ -30,23 +30,28 @@ export const SOURCES = [
   // ---------- Fokus: KI-Sektor ----------
   // Eigene Quellen für die Fokusthemen. Meldungen aus allen anderen
   // Kategorien, die auf FOCUS_TOPICS passen, landen zusätzlich im Fokus-Tab.
-  { name: 'Ars Technica AI', cat: 'fokus', trust: 2, lang: 'en',
+  //
+  // ai:true heißt: Aus dieser Quelle wird nur übernommen, was KI_SIGNIFICANT
+  // trifft — ein Modell-Update, ein Durchbruch oder eine Entscheidung mit
+  // Tragweite. Ohne diese Hürde bestand der Fokus-Tab zu drei Vierteln aus
+  // Branchengeplauder und verdrängte Raiffeisen und Agile Coaching.
+  { name: 'Ars Technica AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
     url: 'https://arstechnica.com/ai/feed/', site: 'arstechnica.com' },
-  { name: 'TechCrunch AI', cat: 'fokus', trust: 2, lang: 'en',
+  { name: 'TechCrunch AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
     url: 'https://techcrunch.com/category/artificial-intelligence/feed/', site: 'techcrunch.com' },
-  { name: 'The Verge AI', cat: 'fokus', trust: 2, lang: 'en',
+  { name: 'The Verge AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
     url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', site: 'theverge.com' },
-  { name: 'MIT Technology Review', cat: 'fokus', trust: 3, lang: 'en',
+  { name: 'MIT Technology Review', cat: 'fokus', ai: true, trust: 3, lang: 'en',
     url: 'https://www.technologyreview.com/feed/', site: 'technologyreview.com' },
-  { name: 'Google DeepMind', cat: 'fokus', trust: 2, lang: 'en',
+  { name: 'Google DeepMind', cat: 'fokus', ai: true, trust: 2, lang: 'en',
     url: 'https://deepmind.google/blog/rss.xml', site: 'deepmind.google' },
-  { name: 'The Register AI', cat: 'fokus', trust: 2, lang: 'en',
+  { name: 'The Register AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
     url: 'https://www.theregister.com/software/ai_ml/headlines.atom', site: 'theregister.com' },
-  { name: 'heise', cat: 'fokus', trust: 2, lang: 'de',
+  { name: 'heise', cat: 'fokus', ai: true, trust: 2, lang: 'de',
     url: 'https://www.heise.de/rss/heise-atom.xml', site: 'heise.de', focusOnly: true },
-  { name: 'Golem', cat: 'fokus', trust: 2, lang: 'de',
+  { name: 'Golem', cat: 'fokus', ai: true, trust: 2, lang: 'de',
     url: 'https://www.golem.de/rss.php?feed=RSS2.0', site: 'golem.de', focusOnly: true },
-  { name: 't3n', cat: 'fokus', trust: 2, lang: 'de',
+  { name: 't3n', cat: 'fokus', ai: true, trust: 2, lang: 'de',
     url: 'https://t3n.de/rss.xml', site: 't3n.de', focusOnly: true },
   // Agile Coaching kommt in Nachrichtenfeeds praktisch nicht vor. Ohne diese
   // Fachquellen bliebe das Thema dauerhaft leer.
@@ -156,8 +161,9 @@ export const SOURCES = [
   // fälschlich als leer verworfen — der Feed liefert 17 aktuelle Meldungen.
   { name: 'ORF Sport', cat: 'sport-int', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/sport.xml', site: 'orf.at' },
-  { name: 'vienna.at Sport', cat: 'sport-int', trust: 1, lang: 'de',
-    url: 'https://www.vienna.at/rss/sport', site: 'vienna.at' },
+  // vienna.at Sport entfernt: Der Feed führt unter "Sport" auch Wohnhaus-
+  // brände, Messerattacken und Innenpolitik. Für österreichischen Sport
+  // genügt ORF Sport, das sauber abgegrenzt ist.
 
   // ---------- Welt (international, fremdsprachig -> übersetzt) ----------
   { name: 'BBC World', cat: 'welt', trust: 3, lang: 'en',
@@ -273,6 +279,70 @@ export const FOCUS_TOPICS = [
   },
 ]
 
+// ------------------------------------------------------- Sport-Schwerpunkte
+//
+// Rang 0 steht im Tab ganz oben, dann 1, dann alles Übrige. Andere Sportarten
+// verschwinden nicht — sie stehen weiter unten.
+
+export const SPORT_FOCUS = [
+  {
+    rank: 0,
+    label: 'Fußball',
+    terms: [
+      // Österreich
+      'rapid', 'sk rapid', 'austria wien', 'fk austria', 'sturm graz', 'sk sturm',
+      'bundesliga', 'öfb', 'oefb', 'cup-finale', 'wiener derby', 'lask',
+      // Bewusst mit Klubkürzel: "Salzburg", "Ried" und "Tirol" allein sind
+      // Ortsnamen und zogen Brand- und Unfallmeldungen in den Sport-Tab.
+      'red bull salzburg', 'rb salzburg', 'fc salzburg', 'sv ried', 'wsg tirol',
+      'scr altach', 'wolfsberger ac', 'blau-weiß linz', 'grazer ak',
+      // Barcelona und Champions-League-Ebene
+      'barcelona', 'barça', 'barca', 'champions league', 'championsleague',
+      'real madrid', 'atlético', 'atletico', 'bayern', 'borussia dortmund',
+      'manchester city', 'manchester united', 'liverpool', 'arsenal', 'chelsea',
+      'tottenham', 'paris saint-germain', 'psg', 'inter mailand', 'ac mailand',
+      'juventus', 'napoli', 'benfica', 'porto', 'ajax', 'leipzig', 'leverkusen',
+      'atalanta', 'sporting', 'psv', 'feyenoord', 'europa league', 'uefa',
+      'nations league', 'weltmeisterschaft', 'europameisterschaft', 'wm-quali',
+    ],
+  },
+  {
+    rank: 1,
+    label: 'Formel 1 und Tennis',
+    terms: [
+      'formel 1', 'formel1', 'formula 1', 'grand prix', 'grandprix', 'qualifying',
+      'verstappen', 'ferrari', 'mclaren', 'mercedes-amg', 'red bull racing',
+      'boxenstopp', 'pole position', 'weltmeistertitel',
+      'tennis', 'atp', 'wta', 'grand slam', 'wimbledon', 'us open', 'french open',
+      'australian open', 'roland garros', 'davis cup', 'sinner', 'alcaraz',
+      'djokovic', 'zverev', 'medwedew', 'swiatek', 'sabalenka', 'thiem',
+    ],
+  },
+]
+
+// -------------------------------------------------------- KI: nur Wesentliches
+//
+// Der KI-Sektor produziert täglich Dutzende Meldungen, überwiegend Ankündigungen
+// und Branchengeplauder. Ins Fokusthema kommt nur, was ein echtes Modell-Update
+// oder einen Durchbruch beschreibt — oder eine Entscheidung mit Tragweite.
+
+export const KI_SIGNIFICANT = [
+  // Modelle und Veröffentlichungen
+  'vorgestellt', 'veröffentlicht', 'startet', 'erschienen', 'verfügbar ab',
+  'neues modell', 'neue version', 'nachfolger', 'update', 'launch', 'release',
+  'unveil', 'announce', 'introduc', 'debut', 'rollout', 'general availability',
+  'gpt-', 'claude', 'gemini', 'llama', 'mistral', 'grok', 'deepseek', 'qwen',
+  'sora', 'midjourney', 'stable diffusion',
+  // Durchbrüche und Leistung
+  'durchbruch', 'breakthrough', 'erstmals', 'first time', 'übertrifft',
+  'outperform', 'benchmark', 'state of the art', 'meilenstein', 'milestone',
+  'forschungsergebnis', 'studie zeigt', 'nature', 'science',
+  // Tragweite
+  'milliarden', 'billion', 'übernahme', 'acquisition', 'börsengang',
+  'ai act', 'ki-verordnung', 'verboten', 'klage', 'urteil', 'gericht',
+  'datenschutz', 'sicherheitslücke', 'rechenzentrum', 'chipfertigung',
+]
+
 // ------------------------------------------------- Wissenschafts-Schwerpunkte
 //
 // Meldungen aus der Kategorie Wissenschaft, die eines dieser Felder treffen,
@@ -309,6 +379,35 @@ export const EVENT_PAGES = [
 ]
 
 export const EVENT_DAYS_AHEAD = 14
+
+// Interessante Sparten. Termine, die nichts davon treffen, werden nicht
+// verworfen — sie stehen nur hinter einem Schalter in den Einstellungen.
+export const EVENT_GENRES = [
+  { id: 'theater', label: 'Theater', icon: '🎭',
+    terms: ['theater', 'schauspiel', 'bühne', 'komödie', 'tragödie', 'inszenierung',
+      'premiere', 'kabarett', 'lesung', 'literatur'] },
+  { id: 'musical', label: 'Musical', icon: '🎤',
+    terms: ['musical', 'revue', 'show'] },
+  { id: 'klassik', label: 'Klassik & Oper', icon: '🎻',
+    terms: ['oper', 'operette', 'klassik', 'klassische', 'orchester', 'symphoni',
+      'sinfoni', 'philharmoni', 'kammermusik', 'kammerorchester', 'streichquartett',
+      'klavierabend', 'liederabend', 'arien', 'chor', 'chorkonzert', 'ballett',
+      // Komponistennamen wurden bewusst entfernt: "Bach" traf den Ortsnamen
+      // "Großrußbach", "Messe" die Messehalle. Genrewörter genügen — eine
+      // Mozart-Oper heißt im Titel ohnehin Oper oder Konzert.
+      'matinee', 'serenade', 'requiem', 'blasmusik', 'volksmusik'] },
+  { id: 'konzert', label: 'Konzert', icon: '🎵',
+    terms: ['konzert', 'live-musik', 'livemusik', 'open air', 'openair', 'band',
+      'jazz', 'blues', 'soul', 'pop', 'rock', 'singer', 'songwriter', 'akustik',
+      'unplugged', 'festival', 'musikfest', 'sommerkonzert'] },
+]
+
+// Nicht für die Zielgruppe: Kinderprogramm und Clubbing.
+export const EVENT_EXCLUDE = [
+  'kinder', 'kids', 'kleinkind', 'baby', 'jugendliche', 'teenager', 'schüler',
+  'kindergarten', 'familienfest', 'spielefest', 'hüpfburg', 'kasperl',
+  'clubbing', 'rave', 'techno', 'disco', 'after work', 'afterwork',
+]
 
 // ------------------------------------------------------------- Themenkontext
 //

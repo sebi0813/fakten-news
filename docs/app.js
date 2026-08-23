@@ -15,7 +15,7 @@
 
 // Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
 // neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
-const APP_VERSION = 'v4 (22.08.2026)'
+const APP_VERSION = 'v5 (23.08.2026)'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -24,14 +24,55 @@ const READ_DWELL_MS = 5000            // so lange sichtbar = gelesen
 const ITEM_TTL_DAYS = 3
 const HISTORY_TTL_DAYS = 30
 
-const LS = {
-  prefs: 'faktum.prefs.v1',
-  settings: 'faktum.settings.v1',
-  read: 'faktum.read.v1',
-  saved: 'faktum.saved.v1',
-  history: 'faktum.history.v1',
-  cache: 'faktum.cache.v1',
+/* -------------------------------------------------------------- Profile
+ *
+ * Mehrere Personen auf einem Gerät: Jedes Profil bekommt einen eigenen
+ * Namensraum im Speicher (faktum.<id>.prefs.v1 statt faktum.prefs.v1).
+ * Lernprofil, Gemerktes, Lesestatus und Einstellungen sind dadurch strikt
+ * getrennt — geteilt wird nur der Nachrichtenbestand, der ohnehin für alle
+ * derselbe ist.
+ *
+ * Die Umstellung darf keine Daten kosten: Beim ersten Start mit dieser
+ * Fassung werden die bisherigen Schlüssel in das erste Profil kopiert. Die
+ * alten bleiben als Sicherung liegen und werden nicht gelöscht.
+ */
+const LS_PROFILES = 'faktum.profiles'
+const LS_ACTIVE = 'faktum.activeProfile'
+const PROFILE_KEYS = ['prefs', 'settings', 'read', 'saved', 'history', 'cache']
+
+function readProfiles() {
+  try {
+    const raw = localStorage.getItem(LS_PROFILES)
+    const list = raw ? JSON.parse(raw) : null
+    if (Array.isArray(list) && list.length) return list
+  } catch { /* fällt unten auf die Voreinstellung zurück */ }
+  return [{ id: 'p1', name: 'Sebastian', emoji: '👤' }]
 }
+
+function migrateToProfiles() {
+  if (localStorage.getItem(LS_PROFILES)) return
+  const id = 'p1'
+  let übernommen = 0
+  for (const k of PROFILE_KEYS) {
+    const alt = localStorage.getItem(`faktum.${k}.v1`)
+    if (alt !== null) {
+      localStorage.setItem(`faktum.${id}.${k}.v1`, alt)   // Original bleibt liegen
+      übernommen++
+    }
+  }
+  localStorage.setItem(LS_PROFILES, JSON.stringify([{ id, name: 'Sebastian', emoji: '👤' }]))
+  localStorage.setItem(LS_ACTIVE, id)
+  if (übernommen) console.info(`Faktum: ${übernommen} Datensätze ins Profil übernommen.`)
+}
+
+migrateToProfiles()
+
+let profiles = readProfiles()
+let activeProfile = localStorage.getItem(LS_ACTIVE) || profiles[0].id
+if (!profiles.some(p => p.id === activeProfile)) activeProfile = profiles[0].id
+
+const key = name => `faktum.${activeProfile}.${name}.v1`
+let LS = Object.fromEntries(PROFILE_KEYS.map(k => [k, key(k)]))
 
 const $ = sel => document.querySelector(sel)
 const DAY = 86400_000
@@ -51,7 +92,7 @@ const state = {
 
 const defaults = {
   prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {} }),
-  settings: () => ({ hideRead: true, hideLowFact: false, images: true, info: true, apiKey: '' }),
+  settings: () => ({ hideRead: true, hideLowFact: false, images: true, info: true, eventsFilter: true, apiKey: '' }),
   read: () => ({}),
   saved: () => ({}),
   history: () => ([]),
@@ -75,6 +116,43 @@ let settings = load(LS.settings, defaults.settings)
 let readMap = load(LS.read, defaults.read)
 let saved = load(LS.saved, defaults.saved)
 let history = load(LS.history, defaults.history)
+
+/**
+ * Gelerntes über Umbauten hinwegretten.
+ *
+ * Wirtschaft war früher auf zwei Kategorien aufgeteilt. Ohne diese
+ * Übertragung wären die dort gesammelten Gewichte verloren und das
+ * Lernprofil müsste für Wirtschaft bei null anfangen.
+ */
+function migratePrefs() {
+  let geändert = false
+  const alt = ['wirtschaft-at', 'wirtschaft-int']
+  const summe = alt.reduce((n, k) => n + (prefs.cats[k] || 0), 0)
+  if (summe) {
+    prefs.cats.wirtschaft = clamp((prefs.cats.wirtschaft || 0) + summe / alt.length)
+    for (const k of alt) delete prefs.cats[k]
+    geändert = true
+  }
+  if (geändert) save(LS.prefs, prefs)
+}
+
+function switchProfile(id) {
+  if (!profiles.some(p => p.id === id)) return
+  activeProfile = id
+  localStorage.setItem(LS_ACTIVE, id)
+  LS = Object.fromEntries(PROFILE_KEYS.map(k => [k, key(k)]))
+  prefs = load(LS.prefs, defaults.prefs)
+  settings = load(LS.settings, defaults.settings)
+  readMap = load(LS.read, defaults.read)
+  saved = load(LS.saved, defaults.saved)
+  history = load(LS.history, defaults.history)
+  migratePrefs()
+  purgeOld()
+  render()
+  openSheet()
+}
+
+function saveProfiles() { localStorage.setItem(LS_PROFILES, JSON.stringify(profiles)) }
 
 /** Alles Abgelaufene wegräumen. Gemerktes und das Lernprofil bleiben. */
 function purgeOld() {
@@ -309,6 +387,11 @@ function visibleItems() {
       // nach Aktualität.
       return items.filter(i => i.cat === 'wirtschaft' && !isHidden(i))
         .sort((a, b) => (Number(!!b.at) - Number(!!a.at)) || (b.ts - a.ts))
+    case 'sport-int':
+      // Fußball (Österreich, Barcelona, Champions League) zuerst, dann
+      // Formel 1 und Tennis, dann die übrigen Sportarten.
+      return items.filter(i => i.cat === 'sport-int' && !isHidden(i))
+        .sort((a, b) => ((a.sport ?? 2) - (b.sport ?? 2)) || (b.ts - a.ts))
     case 'wissenschaft':
       // Ernährung, Diätologie und Astronomie stehen oben.
       return items.filter(i => i.cat === 'wissenschaft' && !isHidden(i))
@@ -446,9 +529,13 @@ function renderHistory() {
     </a>`).join('')
 }
 
+const GENRE_ICON = { theater: '🎭 ', musical: '🎤 ', klassik: '🎻 ', konzert: '🎵 ' }
+
 /** Termine der nächsten zwei Wochen, nach Nähe zum Standort gruppiert. */
 function renderEvents() {
   let events = (state.data?.events || []).filter(e => e.ts > Date.now() - 12 * 3600_000)
+  const alleAnzahl = events.length
+  if (settings.eventsFilter) events = events.filter(e => e.fits)
   if (state.search) {
     const q = state.search.toLowerCase()
     events = events.filter(e => `${e.title} ${e.place} ${e.venue}`.toLowerCase().includes(q))
@@ -457,7 +544,9 @@ function renderEvents() {
     $('#feed').innerHTML = ''
     return showEmpty('📅', 'Keine Termine',
       state.search ? `Zu „${state.search}“ gibt es keinen Termin in den nächsten zwei Wochen.`
-        : 'Für die nächsten zwei Wochen liegen gerade keine Veranstaltungen vor.')
+        : settings.eventsFilter && alleAnzahl
+          ? `${alleAnzahl} Termine liegen vor, aber keiner passt zu Theater, Musical, Konzert oder Klassik. Unter ⚙ lässt sich der Filter abschalten.`
+          : 'Für die nächsten zwei Wochen liegen gerade keine Veranstaltungen vor.')
   }
 
   // Chronologisch, damit die Uhrzeiten innerhalb eines Tages nicht
@@ -473,7 +562,9 @@ function renderEvents() {
     ;(tage[key] ||= []).push(e)
   }
 
-  $('#feed').innerHTML = `<p class="muted small hist-note">${events.length} Termine in den nächsten zwei Wochen · Quelle: meinbezirk.at</p>`
+  const hinweis = settings.eventsFilter && alleAnzahl > events.length
+    ? ` · ${alleAnzahl - events.length} weitere ausgeblendet (⚙ Anzeige)` : ''
+  $('#feed').innerHTML = `<p class="muted small hist-note">${events.length} Termine in den nächsten zwei Wochen${hinweis} · Quelle: meinbezirk.at</p>`
     + Object.entries(tage).map(([tag, liste]) => `
       <h3 class="event-day">${esc(tag)}</h3>
       ${liste.map(e => `
@@ -483,7 +574,8 @@ function renderEvents() {
             : '–'}</span>
           <span class="event-text">
             <b>${esc(e.title)}</b>
-            <small class="muted">${esc([e.venue, e.place].filter(Boolean).join(' · '))}</small>
+            <small class="muted">${(e.genres || []).map(g => GENRE_ICON[g] || '').join('')}
+              ${esc([e.venue, e.place].filter(Boolean).join(' · '))}</small>
           </span>
         </a>`).join('')}`).join('')
 }
@@ -928,14 +1020,23 @@ Die Einordnung ersetzt das Lesen des Originals nicht.</p>
 api.anthropic.com. Das ist bequem, aber kein Tresor — setze das Ausgabenlimit.</p>
 `
 
+function renderProfiles() {
+  $('#profile-list').innerHTML = profiles.map(p => `
+    <button class="profile-chip ${p.id === activeProfile ? 'on' : ''}" data-profile="${esc(p.id)}">
+      <span>${esc(p.emoji || '👤')}</span> ${esc(p.name)}
+    </button>`).join('')
+}
+
 function openSheet() {
   $('#ai-explain').innerHTML = AI_EXPLAIN
+  renderProfiles()
   renderLearnSummary()
   renderSourceReport()
   renderStorageInfo()
   $('#opt-hide-read').checked = settings.hideRead
   $('#opt-hide-lowfact').checked = settings.hideLowFact
   $('#opt-images').checked = settings.images
+  $('#opt-events-filter').checked = settings.eventsFilter
   $('#opt-info').checked = settings.info
   $('#opt-apikey').value = settings.apiKey || ''
   $('#sheet').hidden = false
@@ -1108,6 +1209,8 @@ document.addEventListener('click', ev => {
   }
   if (ev.target.closest('#btn-search')) { toggleSearch(); return }
   if (ev.target.closest('#btn-search-clear')) { toggleSearch(false); return }
+  const chip = ev.target.closest('[data-profile]')
+  if (chip) { switchProfile(chip.dataset.profile); return }
   if (ev.target.closest('#btn-settings')) { openSheet(); return }
   if (ev.target.closest('[data-close]')) { $('#sheet').hidden = true; return }
 })
@@ -1142,6 +1245,7 @@ const bindToggle = (sel, key) => $(sel).addEventListener('change', e => {
 bindToggle('#opt-hide-read', 'hideRead')
 bindToggle('#opt-hide-lowfact', 'hideLowFact')
 bindToggle('#opt-images', 'images')
+bindToggle('#opt-events-filter', 'eventsFilter')
 bindToggle('#opt-info', 'info')
 
 $('#btn-save-key').addEventListener('click', () => {
@@ -1162,6 +1266,36 @@ $('#btn-reset-learning').addEventListener('click', () => {
   renderLearnSummary()
   render()
 })
+const EMOJIS = ['👤', '🧑', '👩', '👨', '🧓', '👧', '🐧', '🦊']
+
+$('#btn-profile-new').addEventListener('click', () => {
+  const name = prompt('Name für das neue Profil?')?.trim()
+  if (!name) return
+  const id = 'p' + (Date.now().toString(36))
+  profiles.push({ id, name: name.slice(0, 20), emoji: EMOJIS[profiles.length % EMOJIS.length] })
+  saveProfiles()
+  switchProfile(id)
+})
+
+$('#btn-profile-rename').addEventListener('click', () => {
+  const p = profiles.find(x => x.id === activeProfile)
+  const name = prompt('Neuer Name?', p.name)?.trim()
+  if (!name) return
+  p.name = name.slice(0, 20)
+  saveProfiles()
+  renderProfiles()
+})
+
+$('#btn-profile-delete').addEventListener('click', () => {
+  if (profiles.length < 2) return alert('Das letzte Profil lässt sich nicht löschen.')
+  const p = profiles.find(x => x.id === activeProfile)
+  if (!confirm(`Profil „${p.name}“ mit allen Bewertungen und Gemerktem löschen?`)) return
+  for (const k of PROFILE_KEYS) localStorage.removeItem(`faktum.${activeProfile}.${k}.v1`)
+  profiles = profiles.filter(x => x.id !== activeProfile)
+  saveProfiles()
+  switchProfile(profiles[0].id)
+})
+
 $('#btn-clear-history').addEventListener('click', () => {
   if (!confirm('Historie und Lesestatus leeren? Gemerktes und das Lernprofil bleiben erhalten.')) return
   history = []
@@ -1185,6 +1319,7 @@ document.addEventListener('keydown', ev => {
 
 // ------------------------------------------------------------------- Start
 
+migratePrefs()
 purgeOld()
 $('#feed').innerHTML = Array.from({ length: 4 }, () => '<div class="skeleton"></div>').join('')
 setStatus('Lade Meldungen …')

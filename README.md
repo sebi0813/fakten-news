@@ -414,6 +414,49 @@ Raiffeisen-Meldung, weil „rbi" darin steckt, und jedes „Kind" als KI-Thema.
 
 ---
 
+## Mehrere Personen auf einem Gerät
+
+Unter ⚙ ganz oben lässt sich zwischen Profilen wechseln. Jedes hat **eigene
+Bewertungen, eigene Merkliste, eigenen Lesestatus und eigene Einstellungen** —
+einschließlich des API-Keys. Geteilt wird nur der Nachrichtenbestand, der ohnehin
+für alle derselbe ist.
+
+Technisch: Jedes Profil bekommt einen eigenen Namensraum im Speicher
+(`faktum.<id>.prefs.v1` statt `faktum.prefs.v1`). Beim ersten Start mit dieser
+Fassung werden die vorhandenen Daten ins erste Profil kopiert; die alten Schlüssel
+bleiben als Sicherung liegen.
+
+> Es gibt kein Passwort und keine Anmeldung. Die Trennung ist gegen **Vermischung**
+> gedacht — damit nicht die Fußballinteressen des einen die Opernvorschläge des
+> anderen verdrängen — nicht gegen neugierige Mitbewohner. Wer echten Schutz
+> braucht, nimmt getrennte Geräte oder getrennte Browserprofile.
+
+---
+
+## Warum APA nicht als Quelle auftaucht
+
+Kurz: **APA-Material ist längst drin, nur unter anderem Namen.**
+
+Die Austria Presse Agentur ist ein Großhändler. Sie verkauft ihre Meldungen an
+Redaktionen und betreibt selbst keinen öffentlichen Nachrichtenkanal. Geprüft wurden
+`apa.at/rss`, `apa.at/feed`, `science.apa.at` und mehrere OTS-Adressen:
+
+- `apa.at/rss` liefert **zwei Einträge, datiert Oktober 2024 und Juni 2020** — ein
+  Firmenblog über KI-Recht und Textautomatisierung, kein Nachrichtenfeed.
+- `science.apa.at` verlinkt keinen Feed.
+- Die OTS-Adressen antworten mit 404.
+
+Zugleich stammen **124 der rund 380 Meldungen** aus Häusern, die APA-Kunden sind:
+ORF, DER STANDARD, Die Presse und KURIER. Deren Agenturmeldungen sind APA-Material,
+redaktionell geprüft und mit Quellenangabe.
+
+**OTS wäre technisch verfügbar, wird aber bewusst nicht eingebunden.** Das ist der
+Presseaussendungsdienst der APA: Dort veröffentlichen Unternehmen, Parteien und
+Verbände gegen Bezahlung ihre eigenen Mitteilungen. Das ist PR, keine Berichterstattung
+— und würde dem Grundsatz dieser App direkt widersprechen.
+
+---
+
 ## Lokal entwickeln
 
 ```bash

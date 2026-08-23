@@ -73,6 +73,23 @@
     <div class="sheet-body">
 
       <section class="card-lite">
+        <h3>Wer nutzt Faktum gerade?</h3>
+        <div id="profile-list" class="profile-list"></div>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-profile-new">+ Profil anlegen</button>
+          <button class="btn btn-ghost" id="btn-profile-rename">Umbenennen</button>
+          <button class="btn btn-ghost" id="btn-profile-delete">Löschen</button>
+        </div>
+        <p class="muted small" style="margin-top:10px">
+          Jedes Profil hat eigene Bewertungen, eigene Merkliste, eigenen Lesestatus und
+          eigene Einstellungen. Geteilt wird nur der Nachrichtenbestand — der ist für
+          alle derselbe. Ein Wechsel dauert einen Fingertipp, es gibt kein Passwort und
+          keine Anmeldung: Die Trennung ist gegen Vermischung gedacht, nicht gegen
+          neugierige Mitbewohner.
+        </p>
+      </section>
+
+      <section class="card-lite">
         <h3>Was Faktum über dich gelernt hat</h3>
         <p class="muted" id="learn-summary">Noch keine Bewertungen.</p>
         <div id="learn-top"></div>
@@ -95,6 +112,11 @@
         <label class="switch">
           <input type="checkbox" id="opt-images" checked>
           <span>Bilder laden</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-events-filter" checked>
+          <span>Termine auf meine Sparten beschränken
+            <small class="muted">Theater, Musical, Konzert, Oper und Klassik. Ohne Haken erscheinen alle Termine.</small></span>
         </label>
         <label class="switch">
           <input type="checkbox" id="opt-info" checked>
