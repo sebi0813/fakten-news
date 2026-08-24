@@ -235,15 +235,20 @@ export async function translateItems(items, cache) {
   const needed = new Map()   // sl -> Set<text>
 
   const foreign = items.filter(i => i.lang !== 'de')
-  for (const it of foreign) {
-    for (const text of [it.title, it.summary]) {
-      if (!text) continue
-      const key = hash(`${it.lang}|${text}`)
-      if (cache[key]) { cache[key].s = now; continue }
-      if (!needed.has(it.lang)) needed.set(it.lang, new Set())
-      needed.get(it.lang).add(text)
-    }
+
+  // Erst ALLE Überschriften, dann die Kurztexte. Bei Drosselung bricht die
+  // Übersetzung mittendrin ab — dann sind wenigstens die Titel deutsch und
+  // der Feed bleibt überfliegbar. Vorher wechselten sich Titel und Text ab,
+  // sodass beides zur Hälfte fehlte.
+  const merken = (lang, text) => {
+    if (!text) return
+    const k = hash(`${lang}|${text}`)
+    if (cache[k]) { cache[k].s = now; return }
+    if (!needed.has(lang)) needed.set(lang, new Set())
+    needed.get(lang).add(text)
   }
+  for (const it of foreign) merken(it.lang, it.title)
+  for (const it of foreign) merken(it.lang, it.summary)
 
   let translated = 0
   let failed = 0

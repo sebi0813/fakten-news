@@ -15,7 +15,7 @@
 
 // Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
 // neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
-const APP_VERSION = 'v6 (23.08.2026)'
+const APP_VERSION = 'v7 (24.08.2026)'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -543,7 +543,10 @@ const GENRE_ICON = { theater: '🎭 ', musical: '🎤 ', klassik: '🎻 ', konze
 function renderEvents() {
   let events = (state.data?.events || []).filter(e => e.ts > Date.now() - 12 * 3600_000)
   const alleAnzahl = events.length
-  if (settings.eventsFilter) events = events.filter(e => e.fits)
+  // Nur filtern, wenn die Daten die Sparten überhaupt kennen. Ein älterer
+  // Datenstand ohne "fits" würde sonst sämtliche Termine ausblenden.
+  const kenntSparten = events.some(e => e.genres !== undefined)
+  if (settings.eventsFilter && kenntSparten) events = events.filter(e => e.fits)
   if (state.search) {
     const q = state.search.toLowerCase()
     events = events.filter(e => `${e.title} ${e.place} ${e.venue}`.toLowerCase().includes(q))
