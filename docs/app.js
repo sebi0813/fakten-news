@@ -16,8 +16,23 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v8'
-const APP_BUILD = '24.08. 22:10'
+const APP_VERSION = 'v10'
+
+/**
+ * Zeitpunkt des Builds, in Wiener Zeit.
+ *
+ * Kommt aus den Daten, nicht aus einer Konstante: Die vorherige Fassung hatte
+ * den Zeitstempel von Hand eingetragen — und er war um fünfzehn Stunden
+ * falsch. Ein Wert, den jemand tippen muss, ist ein Wert, der irgendwann
+ * nicht mehr stimmt.
+ */
+function buildStempel(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('de-AT', {
+    timeZone: 'Europe/Vienna',
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).replace(',', '')
+}
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -325,7 +340,7 @@ async function fetchNews({ force = false } = {}) {
       `Meldungen: ${data.items.length}`,
       `Stand: ${relTime(new Date(data.generated).getTime()).replace(/^vor /, '')}`,
       rest > 3 ? { text: `${rest} im Original`, warn: true } : null,
-      `Version: ${APP_VERSION} (${APP_BUILD})`,
+      `Version: ${APP_VERSION} (${buildStempel(data.generated)})`,
     ])
   } catch (err) {
     const cached = load(LS.cache, () => null)
@@ -335,7 +350,7 @@ async function fetchNews({ force = false } = {}) {
       setStatusParts([
         { text: 'Offline', warn: true },
         `Stand: ${relTime(new Date(cached.generated).getTime()).replace(/^vor /, '')}`,
-        `Version: ${APP_VERSION} (${APP_BUILD})`,
+        `Version: ${APP_VERSION} (${buildStempel(cached.generated)})`,
       ])
     } else {
       setStatus(`Konnte Meldungen nicht laden: ${err.message}`, true)
@@ -388,7 +403,11 @@ function matchesSearch(item) {
 function isHidden(item) {
   if (!settings.hideRead) return false
   if (isSaved(item.id)) return false                 // Gemerktes bleibt sichtbar
-  return !!readMap[item.id] || !!prefs.votes[item.id]
+  // 👍 heißt "gut ausgewählt" — die Meldung bleibt stehen. Nur 👎 und
+  // Gelesenes verschwinden. Vorher verschwand alles Bewertete, sodass eine
+  // Zustimmung dieselbe Wirkung hatte wie eine Ablehnung.
+  if (prefs.votes[item.id]?.v === 1) return false
+  return !!readMap[item.id] || prefs.votes[item.id]?.v === -1
 }
 
 function allItems() {
@@ -423,7 +442,7 @@ function visibleItems() {
       // Fußball (Österreich, Barcelona, Champions League) zuerst, dann
       // Formel 1 und Tennis, dann die übrigen Sportarten.
       return items.filter(i => i.cat === 'sport-int' && !isHidden(i))
-        .sort((a, b) => ((a.sport ?? 2) - (b.sport ?? 2)) || (b.ts - a.ts))
+        .sort((a, b) => ((a.sport ?? 3) - (b.sport ?? 3)) || (b.ts - a.ts))
     case 'wissenschaft':
       // Ernährung, Diätologie und Astronomie stehen oben.
       return items.filter(i => i.cat === 'wissenschaft' && !isHidden(i))
@@ -635,6 +654,8 @@ function cardHTML(item) {
         <span class="pill pill-${item.factLabel}">Fakten ${esc(item.factLabel)}</span>
         ${item.translated ? `<span class="pill pill-tr">übersetzt</span>` : ''}
         ${item.untranslated ? `<span class="pill pill-orig">${esc(sprachKurz(item.lang))}</span>` : ''}
+        ${item.paywall ? `<span class="pill pill-pay">Bezahlschranke</span>` : ''}
+        ${item.presse ? `<span class="pill pill-pay">Pressemitteilung</span>` : ''}
         ${item.also ? `<span class="pill pill-muted">${item.also.length + 1} Quellen</span>` : ''}
         ${item.linkWarn ? `<span class="pill pill-warn">Link prüfen</span>` : ''}
         ${matched ? `<span class="pill pill-match">passt zu dir</span>` : ''}
@@ -648,6 +669,7 @@ function cardHTML(item) {
         </div>
         ${showImg ? `<button class="thumb" data-act="zoom" aria-label="Bild vergrößern">
             <img src="${esc(item.image)}" alt="" loading="lazy" decoding="async"
+                 referrerpolicy="no-referrer"
                  onerror="this.closest('.thumb').remove()">
           </button>` : ''}
       </div>
@@ -731,15 +753,48 @@ function findItem(id) {
 
 // -------------------------------------------------------------- Info-Block
 
+/** "27.08.2026 00:00" -> Date. GeoSphere liefert Tag zuerst. */
+function tagAus(str) {
+  const m = String(str || '').match(/(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2}))?/)
+  if (!m) return null
+  return new Date(+m[3], +m[2] - 1, +m[1], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0)
+}
+
+/** Lesbarer Zeitraum, ohne Wiederholung wenn alles am selben Tag liegt. */
+function zeitraum(von, bis) {
+  if (!von) return ''
+  const tag = d => d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'numeric' })
+  const heute = new Date().toDateString()
+  const vonTxt = von.toDateString() === heute ? 'heute' : tag(von)
+  if (!bis || von.toDateString() === bis.toDateString()) return ` (${vonTxt})`
+  return ` (${vonTxt} bis ${tag(bis)})`
+}
+
 async function fetchWarnings() {
   const p = await getPosition() || FALLBACK_POS
   try {
     const r = await fetch(`https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat=${p.lat}&lon=${p.lon}&lang=de`)
     const j = await r.json()
     const place = j?.properties?.location?.properties?.name || ''
-    state.warnings = (j?.properties?.warnings || []).map(w => ({
+
+    // GeoSphere liefert dieselbe Warnung einmal pro Kalendertag. Eine
+    // zweitägige Hitzewarnung erschien dadurch zweimal wortgleich. Gleicher
+    // Text wird zusammengefasst, der Zeitraum über alle Tage gespannt.
+    const nachText = new Map()
+    for (const w of j?.properties?.warnings || []) {
+      const p = w?.properties || {}
+      const text = p.text || 'Wetterwarnung'
+      const eintrag = nachText.get(text) || { text, von: null, bis: null }
+      const von = tagAus(p.begin)
+      const bis = tagAus(p.end)
+      if (von && (!eintrag.von || von < eintrag.von)) eintrag.von = von
+      if (bis && (!eintrag.bis || bis > eintrag.bis)) eintrag.bis = bis
+      nachText.set(text, eintrag)
+    }
+
+    state.warnings = [...nachText.values()].map(e => ({
       kind: 'warn',
-      text: `${place ? place + ': ' : ''}${w?.properties?.text || 'Wetterwarnung'}`,
+      text: `${place ? place + ': ' : ''}${e.text}${zeitraum(e.von, e.bis)}`,
     }))
   } catch { state.warnings = [] }
 }
@@ -757,7 +812,13 @@ function infoEntries() {
 
   const ICON = { traffic: '🚗', oebb: '🚆' }
   const LABEL = { traffic: 'Straße', oebb: 'Bahn' }
-  for (const t of state.data?.info || []) {
+  // Monatelange Baustellen sind Hintergrundwissen, keine Tagesinformation.
+  // Sie standen bisher als sechs gleiche Zeilen über allem und verdrängten
+  // die tatsächliche Störung von heute. Höchstens drei, und immer zuletzt.
+  const info = state.data?.info || []
+  const akut = info.filter(t => t.kind !== 'oebb' || !t.dauerhaft)
+  const dauer = info.filter(t => t.kind === 'oebb' && t.dauerhaft).slice(0, 3)
+  for (const t of [...akut, ...dauer]) {
     out.push({ kind: t.kind, icon: ICON[t.kind] || 'ℹ', label: LABEL[t.kind], text: t.text, link: t.link })
   }
 
@@ -786,12 +847,91 @@ function infoEntries() {
   return out
 }
 
+/* ------------------------------------------------------------ Verbindungen
+ *
+ * Live-Abfahrtszeiten lassen sich nicht in die App holen: Weder ÖBB noch
+ * Wiener Linien senden CORS-Header, der Browser darf ihre Schnittstellen
+ * also nicht abfragen. Geprüft wurden fahrplan.oebb.at (Liveticker und
+ * Stationssuche) und wienerlinien.at/ogd_realtime — alle drei ohne
+ * Access-Control-Allow-Origin.
+ *
+ * Was bleibt und ehrlich funktioniert: Direktlinks in die ÖBB-Fahrplan-
+ * auskunft, mit fertiger Strecke und aktueller Uhrzeit. Ein Fingertipp,
+ * und Scotty zeigt die nächsten Verbindungen.
+ */
+
+const STATIONEN = {
+  korneuburg: 'Korneuburg',
+  wienMitte: 'Wien Mitte-Landstraße',
+  praterstern: 'Wien Praterstern',
+  floridsdorf: 'Wien Floridsdorf',
+  franzJosefs: 'Wien Franz-Josefs-Bahnhof',
+}
+
+/** Fahrplanauskunft für eine Strecke, ab jetzt. */
+function scottyLink(von, nach) {
+  const jetzt = new Date()
+  const p = new URLSearchParams({
+    S: von,
+    Z: nach,
+    date: jetzt.toLocaleDateString('de-AT', { timeZone: 'Europe/Vienna' }),
+    time: jetzt.toLocaleTimeString('de-AT', { timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit' }),
+    start: '1',
+  })
+  return `https://fahrplan.oebb.at/bin/query.exe/dn?${p}`
+}
+
+/** Abfahrtstafel einer Station. */
+function tafelLink(station) {
+  return `https://fahrplan.oebb.at/bin/stboard.exe/dn?input=${encodeURIComponent(station)}&boardType=dep&start=1`
+}
+
+/**
+ * Bin ich gerade eher in Wien oder im Bezirk Korneuburg? Entscheidet, in
+ * welche Richtung die Verbindungen vorgeschlagen werden. Ohne Standort
+ * wird Korneuburg angenommen.
+ */
+function richtung() {
+  const ort = (state.weatherPlace || '').toLowerCase()
+  return /wien|floridsdorf|donaustadt|leopoldstadt|brigittenau/.test(ort) ? 'ausWien' : 'ausKorneuburg'
+}
+
+function verbindungenHTML() {
+  const S = STATIONEN
+  const nachWien = richtung() === 'ausKorneuburg'
+  const start = nachWien ? S.korneuburg : S.wienMitte
+  const ziele = nachWien
+    ? [[S.wienMitte, 'Wien Mitte'], [S.praterstern, 'Praterstern'], [S.floridsdorf, 'Floridsdorf']]
+    : [[S.korneuburg, 'Korneuburg']]
+
+  return `<section class="infoblock verbindungen">
+    <h2 class="info-head">
+      🚉 ${nachWien ? 'Von Korneuburg nach Wien' : 'Von Wien nach Korneuburg'}
+      <button class="mini-btn" data-act="verbindung-neu" title="Standort neu bestimmen">↻</button>
+    </h2>
+    <div class="conn-row">
+      ${ziele.map(([ziel, kurz]) => `
+        <a class="conn-btn" href="${esc(scottyLink(start, ziel))}" target="_blank" rel="noopener noreferrer">
+          ${esc(kurz)} <span>›</span></a>`).join('')}
+    </div>
+    <div class="conn-row">
+      <a class="conn-btn conn-sec" href="${esc(tafelLink(start))}" target="_blank" rel="noopener noreferrer">
+        Abfahrten ${esc(nachWien ? 'Korneuburg' : 'Wien Mitte')}</a>
+      <a class="conn-btn conn-sec" href="https://anachb.vor.at/" target="_blank" rel="noopener noreferrer">
+        Wiener Linien</a>
+    </div>
+    <p class="conn-note muted">Öffnet die ÖBB-Fahrplanauskunft mit der aktuellen Uhrzeit.
+      Live-Abfahrten lassen sich nicht in die App holen — ÖBB und Wiener Linien
+      erlauben keinen direkten Zugriff aus dem Browser.</p>
+  </section>`
+}
+
 function infoBlockHTML() {
   if (!settings.info) return ''
   const entries = infoEntries()
-  if (!entries.length) return ''
+  if (!entries.length) return verbindungenHTML()
 
-  return `<section class="infoblock">
+  return verbindungenHTML() + `<section class="infoblock">
     <h2 class="info-head">📍 In deiner Umgebung</h2>
     ${entries.map(e => {
       const inner = `<span class="info-icon">${e.icon}</span>
@@ -808,7 +948,7 @@ function infoBlockHTML() {
 const TRUST_TEXT = {
   3: 'Öffentlich-rechtlich oder Agentur-Niveau — hohe redaktionelle Prüfdichte.',
   2: 'Etablierte Qualitätsredaktion mit Impressum und Korrekturpraxis.',
-  1: 'Regionalquelle — nah dran, aber kleinere Redaktion.',
+  1: 'Regionalquelle oder Pressemitteilungsdienst — Inhalte werden dort teils ungeprüft durchgereicht.',
 }
 
 function ruleBasedDetail(item) {
@@ -842,7 +982,16 @@ function ruleBasedDetail(item) {
 async function aiDetail(item, slot) {
   slot.innerHTML = `<div class="detail"><h4>Claude analysiert …</h4><div class="skeleton" style="height:60px"></div></div>`
 
+  // Ohne heutiges Datum hält Claude jede Meldung für zukunftsdatiert und
+  // warnt vor einem "Metadatenfehler" — das Modell kennt den Kalender nicht.
+  const heute = new Date().toLocaleDateString('de-AT', {
+    timeZone: 'Europe/Vienna', weekday: 'long', day: '2-digit',
+    month: 'long', year: 'numeric',
+  })
+
   const prompt = `Du bist ein nüchterner Nachrichtenanalyst. Ordne die folgende Meldung ein.
+
+Heute ist ${heute}. Meldungen der letzten Tage sind also aktuell und kein Fehler.
 
 Titel: ${item.origTitle || item.title}
 Zusammenfassung: ${item.origSummary || item.summary || '(keine)'}
@@ -854,9 +1003,10 @@ Antworte auf Deutsch, kompakt, in genau diesen vier Abschnitten mit diesen Über
 WORUM GEHT ES: 2 Sätze, rein faktisch.
 WARUM RELEVANT: 2 Sätze, konkrete Auswirkungen.
 EINZUORDNEN: 1-3 Stichpunkte — was unsicher, umstritten oder noch offen ist.
-VORSICHT: 1 Satz — welche Behauptung man ohne Zweitquelle nicht übernehmen sollte. Wenn nichts auffällt, schreibe "Keine Auffälligkeiten in der Quellenlage."
+VORSICHT: 1 Satz — welche inhaltliche Behauptung man ohne Zweitquelle nicht übernehmen sollte. Wenn nichts auffällt, schreibe "Keine Auffälligkeiten in der Quellenlage."
 
-Keine Einleitung, keine Floskeln. Erfinde keine Fakten, die nicht oben stehen.`
+Keine Einleitung, keine Floskeln. Erfinde keine Fakten, die nicht oben stehen.
+Kommentiere NICHT das Veröffentlichungsdatum — es ist korrekt und liegt nicht in der Zukunft.`
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -930,7 +1080,11 @@ function getPosition() {
 
 async function placeName(lat, lon) {
   try {
-    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=de`)
+    // Auf zwei Nachkommastellen gerundet: rund einen Kilometer genau. Das
+    // genügt für "Korneuburg, Niederösterreich" — die volle Auflösung wäre
+    // hausgenau und geht einen Geodatenanbieter nichts an.
+    const g = n => Number(n).toFixed(2)
+    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${g(lat)}&longitude=${g(lon)}&localityLanguage=de`)
     const j = await r.json()
     return [j.city || j.locality, j.principalSubdivision].filter(Boolean).join(', ') || null
   } catch { return null }
@@ -1090,7 +1244,8 @@ function renderStorageInfo() {
   $('#storage-info').innerHTML =
     `${Object.keys(saved).length} gemerkt · ${Object.keys(readMap).length} gelesen · `
     + `${history.length} Einträge in der Historie · ${(bytes / 1024).toFixed(0)} KB belegt`
-    + `<br><b>App-Fassung ${esc(APP_VERSION)}</b> · Build ${esc(APP_BUILD)}`
+    + `<br><b>App-Fassung ${esc(APP_VERSION)}</b>`
+    + ` · Build ${esc(buildStempel(state.data?.generated))} Wiener Zeit`
 }
 
 function renderLearnSummary() {
@@ -1243,6 +1398,12 @@ document.addEventListener('click', ev => {
   }
 
   if (act === 'wx-retry') { renderWeather({ force: true }); return }
+  if (act === 'verbindung-neu') {
+    settings.ortErlaubt = true
+    save(LS.settings, settings)
+    loadWeather({ force: true }).then(() => { fetchWarnings().then(render); render() })
+    return
+  }
 
   if (ev.target.closest('#btn-refresh')) {
     fetchNews({ force: true })
@@ -1371,8 +1532,15 @@ const cached = load(LS.cache, () => null)
 if (cached?.items?.length) { state.data = cached; render() }
 
 fetchNews({ force: true })
-loadWeather().then(() => { render(); if (state.tab === 'wetter') renderWeather() })
-fetchWarnings().then(render)
+
+// Standort bewusst NICHT beim Start abfragen. Vorher holte die App zweimal
+// GPS, bevor eine einzige Meldung gelesen war. Ortsbezogenes lädt erst, wenn
+// es gebraucht wird — beim Öffnen von Wetter oder beim Antippen des
+// Info-Blocks.
+if (settings.ortErlaubt) {
+  loadWeather().then(() => { render(); if (state.tab === 'wetter') renderWeather() })
+  fetchWarnings().then(render)
+}
 
 /* Update-Erkennung.
  *

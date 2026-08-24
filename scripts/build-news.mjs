@@ -39,6 +39,9 @@ const MAX_AGE_H = {
 const MAX_PER_CATEGORY = 70
 const STALE_FEED_DAYS = 7          // ab hier gilt ein Feed als aufgegeben
 
+// Weniger Text als das ist keine Meldung, sondern ein Anreißer.
+const MIN_SUMMARY_CHARS = 80
+
 /**
  * Obergrenze pro Quelle innerhalb einer Kategorie — abhängig davon, wie viele
  * Quellen die Kategorie überhaupt hat. Ein fixer Wert wäre falsch: bei den vier
@@ -66,7 +69,7 @@ function capPerCategory(items, now, limit) {
     const rank = it => it.fact * 0.35 + freshness(it.ts, now) * 0.65
       + (it.at ? 18 : 0)
       + (it.sciFocus ? 10 : 0)
-      + (it.sport === 0 ? 16 : it.sport === 1 ? 8 : 0)
+      + (it.sport === 0 ? 24 : it.sport === 1 ? 14 : it.sport === 2 ? 8 : 0)
     const cap = sourceCap(SOURCES.filter(s => s.cat === cat.id).length)
     const perSource = {}
     const list = []
@@ -300,14 +303,21 @@ async function linkAlive(url) {
 
 function parseFeed(xml, src, now) {
   const out = []
+  let thin = 0
   const maxAgeH = MAX_AGE_H[src.cat] ?? MAX_AGE_H.default
   const cutoff = now - maxAgeH * 3600_000
   let newest = 0                     // jüngster Eintrag, unabhängig von Filtern
 
   for (const block of splitItems(xml)) {
-    const title = clean(tagContent(block, 'title'))
+    let title = clean(tagContent(block, 'title'))
     const link = extractLink(block)
     if (!title || !link) continue
+
+    // Die Presse hängt "[premium]" an den Titel, Golem "(g+)". Das gehört
+    // nicht in die Überschrift, aber es ist eine wichtige Information:
+    // sonst tippt man auf eine Meldung und landet an der Bezahlschranke.
+    const paywall = /\[premium\]|\(g\+\)|\bplus\]$/i.test(title)
+    if (paywall) title = title.replace(/\s*(\[premium\]|\(g\+\))\s*/gi, ' ').trim()
 
     const cats = [...block.matchAll(/<category(?:\s[^>]*)?>([\s\S]*?)<\/category>/gi)]
       .map(m => clean(m[1])).join(' ')
@@ -320,8 +330,19 @@ function parseFeed(xml, src, now) {
       summary = summary.slice(title.length).replace(/^[\s–—-]+/, '')
     }
 
+    // Eine Überschrift ohne Text ist kein Bericht, sondern ein Köder: Sie
+    // zwingt zum Klick, ohne etwas mitzuteilen. Beispiele aus dem Bestand:
+    // "Tesla ruft in China Millionen Fahrzeuge zurück" und "18.736 Haushalte
+    // bisher ohne Wohnschirm unterstützt" — beide ganz ohne Fließtext.
+    if (!summary || summary.length < MIN_SUMMARY_CHARS) { thin++; continue }
+    // Text, der nur die Überschrift wiederholt, sagt ebenfalls nichts Neues.
+    if (jaccard(titleTokens(title), titleTokens(summary)) > 0.85) { thin++; continue }
+
+    // Sky Sports liefert keine Zeitstempel. Setzte man dort schlicht "jetzt",
+    // schwammen alle zehn Meldungen dieser Quelle über jede echte Neuigkeit.
+    // Sechs Stunden Abschlag stellt sie hinter alles, was datiert ist.
     const date = parseDate(block)
-    const ts = date ? date.getTime() : now
+    const ts = date ? date.getTime() : now - 6 * 3600_000
     if (date && ts > newest && ts <= now + 6 * 3600_000) newest = ts
     if (ts < cutoff) continue
     if (ts > now + 6 * 3600_000) continue   // offensichtlich falsches Datum
@@ -338,7 +359,9 @@ function parseFeed(xml, src, now) {
       source: src.name,
       site: src.site,
       cat: src.cat,
-      at: !!src.at,                    // österreichische Wirtschaft steht im Tab oben
+      at: !!src.at,
+      paywall,
+      presse: !!src.presse,        // Pressemitteilung, keine Redaktion                    // österreichische Wirtschaft steht im Tab oben
       lang: src.lang,
       trust: src.trust,
       published: date ? date.toISOString() : null,
@@ -350,7 +373,7 @@ function parseFeed(xml, src, now) {
     item.id = hashId(item.link)
     out.push(item)
   }
-  return { items: out, newest }
+  return { items: out, newest, thin }
 }
 
 function hashId(s) {
@@ -583,9 +606,13 @@ async function buildOebbClosures() {
     seen.add(title)
     const lower = title.toLowerCase()
     if (!OEBB_REGION_LINES.some(l => lower.includes(l))) continue
+    // Reicht die Sperre über Monate, ist sie Hintergrund, keine Neuigkeit.
+    const monate = (title.match(/\b(20\d\d)\b/g) || []).length > 1
+      || /bis ende \d{4}|bis \d{1,2}\. \w+ 20\d\d/i.test(title)
     out.push({
       kind: 'oebb',
       text: title,
+      dauerhaft: monate,
       link: href.startsWith('http') ? href : `https://www.oebb.at${href}`,
       ts: Date.now(),
     })
@@ -767,7 +794,7 @@ const KI_SIG_RE = KI_SIGNIFICANT.map(termRegex)
 function sportRank(item) {
   const hay = `${item.title} ${item.summary || ''}`
   for (const g of SPORT_RE) if (g.res.some(re => re.test(hay))) return g.rank
-  return 2
+  return 3
 }
 
 /**
@@ -825,6 +852,7 @@ async function main() {
   }))
 
   const stale = []
+  let thinTotal = 0
   results.forEach((r, i) => {
     const src = SOURCES[i]
     if (r.status !== 'fulfilled') {
@@ -833,6 +861,7 @@ async function main() {
       return
     }
     all.push(...r.value.items)
+    thinTotal += r.value.thin || 0
 
     // Ein Feed kann HTTP 200 und Dutzende Einträge liefern und trotzdem tot
     // sein — genau so verhielten sich WSJ, Corriere und Gazzetta.
@@ -859,6 +888,10 @@ async function main() {
     })
     console.log(`  ${isStale ? 'ALT ' : 'ok  '} ${String(r.value.items.length).padStart(3)}  ${src.name}`)
   })
+
+  if (thinTotal) {
+    console.log(`\n${thinTotal} Beiträge ohne aussagekräftigen Text aussortiert (Anreißer)`)
+  }
 
   if (stale.length) {
     console.warn(`\n⚠  ${stale.length} Feed(s) liefern nichts Aktuelles mehr:`)
@@ -955,11 +988,11 @@ async function main() {
     if (it.cat === 'wissenschaft' && isScienceFocus(it)) { it.sciFocus = true; nSci++ }
     if (it.cat === 'sport-int') it.sport = sportRank(it)
   }
-  const sportVerteilung = [0, 1, 2].map(r => items.filter(i => i.sport === r).length)
+  const sportVerteilung = [0, 1, 2, 3].map(r => items.filter(i => i.sport === r).length)
   console.log(`  ${nFocus} Fokusthemen, ${nFlash} Flash-News, ${nCtx} mit Hintergrund,`
     + ` ${nSci} Wissenschaft im Schwerpunkt`)
-  console.log(`  Sport: ${sportVerteilung[0]} Fußball, ${sportVerteilung[1]} F1/Tennis,`
-    + ` ${sportVerteilung[2]} übrige Sportarten`)
+  console.log(`  Sport: ${sportVerteilung[0]} Österreich, ${sportVerteilung[1]} Barcelona/CL,`
+    + ` ${sportVerteilung[2]} F1/Tennis, ${sportVerteilung[3]} übrige`)
 
   // Endgültige Begrenzung
   items = capPerCategory(items, now, MAX_PER_CATEGORY)

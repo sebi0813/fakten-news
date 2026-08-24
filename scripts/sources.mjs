@@ -76,15 +76,21 @@ export const SOURCES = [
     url: 'https://www.derstandard.at/rss/sport', site: 'derstandard.at' },
   { name: 'BBC Sport', cat: 'sport-int', trust: 3, lang: 'en',
     url: 'https://feeds.bbci.co.uk/sport/rss.xml', site: 'bbc.com' },
-  { name: 'Sky Sports', cat: 'sport-int', trust: 2, lang: 'en',
-    url: 'https://www.skysports.com/rss/12040', site: 'skysports.com' },
+  // Sky Sports entfernt: liefert keine Zeitstempel (alle Meldungen bekamen
+  // die Buildzeit und schwammen dadurch nach oben) und flutet mit Cricket,
+  // Snooker und Golf. Dafür eine zweite österreichische Sportquelle.
+  { name: 'KURIER Sport', cat: 'sport-int', trust: 2, lang: 'de',
+    url: 'https://kurier.at/sport/xml/rss', site: 'kurier.at' },
 
   // ---------- Wissenschaft: Ernährung, Diätologie, Astronomie ----------
   { name: 'ORF Science', cat: 'wissenschaft', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/science.xml', site: 'orf.at' },
-  { name: 'ScienceDaily Ernährung', cat: 'wissenschaft', trust: 2, lang: 'en',
+  // ScienceDaily reicht Universitäts-Pressemitteilungen ungeprüft durch
+  // (jeder Link zeigt auf /releases/). Deshalb trust 1 und ein Kennzeichen
+  // an der Karte — vorher stand dort "etablierte Qualitätsredaktion".
+  { name: 'ScienceDaily Ernährung', cat: 'wissenschaft', trust: 1, presse: true, lang: 'en',
     url: 'https://www.sciencedaily.com/rss/health_medicine/nutrition.xml', site: 'sciencedaily.com' },
-  { name: 'ScienceDaily Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
+  { name: 'ScienceDaily Astronomie', cat: 'wissenschaft', trust: 1, presse: true, lang: 'en',
     url: 'https://www.sciencedaily.com/rss/space_time/astronomy.xml', site: 'sciencedaily.com' },
   { name: 'NASA', cat: 'wissenschaft', trust: 3, lang: 'en',
     url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', site: 'nasa.gov' },
@@ -157,32 +163,36 @@ export const FOCUS_TOPICS = [
 export const SPORT_FOCUS = [
   {
     rank: 0,
-    label: 'Fußball',
+    label: 'Österreichischer Fußball',
     terms: [
-      // Österreich
       'rapid', 'sk rapid', 'austria wien', 'fk austria', 'sturm graz', 'sk sturm',
-      'bundesliga', 'öfb', 'oefb', 'cup-finale', 'wiener derby', 'lask',
-      // Bewusst mit Klubkürzel: "Salzburg", "Ried" und "Tirol" allein sind
-      // Ortsnamen und zogen Brand- und Unfallmeldungen in den Sport-Tab.
+      'öfb', 'oefb', 'ö-bundesliga', 'wiener derby', 'lask', 'admira',
       'red bull salzburg', 'rb salzburg', 'fc salzburg', 'sv ried', 'wsg tirol',
-      'scr altach', 'wolfsberger ac', 'blau-weiß linz', 'grazer ak',
-      // Barcelona und Champions-League-Ebene
-      'barcelona', 'barça', 'barca', 'champions league', 'championsleague',
-      'real madrid', 'atlético', 'atletico', 'bayern', 'borussia dortmund',
-      'manchester city', 'manchester united', 'liverpool', 'arsenal', 'chelsea',
-      'tottenham', 'paris saint-germain', 'psg', 'inter mailand', 'ac mailand',
-      'juventus', 'napoli', 'benfica', 'porto', 'ajax', 'leipzig', 'leverkusen',
-      'atalanta', 'sporting', 'psv', 'feyenoord', 'europa league', 'uefa',
-      'nations league', 'weltmeisterschaft', 'europameisterschaft', 'wm-quali',
+      'scr altach', 'wolfsberger ac', 'blau-weiß linz', 'grazer ak', 'hartberg',
+      'rapid wien', 'austria klagenfurt', 'österreichische bundesliga',
+      'nationalteam', 'teamchef', 'ösv', 'rangnick',
     ],
   },
   {
     rank: 1,
+    label: 'Barcelona und Champions League',
+    terms: [
+      'barcelona', 'barça', 'barca', 'champions league', 'championsleague',
+      'real madrid', 'atlético', 'atletico', 'bayern münchen', 'fc bayern',
+      'borussia dortmund', 'manchester city', 'manchester united', 'liverpool',
+      'arsenal', 'chelsea', 'tottenham', 'paris saint-germain', 'psg',
+      'inter mailand', 'ac mailand', 'juventus', 'napoli', 'benfica', 'porto',
+      'ajax', 'leipzig', 'leverkusen', 'atalanta', 'sporting', 'psv',
+      'feyenoord', 'europa league', 'uefa', 'nations league',
+    ],
+  },
+  {
+    rank: 2,
     label: 'Formel 1 und Tennis',
     terms: [
       'formel 1', 'formel1', 'formula 1', 'grand prix', 'grandprix', 'qualifying',
       'verstappen', 'ferrari', 'mclaren', 'mercedes-amg', 'red bull racing',
-      'boxenstopp', 'pole position', 'weltmeistertitel',
+      'boxenstopp', 'pole position',
       'tennis', 'atp', 'wta', 'grand slam', 'wimbledon', 'us open', 'french open',
       'australian open', 'roland garros', 'davis cup', 'sinner', 'alcaraz',
       'djokovic', 'zverev', 'medwedew', 'swiatek', 'sabalenka', 'thiem',
