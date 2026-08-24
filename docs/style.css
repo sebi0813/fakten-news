@@ -95,7 +95,10 @@ body { padding-bottom: calc(24px + var(--safe-b)); }
 .status {
   padding: 0 calc(16px + var(--safe-r)) 8px calc(16px + var(--safe-l));
   font-size: 12px; color: var(--muted);
+  /* Umbruch erlauben: Mit Version und Build-Datum wird die Zeile auf einem
+     iPhone zu lang für eine Zeile. */
   display: flex; align-items: center; gap: 6px; min-height: 20px;
+  flex-wrap: wrap; line-height: 1.45;
 }
 .status.err { color: var(--red); }
 
@@ -491,3 +494,7 @@ a.info-row:active { background: var(--bg-elev-2); }
 
 /* Fremdsprachig, aber nicht übersetzt — der Dienst hat gedrosselt. */
 .pill-orig { background: rgba(251,146,60,.18); color: #fdba74; }
+
+/* Statuszeile: nur der Warnteil wird eingefärbt, Version bleibt neutral. */
+.status .st-warn { color: var(--amber); }
+.status .st-sep { opacity: .45; }

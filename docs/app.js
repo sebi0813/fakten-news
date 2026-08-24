@@ -13,9 +13,11 @@
  */
 'use strict'
 
-// Wird unter ⚙ angezeigt. Damit lässt sich am Gerät ablesen, ob wirklich die
-// neue Fassung läuft — genau das war beim Cache-Problem nicht erkennbar.
-const APP_VERSION = 'v7 (24.08.2026)'
+// Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
+// wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
+// erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
+const APP_VERSION = 'v7'
+const APP_BUILD = '24.08.2026'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -318,16 +320,20 @@ async function fetchNews({ force = false } = {}) {
     state.lastFetch = Date.now()
     save(LS.cache, data)
     render()
-    const t = data.translation
-    const rest = t?.untranslated || 0
-    setStatus(`${data.items.length} Meldungen · Stand ${relTime(new Date(data.generated).getTime())}`
-      + (rest > 3 ? ` · ${rest} noch in Originalsprache` : ''), rest > 20)
+    const rest = data.translation?.untranslated || 0
+    setStatusParts([
+      `${data.items.length} Meldungen`,
+      `Stand ${relTime(new Date(data.generated).getTime())}`,
+      rest > 3 ? { text: `${rest} noch in Originalsprache`, warn: true } : null,
+      { text: `${APP_VERSION} · Build ${APP_BUILD}`, version: true },
+    ])
   } catch (err) {
     const cached = load(LS.cache, () => null)
     if (cached?.items?.length) {
       state.data = cached
       render()
-      setStatus(`Offline — Stand von ${relTime(new Date(cached.generated).getTime())}`, true)
+      setStatus(`Offline — Stand von ${relTime(new Date(cached.generated).getTime())}`
+        + ` · ${APP_VERSION} · Build ${APP_BUILD}`, true)
     } else {
       setStatus(`Konnte Meldungen nicht laden: ${err.message}`, true)
       showEmpty('📡', 'Keine Verbindung', 'Sobald du wieder online bist, lädt Faktum automatisch nach.')
@@ -342,6 +348,21 @@ function setStatus(text, isErr = false) {
   const el = $('#status')
   el.textContent = text
   el.classList.toggle('err', isErr)
+}
+
+/**
+ * Statuszeile mit einzeln eingefärbten Teilen.
+ * Die Versionsangabe soll neutral bleiben, auch wenn daneben eine Warnung
+ * steht — sonst liest sich "v7 · Build …" wie eine Fehlermeldung.
+ */
+function setStatusParts(teile) {
+  const el = $('#status')
+  el.classList.remove('err')
+  el.innerHTML = teile.filter(Boolean)
+    .map(t => typeof t === 'string'
+      ? `<span>${esc(t)}</span>`
+      : `<span class="${t.warn ? 'st-warn' : ''}">${esc(t.text)}</span>`)
+    .join('<span class="st-sep">·</span>')
 }
 
 // ------------------------------------------------------------------ Ansicht
@@ -1066,7 +1087,7 @@ function renderStorageInfo() {
   $('#storage-info').innerHTML =
     `${Object.keys(saved).length} gemerkt · ${Object.keys(readMap).length} gelesen · `
     + `${history.length} Einträge in der Historie · ${(bytes / 1024).toFixed(0)} KB belegt`
-    + `<br><b>App-Fassung ${esc(APP_VERSION)}</b>`
+    + `<br><b>App-Fassung ${esc(APP_VERSION)}</b> · Build ${esc(APP_BUILD)}`
 }
 
 function renderLearnSummary() {
