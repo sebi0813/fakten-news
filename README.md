@@ -6,7 +6,7 @@ kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 **Kategorien:** Für dich · Flash · Fokus · Wirtschaft · Sport · Wissenschaft · Welt ·
 Österreich · Korneuburg · Termine · Gemerkt · Wetter · Historie
 
-**72 Quellen in 8 Sprachen** — alles Fremdsprachige wird automatisch ins Deutsche übersetzt.
+**25 Quellen, Deutsch und Englisch.** Bewusst knapp gehalten.
 
 ---
 
@@ -254,62 +254,69 @@ absichtlich verschonte Wissenschafts-Fall.
 
 ---
 
+## Warum nur 25 Quellen — und nur zwei Sprachen
+
+Der Bestand lag zwischenzeitlich bei 79 Quellen in acht Sprachen. Das war zu viel,
+und zwar an einer konkreten Stelle: der Übersetzung.
+
+Der kostenlose Übersetzungsdienst begrenzt nach **Anzahl der Aufrufe**. Bei 79 Quellen
+kamen pro Lauf über 20 Anfragen allein für Englisch zusammen; der Dienst antwortete mit
+HTTP 429 und übersetzte zuletzt nur noch **4 Prozent**. Kein Fehler im Code — die
+schlichte Grenze eines Dienstes, der nicht für diese Menge gedacht ist.
+
+Die Konsequenz: **nur Deutsch und Englisch.** Englisches muss nicht übersetzt werden,
+und damit verschwindet der Engpass fast vollständig. Übrig bleiben rund 250 englische
+Texte beim ersten Lauf, danach greift der Cache und es sind wenige Dutzend pro Stunde.
+
+### Was dadurch wegfällt
+
+Ehrlich benannt: **die nicht-englische Außensicht.** Le Monde, El País, la Repubblica,
+ANSA, NOS, SVT, NRK, DR und RFI sind entfallen. Damit fehlt, wie in Paris, Madrid, Rom
+oder Stockholm über dieselben Ereignisse berichtet wird — das war der eigentliche Wert
+dieser Quellen und er lässt sich nicht durch BBC und NYT ersetzen.
+
+Ebenfalls entfallen: Nature, Spektrum, scinexx, phys.org, ESA, Sky & Telescope
+(Wissenschaft), heise, Golem, t3n, MIT Technology Review, DeepMind, InfoQ (Fokus),
+Sportschau, MARCA, KURIER Sport, Die Presse Sport, Guardian, POLITICO, Al Jazeera,
+Japan Times, Handelsblatt, CNBC, Euronews, tagesschau.
+
+Wer das zurückholen will, trägt die Quelle wieder in
+[`scripts/sources.mjs`](scripts/sources.mjs) ein — und sollte dann den
+Claude-Rückfall aktivieren, sonst bleibt Fremdsprachiges unübersetzt.
+
+---
+
 ## Übersetzung
 
-Alle nicht-deutschen Meldungen werden beim Build ins Deutsche übersetzt — Titel und
-Kurztext. Quellsprachen: Englisch, Französisch, Spanisch, Italienisch, Niederländisch,
-Schwedisch, Norwegisch, Dänisch.
+Nicht-deutsche Meldungen werden beim Build ins Deutsche übersetzt — Titel zuerst,
+dann Kurztexte. Bricht der Dienst mittendrin ab, sind wenigstens alle Überschriften
+deutsch und der Feed bleibt überfliegbar.
 
-Übersetzte Meldungen tragen das Kennzeichen **übersetzt**. Der Originaltitel steht
-unter **💡 Einordnung**.
-
-Drei Dinge, die beim Bauen wichtig wurden:
+Zwei Dinge, die beim Bauen wichtig wurden:
 
 - **Nach Sprache gebündelt.** Mischt man Sprachen in einer Anfrage und lässt den Dienst
-  die Sprache erraten, erkennt er nur die Mehrheitssprache und halluziniert den Rest.
-  Ein japanischer Titel wurde im Test zu *„Ich bin mir nicht sicher, was ich tun soll."*
-  Deshalb wird pro Sprache gebündelt und die Ausgangssprache explizit mitgegeben.
-- **Zweimal filtern.** Die Meinungs- und Prognosefilter greifen auf Deutsch und Englisch.
-  Ein norwegisches *„Ekspertenes spådommer"* passiert sie — das deutsche „Prognosen der
-  Experten" nicht. Also wird nach der Übersetzung erneut gefiltert.
+  raten, erkennt er nur die Mehrheitssprache und halluziniert den Rest. Ein japanischer
+  Titel wurde im Test zu *„Ich bin mir nicht sicher, was ich tun soll."*
 - **Cache.** Übersetztes landet in `docs/data/i18n-cache.json` und wird mitcommittet.
-  Nach dem ersten Lauf müssen pro Stunde nur die neuen Meldungen übersetzt werden —
-  typisch unter 10 statt knapp 300.
-- **Drosselung aushalten.** Der Dienst begrenzt nach *Anzahl der Aufrufe*, nicht nach
-  Textmenge. Nach dem Ausbau auf 79 Quellen kamen 22 Anfragen pro Sprache zusammen und
-  der Dienst antwortete mit HTTP 429 — woraufhin 167 von 178 Meldungen unübersetzt
-  blieben. Behoben durch größere Bündel (40 Texte statt 25), echte Wartezeiten
-  (5 s → 15 s → 45 s statt 0,5 s) und Aufgabe für den Rest des Laufs, statt die Sperre
-  durch weiteres Anklopfen zu verlängern.
+  Jeder Text wird genau einmal übersetzt.
 
-### Wenn die Übersetzung ausfällt
-
-Betroffene Meldungen bleiben in der Originalsprache und tragen ein **oranges
-Sprachkennzeichen** („Englisch", „Italienisch"). Sie erscheinen nicht wortlos fremd,
-und die Statuszeile nennt die Zahl. Beim nächsten Lauf fehlen sie im Cache und werden
+Scheitert die Übersetzung, bleibt die Meldung in der Originalsprache und trägt ein
+**oranges Sprachkennzeichen**. Die Kopfzeile nennt die Zahl. Beim nächsten Lauf wird
 erneut versucht.
+
+> ⚠ **Maschinelle Übersetzung kann die Aussage verdrehen.** Im Test wurde aus
+> *„Uber condamné à une amende"* (Uber **wurde** bestraft) das deutsche „Uber
+> **verhängte** eine Geldstrafe". Deshalb steht bei jeder übersetzten Meldung der
+> Originaltitel in der Einordnung.
 
 ### Rückfallebene: Claude
 
-Ist im Repository das Secret `ANTHROPIC_API_KEY` hinterlegt, übersetzt Claude
-(Haiku 4.5) genau die Texte, an denen der kostenlose Dienst gescheitert ist. Ohne
-Secret ist der Rückfall schlicht inaktiv, der Build läuft unverändert durch.
+Ist das Repository-Secret `ANTHROPIC_API_KEY` gesetzt, übersetzt Claude (Haiku 4.5)
+genau die Texte, an denen der kostenlose Dienst gescheitert ist. Ohne Secret ist der
+Rückfall inaktiv, der Build läuft unverändert durch.
 
 Einrichten: **Settings → Secrets and variables → Actions → New repository secret**,
-Name `ANTHROPIC_API_KEY`, Wert der Schlüssel aus der Anthropic-Konsole.
-
-Kosten: Es geht nur um Überschriften und Kurztexte, und nur um die, die durchgefallen
-sind. Selbst ein kompletter Ausfall über einen ganzen Tag bewegt sich im Bereich
-weniger Cent.
-
-> ⚠ **Maschinelle Übersetzung kann die Aussage verdrehen.** Im Test wurde aus dem
-> französischen *„Uber condamné à une amende"* (Uber **wurde** bestraft) das deutsche
-> „Uber **verhängte** eine Geldstrafe" — Täter und Opfer vertauscht. Genau deshalb steht
-> bei jeder übersetzten Meldung der Originaltitel in der Einordnung und der Link führt
-> immer zum Original. Bei wichtigen Details: hinschauen.
-
-Nicht aufgenommen wurde Finnisch (Yle): die Übersetzung lieferte unbrauchbares Deutsch.
-Germanische und romanische Sprachen sind deutlich zuverlässiger.
+Name `ANTHROPIC_API_KEY`.
 
 ---
 

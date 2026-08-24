@@ -27,206 +27,76 @@ export const CATEGORIES = [
 ]
 
 export const SOURCES = [
-  // ---------- Fokus: KI-Sektor ----------
-  // Eigene Quellen für die Fokusthemen. Meldungen aus allen anderen
-  // Kategorien, die auf FOCUS_TOPICS passen, landen zusätzlich im Fokus-Tab.
-  //
-  // ai:true heißt: Aus dieser Quelle wird nur übernommen, was KI_SIGNIFICANT
-  // trifft — ein Modell-Update, ein Durchbruch oder eine Entscheidung mit
-  // Tragweite. Ohne diese Hürde bestand der Fokus-Tab zu drei Vierteln aus
-  // Branchengeplauder und verdrängte Raiffeisen und Agile Coaching.
-  { name: 'Ars Technica AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
-    url: 'https://arstechnica.com/ai/feed/', site: 'arstechnica.com' },
-  { name: 'TechCrunch AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
-    url: 'https://techcrunch.com/category/artificial-intelligence/feed/', site: 'techcrunch.com' },
-  { name: 'The Verge AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
-    url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', site: 'theverge.com' },
-  { name: 'MIT Technology Review', cat: 'fokus', ai: true, trust: 3, lang: 'en',
-    url: 'https://www.technologyreview.com/feed/', site: 'technologyreview.com' },
-  { name: 'Google DeepMind', cat: 'fokus', ai: true, trust: 2, lang: 'en',
-    url: 'https://deepmind.google/blog/rss.xml', site: 'deepmind.google' },
-  { name: 'The Register AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
-    url: 'https://www.theregister.com/software/ai_ml/headlines.atom', site: 'theregister.com' },
-  { name: 'heise', cat: 'fokus', ai: true, trust: 2, lang: 'de',
-    url: 'https://www.heise.de/rss/heise-atom.xml', site: 'heise.de', focusOnly: true },
-  { name: 'Golem', cat: 'fokus', ai: true, trust: 2, lang: 'de',
-    url: 'https://www.golem.de/rss.php?feed=RSS2.0', site: 'golem.de', focusOnly: true },
-  { name: 't3n', cat: 'fokus', ai: true, trust: 2, lang: 'de',
-    url: 'https://t3n.de/rss.xml', site: 't3n.de', focusOnly: true },
-  // Agile Coaching kommt in Nachrichtenfeeds praktisch nicht vor. Ohne diese
-  // Fachquellen bliebe das Thema dauerhaft leer.
-  { name: 'InfoQ Agile', cat: 'fokus', trust: 2, lang: 'en',
-    url: 'https://feed.infoq.com/agile/', site: 'infoq.com' },
-  { name: 'InfoQ Kultur & Methoden', cat: 'fokus', trust: 2, lang: 'en',
-    url: 'https://feed.infoq.com/culture-methods/', site: 'infoq.com' },
-  { name: 'Scrum.org', cat: 'fokus', trust: 2, lang: 'en',
-    url: 'https://www.scrum.org/resources/blog/rss.xml', site: 'scrum.org' },
-
-  // ---------- Wissenschaft ----------
-  { name: 'ORF Science', cat: 'wissenschaft', trust: 3, lang: 'de',
-    url: 'https://rss.orf.at/science.xml', site: 'orf.at' },
-  { name: 'DER STANDARD Wissenschaft', cat: 'wissenschaft', trust: 2, lang: 'de',
-    url: 'https://www.derstandard.at/rss/wissenschaft', site: 'derstandard.at' },
-  { name: 'scinexx', cat: 'wissenschaft', trust: 2, lang: 'de',
-    url: 'https://www.scinexx.de/feed/', site: 'scinexx.de' },
-  { name: 'Spektrum der Wissenschaft', cat: 'wissenschaft', trust: 3, lang: 'de',
-    url: 'https://www.spektrum.de/alias/rss/spektrum-de-rss-feed/996406', site: 'spektrum.de' },
-  { name: 'tagesschau Wissen', cat: 'wissenschaft', trust: 3, lang: 'de',
-    url: 'https://www.tagesschau.de/wissen/index~rss2.xml', site: 'tagesschau.de' },
-  { name: 'Nature', cat: 'wissenschaft', trust: 3, lang: 'en',
-    url: 'https://www.nature.com/nature.rss', site: 'nature.com' },
-  { name: 'ScienceDaily', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://www.sciencedaily.com/rss/all.xml', site: 'sciencedaily.com' },
-  { name: 'phys.org', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://phys.org/rss-feed/', site: 'phys.org' },
-
-  // Schwerpunkte: Ernährungswissenschaft, Diätologie, Astronomie.
-  // ScienceDaily hat pro Fachgebiet eigene Feeds — deutlich treffsicherer,
-  // als den Sammelfeed nach Stichwörtern zu durchsuchen.
-  { name: 'ScienceDaily Ernährung', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://www.sciencedaily.com/rss/health_medicine/nutrition.xml', site: 'sciencedaily.com' },
-  { name: 'ScienceDaily Diät', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://www.sciencedaily.com/rss/health_medicine/diet_and_weight_loss.xml', site: 'sciencedaily.com' },
-  { name: 'Ernährungs-Umschau', cat: 'wissenschaft', trust: 3, lang: 'de',
-    url: 'https://www.ernaehrungs-umschau.de/rss/', site: 'ernaehrungs-umschau.de' },
-  { name: 'ScienceDaily Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://www.sciencedaily.com/rss/space_time/astronomy.xml', site: 'sciencedaily.com' },
-  { name: 'NASA', cat: 'wissenschaft', trust: 3, lang: 'en',
-    url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', site: 'nasa.gov' },
-  { name: 'ESA', cat: 'wissenschaft', trust: 3, lang: 'en',
-    url: 'https://www.esa.int/rssfeed/Our_Activities/Space_Science', site: 'esa.int' },
-  { name: 'Sky & Telescope', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://skyandtelescope.org/feed/', site: 'skyandtelescope.org' },
-  { name: 'phys.org Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
-    url: 'https://phys.org/rss-feed/space-news/astronomy/', site: 'phys.org' },
-
-  // ---------- Wirtschaft international ----------
-  { name: 'BBC Business', cat: 'wirtschaft', trust: 3, lang: 'en',
-    url: 'https://feeds.bbci.co.uk/news/business/rss.xml', site: 'bbc.com' },
-  { name: 'Guardian Business', cat: 'wirtschaft', trust: 2, lang: 'en',
-    url: 'https://www.theguardian.com/uk/business/rss', site: 'theguardian.com' },
-  { name: 'CNBC World', cat: 'wirtschaft', trust: 2, lang: 'en',
-    url: 'https://www.cnbc.com/id/10001147/device/rss/rss.html', site: 'cnbc.com' },
-  { name: 'Financial Times', cat: 'wirtschaft', trust: 3, lang: 'en',
-    url: 'https://www.ft.com/rss/home', site: 'ft.com' },
-  { name: 'tagesschau Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'de',
-    url: 'https://www.tagesschau.de/wirtschaft/index~rss2.xml', site: 'tagesschau.de' },
-  { name: 'Euronews Business', cat: 'wirtschaft', trust: 2, lang: 'en',
-    url: 'https://www.euronews.com/rss?level=theme&name=business', site: 'euronews.com' },
-  { name: 'Handelsblatt', cat: 'wirtschaft', trust: 2, lang: 'de',
-    url: 'https://www.handelsblatt.com/contentexport/feed/schlagzeilen', site: 'handelsblatt.com' },
-  { name: 'ANSA Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'it',
-    url: 'https://www.ansa.it/sito/notizie/economia/economia_rss.xml', site: 'ansa.it' },
-  { name: 'Il Sole 24 Ore', cat: 'wirtschaft', trust: 3, lang: 'it',
-    url: 'https://www.ilsole24ore.com/rss/mondo.xml', site: 'ilsole24ore.com' },
-  { name: 'El País Wirtschaft', cat: 'wirtschaft', trust: 2, lang: 'es',
-    url: 'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/economia/portada', site: 'elpais.com' },
-  { name: 'Le Monde Wirtschaft', cat: 'wirtschaft', trust: 3, lang: 'fr',
-    url: 'https://www.lemonde.fr/economie/rss_full.xml', site: 'lemonde.fr' },
-  { name: 'Le Figaro Wirtschaft', cat: 'wirtschaft', trust: 2, lang: 'fr',
-    url: 'https://www.lefigaro.fr/rss/figaro_economie.xml', site: 'lefigaro.fr' },
-  { name: 'POLITICO Europe', cat: 'wirtschaft', trust: 2, lang: 'en',
-    url: 'https://www.politico.eu/feed/', site: 'politico.eu' },
-
-  // ---------- Wirtschaft Österreich (at:true -> steht im Tab oben) ----------
-  { name: 'DER STANDARD Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
-    url: 'https://www.derstandard.at/rss/wirtschaft', site: 'derstandard.at' },
-  { name: 'Die Presse Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
-    url: 'https://www.diepresse.com/rss/Wirtschaft', site: 'diepresse.com' },
-  { name: 'KURIER Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
-    url: 'https://kurier.at/wirtschaft/xml/rss', site: 'kurier.at' },
-  { name: 'ORF Konsument', cat: 'wirtschaft', at: true, trust: 3, lang: 'de',
-    url: 'https://rss.orf.at/help.xml', site: 'orf.at' },
-
-  // ---------- Sport international ----------
-  { name: 'BBC Sport', cat: 'sport-int', trust: 3, lang: 'en',
-    url: 'https://feeds.bbci.co.uk/sport/rss.xml', site: 'bbc.com' },
-  // ESPN entfernt: liefert lokal 42 Meldungen, aus GitHub Actions aber 0 —
-  // der Anbieter sperrt Rechenzentrums-IPs aus. Da der Build dort läuft,
-  // ist die Quelle für uns wertlos und würde nur dauerhaft als "veraltet"
-  // im Quellenbericht stehen.
-  { name: 'Sky Sports', cat: 'sport-int', trust: 2, lang: 'en',
-    url: 'https://www.skysports.com/rss/12040', site: 'skysports.com' },
-  { name: 'Sportschau', cat: 'sport-int', trust: 3, lang: 'de',
-    url: 'https://www.sportschau.de/index~rss2.xml', site: 'sportschau.de' },
-  { name: 'DER STANDARD Sport', cat: 'sport-int', trust: 2, lang: 'de',
-    url: 'https://www.derstandard.at/rss/sport', site: 'derstandard.at' },
-  { name: 'KURIER Sport', cat: 'sport-int', trust: 2, lang: 'de',
-    url: 'https://kurier.at/sport/xml/rss', site: 'kurier.at' },
-  { name: 'Die Presse Sport', cat: 'sport-int', trust: 2, lang: 'de',
-    url: 'https://www.diepresse.com/rss/Sport', site: 'diepresse.com' },
-  { name: 'MARCA', cat: 'sport-int', trust: 2, lang: 'es',
-    url: 'https://e00-marca.uecdn.es/rss/portada.xml', site: 'marca.com' },
-  // Österreichischer Sport. rss.orf.at/sport.xml wurde beim ersten Anlauf
-  // fälschlich als leer verworfen — der Feed liefert 17 aktuelle Meldungen.
-  { name: 'ORF Sport', cat: 'sport-int', trust: 3, lang: 'de',
-    url: 'https://rss.orf.at/sport.xml', site: 'orf.at' },
-  // vienna.at Sport entfernt: Der Feed führt unter "Sport" auch Wohnhaus-
-  // brände, Messerattacken und Innenpolitik. Für österreichischen Sport
-  // genügt ORF Sport, das sauber abgegrenzt ist.
-
-  // ---------- Welt (international, fremdsprachig -> übersetzt) ----------
-  { name: 'BBC World', cat: 'welt', trust: 3, lang: 'en',
-    url: 'https://feeds.bbci.co.uk/news/world/rss.xml', site: 'bbc.com' },
-  { name: 'New York Times World', cat: 'welt', trust: 3, lang: 'en',
-    url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', site: 'nytimes.com' },
-  { name: 'Al Jazeera', cat: 'welt', trust: 2, lang: 'en',
-    url: 'https://www.aljazeera.com/xml/rss/all.xml', site: 'aljazeera.com' },
-  { name: 'Japan Times', cat: 'welt', trust: 2, lang: 'en',
-    url: 'https://www.japantimes.co.jp/feed/', site: 'japantimes.co.jp' },
-  { name: 'Deutsche Welle', cat: 'welt', trust: 3, lang: 'de',
-    url: 'https://rss.dw.com/rdf/rss-de-all', site: 'dw.com' },
-  { name: 'Le Monde', cat: 'welt', trust: 3, lang: 'fr',
-    url: 'https://www.lemonde.fr/rss/une.xml', site: 'lemonde.fr' },
-  { name: 'France 24', cat: 'welt', trust: 3, lang: 'fr',
-    url: 'https://www.france24.com/fr/rss', site: 'france24.com' },
-  { name: 'RFI', cat: 'welt', trust: 3, lang: 'fr',
-    url: 'https://www.rfi.fr/fr/rss', site: 'rfi.fr' },
-  { name: 'El País', cat: 'welt', trust: 2, lang: 'es',
-    url: 'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada', site: 'elpais.com' },
-  { name: 'la Repubblica', cat: 'welt', trust: 2, lang: 'it',
-    url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml', site: 'repubblica.it' },
-  { name: 'ANSA', cat: 'welt', trust: 3, lang: 'it',
-    url: 'https://www.ansa.it/sito/ansait_rss.xml', site: 'ansa.it' },
-  { name: 'NOS', cat: 'welt', trust: 3, lang: 'nl',
-    url: 'https://feeds.nos.nl/nosnieuwsalgemeen', site: 'nos.nl' },
-  { name: 'SVT Nyheter', cat: 'welt', trust: 3, lang: 'sv',
-    url: 'https://www.svt.se/nyheter/rss.xml', site: 'svt.se' },
-  { name: 'NRK', cat: 'welt', trust: 3, lang: 'no',
-    url: 'https://www.nrk.no/toppsaker.rss', site: 'nrk.no' },
-  { name: 'DR Nyheder', cat: 'welt', trust: 3, lang: 'da',
-    url: 'https://www.dr.dk/nyheder/service/feeds/allenyheder', site: 'dr.dk' },
-  // Yle (fi) wurde getestet und wieder entfernt: die maschinelle Übersetzung
-  // Finnisch -> Deutsch lieferte unbrauchbare Sätze ("Die Laufpferde Ihrer
-  // Auktion in der Stadt Pori"). Germanische und romanische Sprachen sind
-  // deutlich zuverlässiger.
+  // 25 Quellen, bewusst knapp gehalten. Nur Deutsch und Englisch:
+  // Englisches muss nicht übersetzt werden, und genau die Übersetzung war
+  // der Engpass — mit 79 Quellen drosselte der Dienst auf 4 Prozent.
+  // Französische, italienische, spanische, niederländische und skandinavische
+  // Quellen sind deshalb entfallen; siehe README zu dem, was damit wegfällt.
 
   // ---------- Österreich ----------
   { name: 'ORF Österreich', cat: 'oesterreich', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/oesterreich.xml', site: 'orf.at' },
   { name: 'ORF News', cat: 'oesterreich', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/news.xml', site: 'orf.at' },
-  { name: 'ORF Wien', cat: 'oesterreich', trust: 3, lang: 'de',
-    url: 'https://rss.orf.at/wien.xml', site: 'orf.at' },
-  { name: 'DER STANDARD Inland', cat: 'oesterreich', trust: 2, lang: 'de',
-    url: 'https://www.derstandard.at/rss/inland', site: 'derstandard.at' },
-  { name: 'DER STANDARD Panorama', cat: 'oesterreich', trust: 2, lang: 'de',
-    url: 'https://www.derstandard.at/rss/panorama', site: 'derstandard.at' },
   { name: 'Die Presse Innenpolitik', cat: 'oesterreich', trust: 2, lang: 'de',
     url: 'https://www.diepresse.com/rss/Innenpolitik', site: 'diepresse.com' },
-  { name: 'KURIER Politik', cat: 'oesterreich', trust: 2, lang: 'de',
-    url: 'https://kurier.at/politik/inland/xml/rss', site: 'kurier.at' },
   { name: 'KURIER Chronik', cat: 'oesterreich', trust: 2, lang: 'de',
     url: 'https://kurier.at/chronik/oesterreich/xml/rss', site: 'kurier.at' },
 
   // ---------- Korneuburg / Region ----------
   { name: 'meinbezirk Korneuburg', cat: 'korneuburg', trust: 1, lang: 'de',
     url: 'https://www.meinbezirk.at/korneuburg/rss', site: 'meinbezirk.at' },
-  { name: 'meinbezirk Niederösterreich', cat: 'korneuburg', trust: 1, lang: 'de',
-    url: 'https://www.meinbezirk.at/niederoesterreich/rss', site: 'meinbezirk.at',
-    requireLocal: true },
   { name: 'ORF Niederösterreich', cat: 'korneuburg', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/noe.xml', site: 'orf.at', requireLocal: true },
+
+  // ---------- Wirtschaft (at:true steht im Tab oben) ----------
+  { name: 'DER STANDARD Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
+    url: 'https://www.derstandard.at/rss/wirtschaft', site: 'derstandard.at' },
+  { name: 'Die Presse Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
+    url: 'https://www.diepresse.com/rss/Wirtschaft', site: 'diepresse.com' },
+  { name: 'KURIER Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
+    url: 'https://kurier.at/wirtschaft/xml/rss', site: 'kurier.at' },
+  { name: 'Financial Times', cat: 'wirtschaft', trust: 3, lang: 'en',
+    url: 'https://www.ft.com/rss/home', site: 'ft.com' },
+  { name: 'BBC Business', cat: 'wirtschaft', trust: 3, lang: 'en',
+    url: 'https://feeds.bbci.co.uk/news/business/rss.xml', site: 'bbc.com' },
+
+  // ---------- Welt ----------
+  { name: 'BBC World', cat: 'welt', trust: 3, lang: 'en',
+    url: 'https://feeds.bbci.co.uk/news/world/rss.xml', site: 'bbc.com' },
+  { name: 'New York Times World', cat: 'welt', trust: 3, lang: 'en',
+    url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', site: 'nytimes.com' },
+  { name: 'Deutsche Welle', cat: 'welt', trust: 3, lang: 'de',
+    url: 'https://rss.dw.com/rdf/rss-de-all', site: 'dw.com' },
+
+  // ---------- Sport ----------
+  { name: 'ORF Sport', cat: 'sport-int', trust: 3, lang: 'de',
+    url: 'https://rss.orf.at/sport.xml', site: 'orf.at' },
+  { name: 'DER STANDARD Sport', cat: 'sport-int', trust: 2, lang: 'de',
+    url: 'https://www.derstandard.at/rss/sport', site: 'derstandard.at' },
+  { name: 'BBC Sport', cat: 'sport-int', trust: 3, lang: 'en',
+    url: 'https://feeds.bbci.co.uk/sport/rss.xml', site: 'bbc.com' },
+  { name: 'Sky Sports', cat: 'sport-int', trust: 2, lang: 'en',
+    url: 'https://www.skysports.com/rss/12040', site: 'skysports.com' },
+
+  // ---------- Wissenschaft: Ernährung, Diätologie, Astronomie ----------
+  { name: 'ORF Science', cat: 'wissenschaft', trust: 3, lang: 'de',
+    url: 'https://rss.orf.at/science.xml', site: 'orf.at' },
+  { name: 'ScienceDaily Ernährung', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/health_medicine/nutrition.xml', site: 'sciencedaily.com' },
+  { name: 'ScienceDaily Astronomie', cat: 'wissenschaft', trust: 2, lang: 'en',
+    url: 'https://www.sciencedaily.com/rss/space_time/astronomy.xml', site: 'sciencedaily.com' },
+  { name: 'NASA', cat: 'wissenschaft', trust: 3, lang: 'en',
+    url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', site: 'nasa.gov' },
+
+  // ---------- Fokus: KI und Agile ----------
+  // ai:true -> nur Modell-Updates, Durchbrüche und Entscheidungen mit Tragweite.
+  { name: 'TechCrunch AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
+    url: 'https://techcrunch.com/category/artificial-intelligence/feed/', site: 'techcrunch.com' },
+  { name: 'Ars Technica AI', cat: 'fokus', ai: true, trust: 2, lang: 'en',
+    url: 'https://arstechnica.com/ai/feed/', site: 'arstechnica.com' },
+  { name: 'Scrum.org', cat: 'fokus', trust: 2, lang: 'en',
+    url: 'https://www.scrum.org/resources/blog/rss.xml', site: 'scrum.org' },
 ]
 
 // ---------------------------------------------------------------- Fokusthemen

@@ -16,8 +16,8 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v7'
-const APP_BUILD = '24.08.2026'
+const APP_VERSION = 'v8'
+const APP_BUILD = '24.08. 22:10'
 
 const DATA_URL = 'data/news.json'
 const REFRESH_AFTER_MS = 30 * 60 * 1000
@@ -322,18 +322,21 @@ async function fetchNews({ force = false } = {}) {
     render()
     const rest = data.translation?.untranslated || 0
     setStatusParts([
-      `${data.items.length} Meldungen`,
-      `Stand ${relTime(new Date(data.generated).getTime())}`,
-      rest > 3 ? { text: `${rest} noch in Originalsprache`, warn: true } : null,
-      { text: `${APP_VERSION} · Build ${APP_BUILD}`, version: true },
+      `Meldungen: ${data.items.length}`,
+      `Stand: ${relTime(new Date(data.generated).getTime()).replace(/^vor /, '')}`,
+      rest > 3 ? { text: `${rest} im Original`, warn: true } : null,
+      `Version: ${APP_VERSION} (${APP_BUILD})`,
     ])
   } catch (err) {
     const cached = load(LS.cache, () => null)
     if (cached?.items?.length) {
       state.data = cached
       render()
-      setStatus(`Offline — Stand von ${relTime(new Date(cached.generated).getTime())}`
-        + ` · ${APP_VERSION} · Build ${APP_BUILD}`, true)
+      setStatusParts([
+        { text: 'Offline', warn: true },
+        `Stand: ${relTime(new Date(cached.generated).getTime()).replace(/^vor /, '')}`,
+        `Version: ${APP_VERSION} (${APP_BUILD})`,
+      ])
     } else {
       setStatus(`Konnte Meldungen nicht laden: ${err.message}`, true)
       showEmpty('📡', 'Keine Verbindung', 'Sobald du wieder online bist, lädt Faktum automatisch nach.')
