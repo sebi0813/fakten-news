@@ -336,6 +336,15 @@ async function fetchNews({ force = false } = {}) {
     const cutoff = Date.now() - ITEM_TTL_DAYS * DAY
     data.items = data.items.filter(i => i.ts >= cutoff)
 
+    // Läuft hier eine veraltete Fassung? news.json kommt immer frisch aus
+    // dem Netz, die App selbst kann dagegen aus dem Speicher stammen — iOS
+    // stellt Web-Apps beim Öffnen wieder her, statt sie neu zu laden. Dann
+    // hilft weder der Service Worker noch Warten.
+    if (data.appVersion && data.appVersion !== APP_VERSION) {
+      await selbstErneuern(data.appVersion)
+      return
+    }
+
     state.data = data
     state.lastFetch = Date.now()
     save(LS.cache, data)
@@ -365,6 +374,26 @@ async function fetchNews({ force = false } = {}) {
     state.loading = false
     $('#btn-refresh').classList.remove('spin')
   }
+}
+
+/**
+ * Veraltete Fassung im Speicher: Caches leeren, Service Worker abmelden,
+ * einmal neu laden. Der Merker verhindert eine Schleife, falls das Neuladen
+ * die alte Fassung zurückbringt — dann steht wenigstens ein Hinweis da.
+ */
+async function selbstErneuern(neueFassung) {
+  const merker = 'faktum.erneuert'
+  if (sessionStorage.getItem(merker) === neueFassung) {
+    setStatus(`Fassung ${neueFassung} verfügbar — bitte App einmal schließen und neu öffnen.`, true)
+    return
+  }
+  sessionStorage.setItem(merker, neueFassung)
+  setStatus(`Neue Fassung ${neueFassung} wird geladen …`)
+  try {
+    for (const r of await navigator.serviceWorker?.getRegistrations?.() || []) await r.unregister()
+    for (const k of await caches.keys()) await caches.delete(k)
+  } catch { /* auch ohne Aufräumen lohnt der Versuch */ }
+  location.reload()
 }
 
 function setStatus(text, isErr = false) {

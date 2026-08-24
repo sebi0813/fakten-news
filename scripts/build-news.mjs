@@ -5,7 +5,7 @@
 // Läuft serverseitig (GitHub Actions) -> kein CORS-Problem, kein Proxy nötig.
 // Keine npm-Abhängigkeiten: nur Node-Builtins.
 
-import { writeFile, mkdir } from 'node:fs/promises'
+import { writeFile, mkdir, readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -1046,9 +1046,20 @@ async function main() {
   const events = await buildEvents(now)
   console.log(`  ${events.length} Termine gesamt`)
 
+  // Die App-Fassung wandert in die Daten. news.json wird bei jedem Start
+  // frisch geholt (network-first, mit Cache-Buster) — dadurch merkt eine
+  // veraltet laufende App zuverlässig, dass es etwas Neueres gibt, auch
+  // wenn iOS sie aus dem Speicher wiederhergestellt hat.
+  let appVersion = null
+  try {
+    const appJs = await readFile(resolve(__dirname, '../docs/app.js'), 'utf8')
+    appVersion = (appJs.match(/APP_VERSION\s*=\s*'([^']+)'/) || [])[1] || null
+  } catch { /* ohne Angabe entfällt die Prüfung */ }
+
   const payload = {
     generated: new Date(now).toISOString(),
     version: 3,
+    appVersion,
     categories: CATEGORIES,
     focusTopics: FOCUS_TOPICS.map(t => ({ id: t.id, label: t.label, icon: t.icon })),
     contextTopics: CONTEXT_TOPICS.map(t => ({

@@ -505,6 +505,26 @@ Verbände gegen Bezahlung ihre eigenen Mitteilungen. Das ist PR, keine Berichter
 
 ---
 
+## Wenn die App eine alte Fassung zeigt
+
+iOS stellt installierte Web-Apps beim Öffnen häufig aus dem Speicher wieder her,
+statt sie neu zu laden. Dann läuft der alte Code weiter und prüft nie auf Neues —
+weder der Service Worker noch Warten hilft.
+
+Faktum erkennt das jetzt selbst: Der Build schreibt die App-Fassung nach
+`news.json`, und `news.json` wird bei jedem Start frisch aus dem Netz geholt.
+Weicht die laufende Fassung ab, leert die App ihre Zwischenspeicher, meldet den
+Service Worker ab und lädt einmal neu. Ein Merker in `sessionStorage` verhindert
+eine Schleife: Scheitert es zweimal mit derselben Fassung, erscheint stattdessen
+der Hinweis, die App einmal zu schließen und neu zu öffnen.
+
+Notfalls von Hand: Icon vom Home-Bildschirm löschen, in **Einstellungen → Safari →
+Erweitert → Website-Daten** den Eintrag `github.io` entfernen, Seite in Safari neu
+öffnen und wieder zum Home-Bildschirm hinzufügen. Dabei gehen Gemerktes und das
+Lernprofil verloren.
+
+---
+
 ## Lokal entwickeln
 
 ```bash
