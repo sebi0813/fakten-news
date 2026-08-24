@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v10'
+const APP_VERSION = 'v12'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -109,7 +109,12 @@ const state = {
 
 const defaults = {
   prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {} }),
-  settings: () => ({ hideRead: true, hideLowFact: false, images: true, info: true, eventsFilter: true, apiKey: '' }),
+  settings: () => ({
+    hideRead: true, hideLowFact: false, images: true, info: true,
+    ortErlaubt: false, apiKey: '',
+    // Welche Termin-Sparten dieses Profil sehen will. Leere Liste = alle.
+    eventGenres: ['theater', 'musical', 'klassik', 'konzert'],
+  }),
   read: () => ({}),
   saved: () => ({}),
   history: () => ([]),
@@ -587,9 +592,12 @@ function renderEvents() {
   let events = (state.data?.events || []).filter(e => e.ts > Date.now() - 12 * 3600_000)
   const alleAnzahl = events.length
   // Nur filtern, wenn die Daten die Sparten überhaupt kennen. Ein älterer
-  // Datenstand ohne "fits" würde sonst sämtliche Termine ausblenden.
+  // Datenstand ohne Sparten würde sonst sämtliche Termine ausblenden.
   const kenntSparten = events.some(e => e.genres !== undefined)
-  if (settings.eventsFilter && kenntSparten) events = events.filter(e => e.fits)
+  const gewuenscht = settings.eventGenres || []
+  if (kenntSparten && gewuenscht.length) {
+    events = events.filter(e => (e.genres || []).some(g => gewuenscht.includes(g)))
+  }
   if (state.search) {
     const q = state.search.toLowerCase()
     events = events.filter(e => `${e.title} ${e.place} ${e.venue}`.toLowerCase().includes(q))
@@ -616,7 +624,7 @@ function renderEvents() {
     ;(tage[key] ||= []).push(e)
   }
 
-  const hinweis = settings.eventsFilter && alleAnzahl > events.length
+  const hinweis = alleAnzahl > events.length
     ? ` · ${alleAnzahl - events.length} weitere ausgeblendet (⚙ Anzeige)` : ''
   $('#feed').innerHTML = `<p class="muted small hist-note">${events.length} Termine in den nächsten zwei Wochen${hinweis} · Quelle: meinbezirk.at</p>`
     + Object.entries(tage).map(([tag, liste]) => `
@@ -815,10 +823,12 @@ function infoEntries() {
   // Monatelange Baustellen sind Hintergrundwissen, keine Tagesinformation.
   // Sie standen bisher als sechs gleiche Zeilen über allem und verdrängten
   // die tatsächliche Störung von heute. Höchstens drei, und immer zuletzt.
+  // Sperren, die vor mehr als einer Woche begannen, stehen nicht mehr im
+  // Vordergrund. Sie ändern sich monatelang nicht — wer sie täglich liest,
+  // übersieht irgendwann die eine Meldung, die zählt.
   const info = state.data?.info || []
-  const akut = info.filter(t => t.kind !== 'oebb' || !t.dauerhaft)
-  const dauer = info.filter(t => t.kind === 'oebb' && t.dauerhaft).slice(0, 3)
-  for (const t of [...akut, ...dauer]) {
+  for (const t of info) {
+    if (t.kind === 'oebb' && t.neu === false) continue
     out.push({ kind: t.kind, icon: ICON[t.kind] || 'ℹ', label: LABEL[t.kind], text: t.text, link: t.link })
   }
 
@@ -926,10 +936,26 @@ function verbindungenHTML() {
   </section>`
 }
 
+/** Laufende Streckensperren, eingeklappt als Nachschlagewerk. */
+function sperrenHTML() {
+  const alt = (state.data?.info || []).filter(t => t.kind === 'oebb' && t.neu === false)
+  if (!alt.length) return ''
+  return `<details class="sperren">
+    <summary>🚧 Laufende Streckensperren (${alt.length})</summary>
+    ${alt.map(t => `<a class="info-row" href="${esc(t.link || '#')}"
+        target="_blank" rel="noopener noreferrer">
+        <span class="info-icon">🚆</span>
+        <span class="info-text">${esc(t.text)}</span></a>`).join('')}
+  </details>`
+}
+
 function infoBlockHTML() {
   if (!settings.info) return ''
   const entries = infoEntries()
-  if (!entries.length) return verbindungenHTML()
+  const sperren = sperrenHTML()
+  // Auch ohne akute Meldung soll die Sperren-Rubrik erreichbar bleiben —
+  // sonst verschwindet sie genau dann, wenn gerade nichts los ist.
+  if (!entries.length && !sperren) return verbindungenHTML()
 
   return verbindungenHTML() + `<section class="infoblock">
     <h2 class="info-head">📍 In deiner Umgebung</h2>
@@ -940,6 +966,7 @@ function infoBlockHTML() {
         ? `<a class="info-row" data-kind="${e.kind}" href="${esc(e.link)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
         : `<div class="info-row" data-kind="${e.kind}">${inner}</div>`
     }).join('')}
+    ${sperren}
   </section>`
 }
 
@@ -972,9 +999,23 @@ function ruleBasedDetail(item) {
       <span class="warn">Maschinelle Übersetzung kann die Aussage verdrehen — etwa wer wen
       bestraft. Bei wichtigen Details ins Original schauen.</span></li>`)
   }
+  // Bei Mehrfachmeldungen die Fassung jeder Redaktion zeigen. Verschiedene
+  // Häuser nennen verschiedene Details — so sieht man die Fakten aus allen
+  // Quellen nebeneinander, statt nur einen höheren Punktestand.
+  const fassungen = (item.also || []).filter(a => a.summary && a.summary.length > 40)
+  const vergleich = fassungen.length ? `
+    <h4 style="margin-top:14px">Was die anderen Quellen schreiben</h4>
+    <div class="quellen-vergleich">
+      <div class="qv-eintrag"><b>${esc(item.source)}</b><p>${esc(item.summary || '')}</p></div>
+      ${fassungen.map(a => `<div class="qv-eintrag">
+        <b><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.source)}</a></b>
+        <p>${esc(a.summary)}</p></div>`).join('')}
+    </div>` : ''
+
   return `
     <h4>Regelbasierte Einordnung</h4>
     <ul>${bits.join('')}</ul>
+    ${vergleich}
     <p class="src-note">Das ist eine Bewertung der <i>Quellenlage</i>, keine inhaltliche Prüfung.
     Für eine inhaltliche Einordnung durch Claude hinterlege einen API-Key unter ⚙ Einstellungen.</p>`
 }
@@ -1217,6 +1258,23 @@ Die Einordnung ersetzt das Lesen des Originals nicht.</p>
 api.anthropic.com. Das ist bequem, aber kein Tresor — setze das Ausgabenlimit.</p>
 `
 
+const GENRE_LISTE = [
+  { id: 'theater', label: 'Theater', icon: '🎭' },
+  { id: 'musical', label: 'Musical', icon: '🎤' },
+  { id: 'klassik', label: 'Klassik & Oper', icon: '🎻' },
+  { id: 'konzert', label: 'Konzert', icon: '🎵' },
+  { id: 'familie', label: 'Familie & Kinder', icon: '👨‍👩‍👧' },
+]
+
+/** Termin-Sparten dieses Profils. Jedes Profil entscheidet für sich. */
+function renderGenres() {
+  const gewaehlt = settings.eventGenres || []
+  $('#genre-list').innerHTML = GENRE_LISTE.map(g => `
+    <button class="genre-chip ${gewaehlt.includes(g.id) ? 'on' : ''}" data-genre="${g.id}">
+      ${g.icon} ${esc(g.label)}
+    </button>`).join('')
+}
+
 function renderProfiles() {
   $('#profile-list').innerHTML = profiles.map(p => `
     <button class="profile-chip ${p.id === activeProfile ? 'on' : ''}" data-profile="${esc(p.id)}">
@@ -1227,13 +1285,13 @@ function renderProfiles() {
 function openSheet() {
   $('#ai-explain').innerHTML = AI_EXPLAIN
   renderProfiles()
+  renderGenres()
   renderLearnSummary()
   renderSourceReport()
   renderStorageInfo()
   $('#opt-hide-read').checked = settings.hideRead
   $('#opt-hide-lowfact').checked = settings.hideLowFact
   $('#opt-images').checked = settings.images
-  $('#opt-events-filter').checked = settings.eventsFilter
   $('#opt-info').checked = settings.info
   $('#opt-apikey').value = settings.apiKey || ''
   $('#sheet').hidden = false
@@ -1413,6 +1471,18 @@ document.addEventListener('click', ev => {
   }
   if (ev.target.closest('#btn-search')) { toggleSearch(); return }
   if (ev.target.closest('#btn-search-clear')) { toggleSearch(false); return }
+  const gchip = ev.target.closest('[data-genre]')
+  if (gchip) {
+    const id = gchip.dataset.genre
+    const liste = new Set(settings.eventGenres || [])
+    liste.has(id) ? liste.delete(id) : liste.add(id)
+    settings.eventGenres = [...liste]
+    save(LS.settings, settings)
+    renderGenres()
+    render()
+    return
+  }
+
   const chip = ev.target.closest('[data-profile]')
   if (chip) { switchProfile(chip.dataset.profile); return }
   if (ev.target.closest('#btn-settings')) { openSheet(); return }
@@ -1441,7 +1511,12 @@ $('#search-input').addEventListener('input', e => {
   }, 180)
 })
 
-const bindToggle = (sel, key) => $(sel).addEventListener('change', e => {
+/**
+ * Schalter binden. Fehlt das Element, wird das gemeldet statt den Start
+ * abzubrechen: Ein entfernter Schalter im HTML riss vorher die komplette
+ * App mit — keine Tabs, keine Meldungen, kein Hinweis worauf.
+ */
+const bindToggle = (sel, key) => $(sel)?.addEventListener('change', e => {
   settings[key] = e.target.checked
   save(LS.settings, settings)
   render()
@@ -1449,7 +1524,6 @@ const bindToggle = (sel, key) => $(sel).addEventListener('change', e => {
 bindToggle('#opt-hide-read', 'hideRead')
 bindToggle('#opt-hide-lowfact', 'hideLowFact')
 bindToggle('#opt-images', 'images')
-bindToggle('#opt-events-filter', 'eventsFilter')
 bindToggle('#opt-info', 'info')
 
 $('#btn-save-key').addEventListener('click', () => {
@@ -1488,6 +1562,7 @@ $('#btn-profile-rename').addEventListener('click', () => {
   p.name = name.slice(0, 20)
   saveProfiles()
   renderProfiles()
+  renderGenres()
 })
 
 $('#btn-profile-delete').addEventListener('click', () => {

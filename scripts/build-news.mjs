@@ -441,16 +441,28 @@ function dedupe(items, { crossCategory = false, threshold = 0.62, perCategory = 
       if (sim >= limit - 0.20 && nums.size && setsEqual(nums, k._nums)) { dup = k; break }
     }
     if (dup) {
-      dup.also = dup.also || []
-      if (!dup.also.some(a => a.source === it.source) && dup.also.length < 4) {
-        dup.also.push({ source: it.source, link: it.link })
+      // Dieselbe Redaktion bestätigt sich nicht selbst. Vorher stand bei
+      // manchen Meldungen "BBC Sport bestätigt BBC Sport" — als Signal
+      // gegen Falschmeldungen wertlos.
+      const eigen = it.source === dup.source || dup.also?.some(a => a.source === it.source)
+      if (!eigen) {
+        dup.also = dup.also || []
+        if (dup.also.length < 4) {
+          // Den Text jeder Quelle mitnehmen: verschiedene Redaktionen
+          // nennen verschiedene Details. Erst dadurch bringt die
+          // Mehrfachmeldung einen inhaltlichen Gewinn und nicht nur
+          // einen höheren Punktestand.
+          dup.also.push({ source: it.source, link: it.link, summary: it.summary || '' })
+        }
       }
       // Mehrere unabhängige Quellen berichten dasselbe -> Faktenscore steigt.
       // Der Bonus wird separat gemerkt, weil der Score für übersetzte
       // Meldungen später auf dem deutschen Text neu berechnet wird.
-      dup.alsoBonus = (dup.alsoBonus || 0) + 6
-      dup.fact = Math.min(100, dup.fact + 6)
-      dup.factLabel = factLabel(dup.fact)
+      if (!eigen) {
+        dup.alsoBonus = (dup.alsoBonus || 0) + 6
+        dup.fact = Math.min(100, dup.fact + 6)
+        dup.factLabel = factLabel(dup.fact)
+      }
       if (!dup.image && it.image) dup.image = it.image
       // Die längere Zusammenfassung ist meist die informativere.
       if ((it.summary || '').length > (dup.summary || '').length + 60) dup.summary = it.summary
@@ -574,6 +586,17 @@ async function buildOebbTicker(now) {
  * auf der HTML-Seite. Deren Linktexte enthalten Strecke und Zeitraum
  * vollständig, deshalb genügt es, die Links einzusammeln.
  */
+/** Startdatum aus einem Sperrentext: "von 4. Juli bis 7. September 2026". */
+function startDatumAus(text) {
+  const m = text.match(/(?:von|ab)\s+(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)\s*(\d{4})?/i)
+  if (!m) return null
+  const monat = MONATE[m[2].toLowerCase()]
+  if (monat === undefined) return null
+  const jahr = m[3] ? Number(m[3]) : new Date().getFullYear()
+  const d = new Date(jahr, monat, Number(m[1]))
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
 async function buildOebbClosures() {
   let html
   try {
@@ -606,13 +629,18 @@ async function buildOebbClosures() {
     seen.add(title)
     const lower = title.toLowerCase()
     if (!OEBB_REGION_LINES.some(l => lower.includes(l))) continue
-    // Reicht die Sperre über Monate, ist sie Hintergrund, keine Neuigkeit.
-    const monate = (title.match(/\b(20\d\d)\b/g) || []).length > 1
-      || /bis ende \d{4}|bis \d{1,2}\. \w+ 20\d\d/i.test(title)
+    // Wann hat die Sperre begonnen? Steht im Linktext: "von 4. Juli bis
+    // 7. September 2026". Eine Sperre, die vor mehr als einer Woche begann,
+    // ist keine Neuigkeit mehr, sondern Hintergrundwissen — sie wandert in
+    // die aufklappbare Unterrubrik.
+    const beginn = startDatumAus(title)
+    const neu = beginn ? (Date.now() - beginn.getTime()) < 7 * 86400_000 : false
+
     out.push({
       kind: 'oebb',
       text: title,
-      dauerhaft: monate,
+      neu,
+      beginn: beginn ? beginn.toISOString() : null,
       link: href.startsWith('http') ? href : `https://www.oebb.at${href}`,
       ts: Date.now(),
     })

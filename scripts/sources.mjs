@@ -276,17 +276,23 @@ export const EVENT_GENRES = [
       // "Großrußbach", "Messe" die Messehalle. Genrewörter genügen — eine
       // Mozart-Oper heißt im Titel ohnehin Oper oder Konzert.
       'matinee', 'serenade', 'requiem', 'blasmusik', 'volksmusik'] },
+  { id: 'familie', label: 'Familie & Kinder', icon: '👨‍👩‍👧',
+    terms: ['kinder', 'familie', 'familienfest', 'kirtag', 'dorffest', 'pfarrfest',
+      'flohmarkt', 'wandertag', 'sommerfest', 'spielefest', 'hüpfburg', 'kasperl',
+      'ferienspiel', 'bastel', 'mitmach', 'puppentheater', 'zirkus', 'tierpark',
+      'erntedank', 'feuerwehrfest', 'sportfest', 'straßenfest'] },
   { id: 'konzert', label: 'Konzert', icon: '🎵',
     terms: ['konzert', 'live-musik', 'livemusik', 'open air', 'openair', 'band',
       'jazz', 'blues', 'soul', 'pop', 'rock', 'singer', 'songwriter', 'akustik',
       'unplugged', 'festival', 'musikfest', 'sommerkonzert'] },
 ]
 
-// Nicht für die Zielgruppe: Kinderprogramm und Clubbing.
+// Was in keiner Sparte auftauchen soll. Kinderprogramm steht hier bewusst
+// NICHT mehr — es ist eine eigene Sparte "Familie & Kinder", die jedes Profil
+// selbst zuschalten kann. Für einen Haushalt mit Kindern ist genau das die
+// Zielgruppe; die Entscheidung gehört zum Profil, nicht in den Code.
 export const EVENT_EXCLUDE = [
-  'kinder', 'kids', 'kleinkind', 'baby', 'jugendliche', 'teenager', 'schüler',
-  'kindergarten', 'familienfest', 'spielefest', 'hüpfburg', 'kasperl',
-  'clubbing', 'rave', 'techno', 'disco', 'after work', 'afterwork',
+  'clubbing', 'rave', 'techno', 'after work', 'afterwork', 'gogo',
 ]
 
 // ------------------------------------------------------------- Themenkontext
