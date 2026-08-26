@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v12'
+const APP_VERSION = 'v13'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -280,7 +280,19 @@ function personalScore(item) {
   if (item.flash) boost += 12
 
   item._boost = boost
-  return fresh * 0.5 + item.fact * 0.3 + boost
+
+  // Aktualität entscheidet. Die gelernten Vorlieben stimmen nur innerhalb
+  // desselben Zeitfensters fein ab — sie verschieben um höchstens ein paar
+  // Stunden, statt eine gut passende alte Meldung nach oben zu heben.
+  const fein = Math.max(-12, Math.min(12, boost * 0.4))
+  let score = fresh + item.fact * 0.05 + fein
+
+  // Erledigtes ans Ende, aber nicht weg: gelesen und 👍 rutschen hinter
+  // alles Ungesehene. So steht Neues immer oben.
+  if (readMap[item.id]) score -= 500
+  if (prefs.votes[item.id]?.v === 1) score -= 500
+
+  return score
 }
 
 // ------------------------------------------------------- Gelesen / Merken
@@ -434,14 +446,15 @@ function matchesSearch(item) {
   return `${item.title} ${item.summary || ''} ${item.source}`.toLowerCase().includes(q)
 }
 
+/**
+ * Ausgeblendet wird nur, was ausdrücklich abgelehnt wurde.
+ * Gelesenes und 👍 verschwinden nicht mehr — sie rutschen ans Ende
+ * (siehe personalScore). Vorher waren sie weg, was das Zurückblättern
+ * unmöglich machte und wie ein Fehler wirkte.
+ */
 function isHidden(item) {
-  if (!settings.hideRead) return false
-  if (isSaved(item.id)) return false                 // Gemerktes bleibt sichtbar
-  // 👍 heißt "gut ausgewählt" — die Meldung bleibt stehen. Nur 👎 und
-  // Gelesenes verschwinden. Vorher verschwand alles Bewertete, sodass eine
-  // Zustimmung dieselbe Wirkung hatte wie eine Ablehnung.
-  if (prefs.votes[item.id]?.v === 1) return false
-  return !!readMap[item.id] || prefs.votes[item.id]?.v === -1
+  if (isSaved(item.id)) return false                 // Gemerktes bleibt immer
+  return settings.hideRead && prefs.votes[item.id]?.v === -1
 }
 
 function allItems() {
@@ -451,6 +464,13 @@ function allItems() {
 function visibleItems() {
   let items = allItems().filter(matchesSearch)
   if (settings.hideLowFact) items = items.filter(i => i.fact >= 60)
+
+  // Wird gesucht, gilt die Suche für den GESAMTEN Bestand. Vorher wirkte
+  // zwar der Suchbegriff, danach griff aber weiterhin der Kategorie-Filter
+  // — man suchte also immer nur im gerade offenen Tab.
+  if (state.search && state.tab !== 'gemerkt' && state.tab !== 'historie') {
+    return items.filter(i => !isHidden(i)).sort((a, b) => b.ts - a.ts)
+  }
 
   switch (state.tab) {
     case 'gemerkt':
@@ -558,9 +578,9 @@ function render() {
   if (state.tab === 'historie') { renderHistory(); return }
   if (state.tab === 'termine') { renderEvents(); return }
 
-  // Der Info-Block steht über dem Hauptfeed und über Flash — dort, wo man
-  // ohnehin zuerst hinschaut.
-  const info = (state.tab === 'fuer-dich' || state.tab === 'flash') ? infoBlockHTML() : ''
+  // Nur in "Für dich". Flash bleibt schweren Unfällen, Katastrophen und
+  // Warnungen vorbehalten — Bahn- und Straßeninfo hat dort nichts verloren.
+  const info = state.tab === 'fuer-dich' ? infoBlockHTML() : ''
 
   const items = visibleItems()
   if (!items.length) {
@@ -920,6 +940,22 @@ function scottyLink(von, nach) {
   return `https://fahrplan.oebb.at/bin/query.exe/dn?${p}`
 }
 
+/**
+ * Live-Verkehrslage auf der Karte.
+ *
+ * Eigene Stau-Daten gibt es nicht: ASFINAG beantwortet automatisierte
+ * Abrufe mit HTTP 403, data.gv.at und VOR mit 404. Statt einer halbgaren
+ * eigenen Anzeige führt der Knopf dorthin, wo die Lage wirklich steht.
+ */
+function verkehrskarte() {
+  const nachWien = richtung() === 'ausKorneuburg'
+  const von = nachWien ? 'Korneuburg' : 'Wien Mitte, Wien'
+  const nach = nachWien ? 'Wien Mitte, Wien' : 'Korneuburg'
+  return 'https://www.google.com/maps/dir/?api=1'
+    + `&origin=${encodeURIComponent(von)}&destination=${encodeURIComponent(nach)}`
+    + '&travelmode=driving&layer=traffic'
+}
+
 /** Abfahrtstafel einer Station. */
 function tafelLink(station) {
   return `https://fahrplan.oebb.at/bin/stboard.exe/dn?input=${encodeURIComponent(station)}&boardType=dep&start=1`
@@ -958,6 +994,8 @@ function verbindungenHTML() {
         Abfahrten ${esc(nachWien ? 'Korneuburg' : 'Wien Mitte')}</a>
       <a class="conn-btn conn-sec" href="https://anachb.vor.at/" target="_blank" rel="noopener noreferrer">
         Wiener Linien</a>
+      <a class="conn-btn conn-sec" href="${esc(verkehrskarte())}" target="_blank" rel="noopener noreferrer">
+        🚗 Verkehrslage</a>
     </div>
     <p class="conn-note muted">Öffnet die ÖBB-Fahrplanauskunft mit der aktuellen Uhrzeit.
       Live-Abfahrten lassen sich nicht in die App holen — ÖBB und Wiener Linien
@@ -1315,6 +1353,12 @@ function openSheet() {
   $('#ai-explain').innerHTML = AI_EXPLAIN
   renderProfiles()
   renderGenres()
+  const gemerktGesamt = profiles.reduce((n, p) => {
+    try { return n + Object.keys(JSON.parse(localStorage.getItem(`faktum.${p.id}.saved.v1`) || '{}')).length }
+    catch { return n }
+  }, 0)
+  $('#backup-info').textContent =
+    `${profiles.length} Profil(e), ${gemerktGesamt} gemerkte Meldungen insgesamt.`
   renderLearnSummary()
   renderSourceReport()
   renderStorageInfo()
@@ -1427,6 +1471,85 @@ function openContext(item) {
   $('#context').hidden = false
 }
 
+/* ------------------------------------------------------- Sicherung
+ *
+ * Alles, was Faktum über dich weiß, liegt im Speicher des Browsers. Ein
+ * App-Update tastet den nicht an — wohl aber "Website-Daten löschen", ein
+ * neues Gerät, oder iOS selbst, das den Speicher wenig genutzter Web-Apps
+ * irgendwann abräumt.
+ *
+ * Deshalb eine Sicherung als Datei, die du besitzt: Sie liegt außerhalb des
+ * Browsers und übersteht alles davon.
+ *
+ * Bewusst NICHT enthalten: der Zwischenspeicher der Meldungen. Der wird
+ * ohnehin stündlich neu geholt und würde die Datei nur aufblähen.
+ */
+
+const SICHERUNG_FORMAT = 1
+
+function sicherungErzeugen() {
+  const daten = {}
+  for (const p of profiles) {
+    const eintrag = {}
+    for (const k of PROFILE_KEYS) {
+      if (k === 'cache') continue
+      const roh = localStorage.getItem(`faktum.${p.id}.${k}.v1`)
+      if (roh !== null) { try { eintrag[k] = JSON.parse(roh) } catch { /* überspringen */ } }
+    }
+    daten[p.id] = eintrag
+  }
+  return {
+    app: 'Faktum',
+    format: SICHERUNG_FORMAT,
+    appVersion: APP_VERSION,
+    erstellt: new Date().toISOString(),
+    profiles,
+    daten,
+  }
+}
+
+function sicherungHerunterladen() {
+  const sicherung = sicherungErzeugen()
+  const text = JSON.stringify(sicherung, null, 2)
+  const blob = new Blob([text], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const datum = new Date().toISOString().slice(0, 10)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `faktum-sicherung-${datum}.json`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 5000)
+
+  const n = Object.values(sicherung.daten).reduce((sum, d) => sum + Object.keys(d.saved || {}).length, 0)
+  return { profile: profiles.length, gemerkt: n, groesse: text.length }
+}
+
+/** Prüft eine eingelesene Datei, bevor irgendetwas überschrieben wird. */
+function sicherungPruefen(roh) {
+  let s
+  try { s = JSON.parse(roh) } catch { throw new Error('Die Datei ist keine gültige Sicherung (kein JSON).') }
+  if (s.app !== 'Faktum') throw new Error('Das ist keine Faktum-Sicherung.')
+  if (!Array.isArray(s.profiles) || !s.profiles.length) throw new Error('In der Datei sind keine Profile enthalten.')
+  if (!s.daten || typeof s.daten !== 'object') throw new Error('In der Datei fehlen die Profildaten.')
+  return s
+}
+
+function sicherungEinlesen(s) {
+  // Erst schreiben, dann Profilliste setzen — bricht es dazwischen ab,
+  // bleibt der alte Zustand gültig statt halb überschrieben.
+  for (const p of s.profiles) {
+    const d = s.daten[p.id] || {}
+    for (const k of PROFILE_KEYS) {
+      if (k === 'cache' || d[k] === undefined) continue
+      localStorage.setItem(`faktum.${p.id}.${k}.v1`, JSON.stringify(d[k]))
+    }
+  }
+  localStorage.setItem(LS_PROFILES, JSON.stringify(s.profiles))
+  localStorage.setItem(LS_ACTIVE, s.profiles[0].id)
+}
+
 // ---------------------------------------------------------------- Lightbox
 
 function openLightbox(item) {
@@ -1493,8 +1616,19 @@ document.addEventListener('click', ev => {
   }
 
   if (ev.target.closest('#btn-refresh')) {
-    fetchNews({ force: true })
-    fetchWarnings().then(render)
+    // Rückmeldung geben: Bisher passierte sichtbar nichts, wenn es nichts
+    // Neues gab — der Knopf wirkte kaputt.
+    const vorher = new Set(allItems().map(i => i.id))
+    $('#btn-refresh').classList.add('spin')
+    fetchNews({ force: true }).then(() => {
+      const neu = allItems().filter(i => !vorher.has(i.id)).length
+      const el = document.createElement('div')
+      el.className = 'toast'
+      el.textContent = neu ? `${neu} neue Beiträge geladen` : 'Keine neuen Beiträge'
+      document.body.appendChild(el)
+      setTimeout(() => el.remove(), 2600)
+    })
+    if (settings.ortErlaubt) fetchWarnings().then(render)
     if (state.tab === 'wetter') renderWeather({ force: true })
     return
   }
@@ -1592,6 +1726,12 @@ $('#btn-profile-rename').addEventListener('click', () => {
   saveProfiles()
   renderProfiles()
   renderGenres()
+  const gemerktGesamt = profiles.reduce((n, p) => {
+    try { return n + Object.keys(JSON.parse(localStorage.getItem(`faktum.${p.id}.saved.v1`) || '{}')).length }
+    catch { return n }
+  }, 0)
+  $('#backup-info').textContent =
+    `${profiles.length} Profil(e), ${gemerktGesamt} gemerkte Meldungen insgesamt.`
 })
 
 $('#btn-profile-delete').addEventListener('click', () => {
@@ -1602,6 +1742,39 @@ $('#btn-profile-delete').addEventListener('click', () => {
   profiles = profiles.filter(x => x.id !== activeProfile)
   saveProfiles()
   switchProfile(profiles[0].id)
+})
+
+$('#btn-backup-export')?.addEventListener('click', () => {
+  try {
+    const r = sicherungHerunterladen()
+    $('#backup-info').textContent =
+      `Gesichert: ${r.profile} Profil(e), ${r.gemerkt} gemerkte Meldungen, ${(r.groesse / 1024).toFixed(0)} KB.`
+  } catch (err) {
+    $('#backup-info').textContent = `Sicherung fehlgeschlagen: ${err.message}`
+  }
+})
+
+$('#btn-backup-import')?.addEventListener('click', () => $('#backup-file').click())
+
+$('#backup-file')?.addEventListener('change', async e => {
+  const datei = e.target.files?.[0]
+  if (!datei) return
+  e.target.value = ''
+  try {
+    const s = sicherungPruefen(await datei.text())
+    const gemerkt = Object.values(s.daten).reduce((n, d) => n + Object.keys(d.saved || {}).length, 0)
+    const wann = new Date(s.erstellt).toLocaleString('de-AT', { dateStyle: 'medium', timeStyle: 'short' })
+    const frage = `Sicherung vom ${wann}\n\n`
+      + `${s.profiles.length} Profil(e): ${s.profiles.map(p => p.name).join(', ')}\n`
+      + `${gemerkt} gemerkte Meldungen\n\n`
+      + 'Der aktuelle Stand dieser Profile wird dabei überschrieben. Fortfahren?'
+    if (!confirm(frage)) return
+    sicherungEinlesen(s)
+    alert('Sicherung eingelesen. Faktum startet neu.')
+    location.reload()
+  } catch (err) {
+    alert(`Konnte die Sicherung nicht einlesen:\n\n${err.message}`)
+  }
 })
 
 $('#btn-clear-history').addEventListener('click', () => {

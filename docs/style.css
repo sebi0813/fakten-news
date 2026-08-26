@@ -553,3 +553,15 @@ a.info-row:active { background: var(--bg-elev-2); }
 .sperren summary::after { content: ' ▾'; opacity: .6; }
 .sperren[open] summary::after { content: ' ▴'; }
 .sperren .info-row { border-top: 1px solid rgba(34,49,78,.5); }
+
+/* Kurze Rückmeldung nach dem Nachladen */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(24px + var(--safe-b)); z-index: 150;
+  background: var(--bg-elev-2); border: 1px solid var(--line);
+  color: var(--text); padding: 11px 18px; border-radius: 999px;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  animation: toastIn .2s ease both;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } }

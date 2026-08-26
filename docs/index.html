@@ -22,7 +22,7 @@
     <h1 class="brand"><span class="brand-check">✓</span> Faktum</h1>
     <div class="topbar-actions">
       <button id="btn-search" class="icon-btn" title="Suchen" aria-label="Suchen">⌕</button>
-      <button id="btn-refresh" class="icon-btn" title="Jetzt aktualisieren" aria-label="Aktualisieren">↻</button>
+      <button id="btn-refresh" class="icon-btn" title="Neue Beiträge holen" aria-label="Neue Beiträge holen">↻</button>
       <button id="btn-settings" class="icon-btn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
     </div>
   </div>
@@ -102,8 +102,8 @@
         <h3>Anzeige</h3>
         <label class="switch">
           <input type="checkbox" id="opt-hide-read" checked>
-          <span>Gelesene und bewertete Meldungen ausblenden
-            <small class="muted">Sie bleiben unter „Historie“ einsehbar.</small></span>
+          <span>Abgelehnte Meldungen ausblenden
+            <small class="muted">👎 verschwindet aus dem Feed. Gelesenes und 👍 bleiben sichtbar, rutschen aber ans Ende — Neues steht immer oben.</small></span>
         </label>
         <label class="switch">
           <input type="checkbox" id="opt-hide-lowfact">
@@ -128,6 +128,26 @@
           <span>Info-Block oben anzeigen
             <small class="muted">Bahn, Straße und Wetter über den Meldungen.</small></span>
         </label>
+      </section>
+
+      <section class="card-lite" id="backup-section">
+        <h3>Sicherung</h3>
+        <p class="muted small" id="backup-info"></p>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-backup-export">Sicherung herunterladen</button>
+          <button class="btn btn-ghost" id="btn-backup-import">Sicherung einlesen</button>
+        </div>
+        <input type="file" id="backup-file" accept="application/json,.json" hidden>
+        <p class="muted small" style="margin-top:10px">
+          Die Datei enthält <b>alle Profile</b> mit Gemerktem, Bewertungen, Lernprofil
+          und Einstellungen. Leg sie in iCloud oder schick sie dir selbst — sie liegt
+          außerhalb des Browsers und übersteht „Website-Daten löschen“, ein neues
+          Gerät und das Aufräumen durch iOS.
+        </p>
+        <p class="muted small warn">
+          ⚠ Ist ein Anthropic-Schlüssel hinterlegt, steht er in der Datei. Behandle sie
+          entsprechend.
+        </p>
       </section>
 
       <section class="card-lite">
