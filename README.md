@@ -525,6 +525,36 @@ Lernprofil verloren.
 
 ---
 
+## Warum der Zeitplan von GitHub nicht reicht
+
+GitHub führt geplante Läufe ausdrücklich nur als „best effort" aus. Für dieses
+Repository wurde das messbar schlechter — verlangt waren 20 Läufe am Tag:
+
+| Tag | tatsächliche Läufe |
+|---|---|
+| 22.08. | 15 |
+| 23.08. | 14 |
+| 24.08. | 10 |
+| 25.08. | 9 |
+| 26.08. | 5 |
+| 27.08. | **0** |
+
+28 Stunden ohne einen einzigen Lauf. Kein Fehler, kein deaktivierter Workflow,
+kein Hinweis — die Daten froren einfach ein.
+
+**Lösung:** Ein externer Wecker stößt den Build über `repository_dispatch` an.
+Der GitHub-Cron bleibt als zusätzliche Absicherung bestehen.
+
+Wichtig dabei: Ein `repository_dispatch` hält die Nachtruhe genauso ein wie der
+Zeitplan — er ist dessen Ersatz, keine Umgehung. Nur was ein Mensch anstößt
+(`workflow_dispatch`) oder ein Push auslöst, baut zu jeder Tageszeit.
+
+**Sichtbar gemacht:** Sind die Daten tagsüber älter als drei Stunden, meldet die
+Kopfzeile „Aktualisierung steht". Beim letzten Ausfall war der Stillstand nur
+daran zu erkennen, dass die Meldungen bekannt vorkamen.
+
+---
+
 ## Lokal entwickeln
 
 ```bash

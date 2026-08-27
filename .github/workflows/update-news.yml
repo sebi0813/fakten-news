@@ -7,6 +7,15 @@ on:
     # gebaut wird, entscheidet build-news.mjs anhand der echten Wiener Zeit.
     # Gewünscht: stündlich 5:30 bis 23:00, nachts Ruhe.
     - cron: '34 3-22 * * *'
+
+  # Von außen anstoßbar. GitHubs eigener Zeitplan ist ausdrücklich nur
+  # "best effort" und wurde für dieses Repository immer unzuverlässiger:
+  # von 15 Läufen am 22.08. über 9 und 5 bis auf null am 27.08. — 28 Stunden
+  # ohne jeden Lauf, ohne Fehler, ohne Deaktivierung. Ein externer Wecker
+  # (cron-job.org) ruft deshalb stündlich die GitHub-API und löst hierüber aus.
+  repository_dispatch:
+    types: [news-update]
+
   workflow_dispatch:        # Manuell im Actions-Tab auslösbar
   push:
     branches: [main]

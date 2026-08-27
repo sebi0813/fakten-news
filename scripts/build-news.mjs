@@ -851,7 +851,14 @@ function isScienceFocus(item) {
  */
 function insideUpdateWindow() {
   if (process.env.FAKTUM_FORCE) return true          // lokal: FAKTUM_FORCE=1 node scripts/build-news.mjs
-  if (process.env.GITHUB_EVENT_NAME && process.env.GITHUB_EVENT_NAME !== 'schedule') return true
+
+  // Automatische Auslöser halten die Nachtruhe ein — der externe Wecker
+  // (repository_dispatch) genauso wie GitHubs eigener Zeitplan. Er ist ja
+  // dessen Ersatz, nicht eine Umgehung. Nur was ein Mensch anstößt
+  // (workflow_dispatch) oder ein Push auslöst, baut zu jeder Zeit.
+  const AUTOMATISCH = ['schedule', 'repository_dispatch']
+  const ereignis = process.env.GITHUB_EVENT_NAME
+  if (ereignis && !AUTOMATISCH.includes(ereignis)) return true
   const parts = new Intl.DateTimeFormat('de-AT', {
     timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hour12: false,
   }).formatToParts(new Date())

@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v13'
+const APP_VERSION = 'v14'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -362,9 +362,26 @@ async function fetchNews({ force = false } = {}) {
     save(LS.cache, data)
     render()
     const rest = data.translation?.untranslated || 0
+
+    // Steht der Datenstand still? Das ist tagsüber ein Zeichen, dass der
+    // Build nicht mehr läuft — GitHubs Zeitplan hat das über Tage getan,
+    // ohne Fehlermeldung. Sichtbar machen, statt es raten zu lassen.
+    const alterStd = (Date.now() - new Date(data.generated).getTime()) / 3600_000
+    // formatToParts, nicht format: Im österreichischen Format liefert
+    // format() "22 Uhr", und Number("22 Uhr") ist NaN. Die Warnung hätte
+    // dadurch nie ausgelöst — der Fehler, den sie melden soll, wäre
+    // ausgerechnet unsichtbar geblieben.
+    const wienerStunde = Number(new Intl.DateTimeFormat('de-AT', {
+      timeZone: 'Europe/Vienna', hour: '2-digit', hour12: false,
+    }).formatToParts(new Date()).find(x => x.type === 'hour').value)
+    const tagsueber = wienerStunde >= 6 && wienerStunde < 23
+    const eingefroren = tagsueber && alterStd > 3
+
     setStatusParts([
       `Meldungen: ${data.items.length}`,
-      `Stand: ${relTime(new Date(data.generated).getTime()).replace(/^vor /, '')}`,
+      { text: `Stand: ${relTime(new Date(data.generated).getTime()).replace(/^vor /, '')}`,
+        warn: eingefroren },
+      eingefroren ? { text: 'Aktualisierung steht', warn: true } : null,
       rest > 3 ? { text: `${rest} im Original`, warn: true } : null,
       `Version: ${APP_VERSION} (${buildStempel(data.generated)})`,
     ])
