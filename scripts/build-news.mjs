@@ -868,13 +868,36 @@ function insideUpdateWindow() {
   return minutes >= 5 * 60 + 30 && minutes < 23 * 60
 }
 
+/** Wie alt ist der zuletzt gebaute Datenstand? Stunden, oder null. */
+async function alterDesBestands() {
+  try {
+    const d = JSON.parse(await readFile(OUT, 'utf8'))
+    return (Date.now() - new Date(d.generated).getTime()) / 3600_000
+  } catch { return null }
+}
+
 async function main() {
-  if (!insideUpdateWindow()) {
+  // Die Nachtruhe gilt nur, solange die Daten halbwegs frisch sind.
+  //
+  // Grund: GitHubs Zeitplan feuert so selten, dass der einzige Lauf einer
+  // Nacht ausgerechnet um 03:36 kam — und dann wegen der Ruhezeit nichts
+  // baute. Ergebnis: um halb zehn Uhr vormittags waren die Meldungen zehn
+  // Stunden alt. Seltene Läufe mal Nachtfilter ergibt fast nie frische
+  // Daten. Ist der Bestand älter als vier Stunden, wird deshalb auch
+  // nachts gebaut.
+  const alter = await alterDesBestands()
+  const veraltet = alter !== null && alter > 4
+
+  if (!insideUpdateWindow() && !veraltet) {
     const t = new Intl.DateTimeFormat('de-AT', {
       timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hour12: false,
     }).format(new Date())
-    console.log(`Es ist ${t} Uhr in Wien — außerhalb des Fensters 5:30–23:00. Kein Build.`)
+    console.log(`Es ist ${t} Uhr in Wien — außerhalb des Fensters 5:30–23:00.`
+      + ` Bestand ist ${alter === null ? 'unbekannt' : alter.toFixed(1) + ' h'} alt. Kein Build.`)
     return
+  }
+  if (veraltet && !insideUpdateWindow()) {
+    console.log(`Nachtruhe übergangen: Bestand ist ${alter.toFixed(1)} Stunden alt.`)
   }
 
   const now = Date.now()

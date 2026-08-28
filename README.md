@@ -553,6 +553,12 @@ Zeitplan — er ist dessen Ersatz, keine Umgehung. Nur was ein Mensch anstößt
 Kopfzeile „Aktualisierung steht". Beim letzten Ausfall war der Stillstand nur
 daran zu erkennen, dass die Meldungen bekannt vorkamen.
 
+**Notausgang gegen die eigene Nachtruhe:** Am 28.08. kam der einzige Lauf der
+Nacht um 03:36 — und baute wegen der Ruhezeit 5:30–23:00 nichts. Um halb zehn
+Uhr vormittags waren die Meldungen zehn Stunden alt. Seltene Läufe mal
+Nachtfilter ergibt fast nie frische Daten. Ist der Bestand älter als vier
+Stunden, wird deshalb auch nachts gebaut.
+
 ---
 
 ## Lokal entwickeln
