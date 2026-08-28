@@ -318,6 +318,20 @@ Rückfall inaktiv, der Build läuft unverändert durch.
 Einrichten: **Settings → Secrets and variables → Actions → New repository secret**,
 Name `ANTHROPIC_API_KEY`.
 
+### Zwei Schlüssel-Orte, die man nicht verwechseln darf
+
+| Ort | Wofür | Lebensdauer |
+|---|---|---|
+| **Repository-Secret** auf GitHub | Übersetzung beim Build | Einmal setzen, bleibt. Kein Deployment und nichts auf dem Handy berührt ihn. |
+| **⚙ in der App** (localStorage) | Einordnung einzelner Meldungen auf Anforderung | Übersteht App-Updates. Geht nur verloren, wenn die Website-Daten gelöscht werden. |
+
+Der Schlüssel in der App wird **nicht** bei einem Deployment neu erzeugt — im Code
+gibt es keine Stelle, die ihn überschreibt oder löscht. Auch die Selbstheilung gegen
+den iOS-Cache räumt nur die Datei-Zwischenspeicher auf, nicht den localStorage.
+
+Damit er nie wieder neu erzeugt werden muss, lässt er sich unter ⚙ **anzeigen und
+kopieren** — und die Sicherungsdatei enthält ihn ohnehin.
+
 ---
 
 ## Wie alt Meldungen sein dürfen

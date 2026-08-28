@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v15'
+const APP_VERSION = 'v16'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -1384,6 +1384,9 @@ function openSheet() {
   $('#opt-images').checked = settings.images
   $('#opt-info').checked = settings.info
   $('#opt-apikey').value = settings.apiKey || ''
+  $('#opt-apikey').type = 'password'
+  $('#btn-show-key').textContent = 'Anzeigen'
+  keyStatusZeigen()
   $('#sheet').hidden = false
 }
 
@@ -1709,13 +1712,47 @@ bindToggle('#opt-info', 'info')
 $('#btn-save-key').addEventListener('click', () => {
   settings.apiKey = $('#opt-apikey').value.trim()
   save(LS.settings, settings)
+  keyStatusZeigen()
   $('#btn-save-key').textContent = settings.apiKey ? '✓ Gespeichert' : '✓ Entfernt'
   setTimeout(() => { $('#btn-save-key').textContent = 'Speichern' }, 1800)
 })
+/** Zeigt, ob ein Schlüssel hinterlegt ist — ohne ihn preiszugeben. */
+function keyStatusZeigen() {
+  const k = settings.apiKey || ''
+  $('#key-status').innerHTML = k
+    ? `✓ Schlüssel hinterlegt, endet auf <code>…${esc(k.slice(-6))}</code>`
+    : 'Kein Schlüssel hinterlegt — die Einordnung läuft regelbasiert.'
+}
+
+$('#btn-show-key').addEventListener('click', () => {
+  const f = $('#opt-apikey')
+  const zeigen = f.type === 'password'
+  f.type = zeigen ? 'text' : 'password'
+  $('#btn-show-key').textContent = zeigen ? 'Verbergen' : 'Anzeigen'
+})
+
+$('#btn-copy-key').addEventListener('click', async () => {
+  const k = settings.apiKey || $('#opt-apikey').value
+  if (!k) return
+  try {
+    await navigator.clipboard.writeText(k)
+    $('#btn-copy-key').textContent = '✓ Kopiert'
+  } catch {
+    // Ohne Zwischenablage-Recht: Feld sichtbar machen und markieren,
+    // damit sich der Schlüssel von Hand kopieren lässt.
+    const f = $('#opt-apikey')
+    f.type = 'text'; f.select()
+    $('#btn-copy-key').textContent = 'Markiert — jetzt kopieren'
+  }
+  setTimeout(() => { $('#btn-copy-key').textContent = 'Kopieren' }, 2200)
+})
+
 $('#btn-clear-key').addEventListener('click', () => {
+  if (!confirm('Schlüssel wirklich löschen? Kopiere ihn vorher, falls du ihn noch brauchst.')) return
   settings.apiKey = ''
   $('#opt-apikey').value = ''
   save(LS.settings, settings)
+  keyStatusZeigen()
 })
 $('#btn-reset-learning').addEventListener('click', () => {
   if (!confirm('Alle gelernten Vorlieben und Bewertungen löschen? Gemerktes bleibt erhalten.')) return

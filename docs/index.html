@@ -167,11 +167,26 @@
       <section class="card-lite" id="ai-section">
         <h3>Die KI-Einordnung <span class="pill pill-muted">optional</span></h3>
         <div id="ai-explain"></div>
+        <p class="muted small" id="key-status"></p>
         <input type="password" id="opt-apikey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
         <div class="row">
           <button class="btn btn-ghost" id="btn-save-key">Speichern</button>
+          <button class="btn btn-ghost" id="btn-show-key">Anzeigen</button>
+          <button class="btn btn-ghost" id="btn-copy-key">Kopieren</button>
           <button class="btn btn-ghost" id="btn-clear-key">Löschen</button>
         </div>
+        <p class="muted small" style="margin-top:10px">
+          <b>Wichtig:</b> Diesen Schlüssel brauchst du nur für die Einordnung <i>in der
+          App</i>. Für die <b>Übersetzung</b> gehört er nicht hierher, sondern einmalig
+          als Repository-Secret <code>ANTHROPIC_API_KEY</code> auf GitHub — dort liegt er
+          dauerhaft und wird von nichts auf dem Handy berührt.
+        </p>
+        <p class="muted small">
+          Der Schlüssel hier übersteht App-Updates. Verloren geht er nur, wenn du die
+          Website-Daten löschst. Mit <b>Anzeigen</b> und <b>Kopieren</b> holst du ihn dir
+          jederzeit heraus, statt in der Anthropic-Konsole einen neuen anzulegen — und
+          die Sicherungsdatei enthält ihn ohnehin.
+        </p>
       </section>
 
       <section class="card-lite">
