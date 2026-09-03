@@ -11,7 +11,7 @@
 //   ohne Schlüssel        -> regelbasiert: die informativste Fassung, ergänzt
 //                            um Sätze der anderen, die neue Fakten bringen
 
-import { claudeVerfügbar } from './translate.mjs'
+import { claudeVerfügbar, claudeSchluessel } from './translate.mjs'
 
 const MODELL = 'claude-haiku-4-5-20251001'
 const MIN_FASSUNG = 40          // kürzere Texte tragen nichts bei
@@ -68,7 +68,7 @@ export function extraktivZusammenfassen(fassungen) {
 }
 
 async function claudeZusammenfassen(titel, fassungen) {
-  const key = process.env.ANTHROPIC_API_KEY
+  const key = claudeSchluessel()
   const bloecke = fassungen
     .map(f => `[${f.source}]\n${f.text}`)
     .join('\n\n')

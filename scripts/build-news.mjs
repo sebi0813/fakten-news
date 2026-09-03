@@ -18,6 +18,7 @@ import {
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 import { summarizeMerged } from './summarize.mjs'
+import { claudeVerfügbar } from './translate.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(__dirname, '../docs/data/news.json')
@@ -984,6 +985,8 @@ async function main() {
   const cache = await loadCache(CACHE)
   const before = Object.keys(cache).length
   console.log(`\nÜbersetzen (Cache: ${before} Einträge) …`)
+  console.log(`  Claude-Rückfall: ${claudeVerfügbar()
+    ? 'aktiv' : 'NICHT eingerichtet (Secret ANTHROPIC_API_KEY fehlt)'}`)
   const tr = await translateItems(items, cache)
   const { kept, dropped } = await saveCache(CACHE, cache)
   console.log(`  ${tr.applied}/${tr.foreign} fremdsprachige Meldungen übersetzt`

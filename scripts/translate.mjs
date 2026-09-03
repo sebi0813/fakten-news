@@ -148,8 +148,25 @@ async function translateBatch(texts, sl) {
 
 const CLAUDE_MODELL = 'claude-haiku-4-5-20251001'
 
+/**
+ * Schlüssel aus der Umgebung, gesäubert.
+ *
+ * Beim Einfügen in die GitHub-Oberfläche rutschen leicht Leerzeichen oder ein
+ * Zeilenumbruch mit. Die API antwortet darauf mit 401 — und das sähe aus, als
+ * wäre der Schlüssel falsch, obwohl nur ein Zeichen zu viel dranhängt.
+ */
+export function claudeSchluessel() {
+  return (process.env.ANTHROPIC_API_KEY || '').trim()
+}
+
 export function claudeVerfügbar() {
-  return !!process.env.ANTHROPIC_API_KEY
+  const k = claudeSchluessel()
+  if (!k) return false
+  if (!k.startsWith('sk-ant-')) {
+    console.warn('    ⚠ ANTHROPIC_API_KEY beginnt nicht mit "sk-ant-" — vermutlich falsch eingefügt.')
+    return false
+  }
+  return true
 }
 
 /** Antwort von Claude einlesen: erwartet ein JSON-Array gleicher Länge. */
@@ -165,7 +182,7 @@ export function parseClaudeAntwort(text, erwartet) {
 }
 
 async function translateWithClaude(texts, sl) {
-  const key = process.env.ANTHROPIC_API_KEY
+  const key = claudeSchluessel()
   if (!key) return texts.map(() => null)
 
   const liste = texts.map((t, i) => `${i + 1}. ${t.replace(/\n/g, ' ')}`).join('\n')
