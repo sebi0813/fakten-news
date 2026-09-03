@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v16'
+const APP_VERSION = 'v18'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -287,10 +287,10 @@ function personalScore(item) {
   const fein = Math.max(-12, Math.min(12, boost * 0.4))
   let score = fresh + item.fact * 0.05 + fein
 
-  // Erledigtes ans Ende, aber nicht weg: gelesen und 👍 rutschen hinter
-  // alles Ungesehene. So steht Neues immer oben.
+  // Gelesenes rutscht beim nächsten Aufbau hinter alles Ungesehene.
+  // 👍 tut das NICHT: Es heißt "gut ausgewählt", nicht "erledigt" — die
+  // Meldung bleibt, wo sie ist, und trägt nur ihre Markierung.
   if (readMap[item.id]) score -= 500
-  if (prefs.votes[item.id]?.v === 1) score -= 500
 
   return score
 }
@@ -421,6 +421,15 @@ async function selbstErneuern(neueFassung) {
   try {
     for (const r of await navigator.serviceWorker?.getRegistrations?.() || []) await r.unregister()
     for (const k of await caches.keys()) await caches.delete(k)
+
+    // Entscheidend: location.reload() umgeht den HTTP-Cache des Browsers
+    // NICHT. Ohne diesen Schritt kam die alte Datei zurück und die
+    // Selbstheilung endete in ihrer eigenen Schleifensicherung.
+    // cache:'reload' erzwingt den Netzabruf und ersetzt den Cache-Eintrag.
+    await Promise.all(
+      ['index.html', 'app.js', 'style.css', 'sw.js']
+        .map(d => fetch(d, { cache: 'reload' }).catch(() => {})),
+    )
   } catch { /* auch ohne Aufräumen lohnt der Versuch */ }
   location.reload()
 }
@@ -739,7 +748,11 @@ function cardHTML(item) {
           <h2>${esc(item.title)}${item.context
             ? `<button class="ctx-btn" data-act="context" title="Hintergrund zum Thema"
                        aria-label="Hintergrund zum Thema">i</button>` : ''}</h2>
-          ${item.summary ? `<p class="sum">${esc(item.summary)}</p>` : ''}
+          ${item.combined
+            ? `<p class="sum">${esc(item.combined)}</p>
+               <p class="zusammengefasst">✦ Aus ${item.combinedSources?.length || (item.also.length + 1)} Quellen zusammengefasst${
+                 item.combinedBy === 'claude' ? '' : ' (regelbasiert)'}</p>`
+            : (item.summary ? `<p class="sum">${esc(item.summary)}</p>` : '')}
         </div>
         ${showImg ? `<button class="thumb" data-act="zoom" aria-label="Bild vergrößern">
             <img src="${esc(item.image)}" alt="" loading="lazy" decoding="async"
@@ -752,7 +765,7 @@ function cardHTML(item) {
     </div>
     <div class="actions">
       <button class="btn btn-yes ${v === 1 ? 'on' : ''}" data-act="up"
-              title="Gut ausgewählt, passt zu meinen Kriterien">👍 Relevant</button>
+              title="Gut ausgewählt, passt zu meinen Kriterien">👍 Relevant${v === 1 ? ' ✓' : ''}</button>
       <button class="btn btn-no" data-act="down" title="Ausblenden und künftig weniger davon">👎 Eher nicht</button>
       <button class="btn btn-save ${isSaved(item.id) ? 'on' : ''}" data-act="save">
         ${isSaved(item.id) ? '🔖 Gemerkt' : '🔖 Merken'}</button>
@@ -941,7 +954,17 @@ const STATIONEN = {
   wienMitte: 'Wien Mitte-Landstraße',
   praterstern: 'Wien Praterstern',
   floridsdorf: 'Wien Floridsdorf',
-  franzJosefs: 'Wien Franz-Josefs-Bahnhof',
+  // Die Klinik Donaustadt heißt in der Fahrplanauskunft nach ihrer
+  // U-Bahn-Station. "Klinik Donaustadt" liefert dort auch Treffer in Ulm
+  // und der Schweiz — der Stationsname ist eindeutig.
+  donauspital: 'Wien Donauspital (U)',
+}
+
+// Für die Autoroute: Klartext-Adressen, die Kartendienste sicher finden.
+const AUTOZIELE = {
+  korneuburg: 'Korneuburg, Österreich',
+  wienMitte: 'Wien Mitte, Landstraßer Hauptstraße, Wien',
+  donauspital: 'Klinik Donaustadt, Langobardenstraße 122, 1220 Wien',
 }
 
 /** Fahrplanauskunft für eine Strecke, ab jetzt. */
@@ -964,10 +987,10 @@ function scottyLink(von, nach) {
  * Abrufe mit HTTP 403, data.gv.at und VOR mit 404. Statt einer halbgaren
  * eigenen Anzeige führt der Knopf dorthin, wo die Lage wirklich steht.
  */
-function verkehrskarte() {
+function verkehrskarte(zielSchluessel) {
   const nachWien = richtung() === 'ausKorneuburg'
-  const von = nachWien ? 'Korneuburg' : 'Wien Mitte, Wien'
-  const nach = nachWien ? 'Wien Mitte, Wien' : 'Korneuburg'
+  const von = nachWien ? AUTOZIELE.korneuburg : AUTOZIELE[zielSchluessel] || AUTOZIELE.wienMitte
+  const nach = nachWien ? (AUTOZIELE[zielSchluessel] || AUTOZIELE.wienMitte) : AUTOZIELE.korneuburg
   return 'https://www.google.com/maps/dir/?api=1'
     + `&origin=${encodeURIComponent(von)}&destination=${encodeURIComponent(nach)}`
     + '&travelmode=driving&layer=traffic'
@@ -993,8 +1016,10 @@ function verbindungenHTML() {
   const nachWien = richtung() === 'ausKorneuburg'
   const start = nachWien ? S.korneuburg : S.wienMitte
   const ziele = nachWien
-    ? [[S.wienMitte, 'Wien Mitte'], [S.praterstern, 'Praterstern'], [S.floridsdorf, 'Floridsdorf']]
-    : [[S.korneuburg, 'Korneuburg']]
+    ? [[S.wienMitte, 'Wien Mitte', 'wienMitte'],
+       [S.donauspital, 'Klinik Donaustadt', 'donauspital'],
+       [S.floridsdorf, 'Floridsdorf', 'wienMitte']]
+    : [[S.korneuburg, 'Korneuburg', 'korneuburg']]
 
   return `<section class="infoblock verbindungen">
     <h2 class="info-head">
@@ -1004,19 +1029,23 @@ function verbindungenHTML() {
     <div class="conn-row">
       ${ziele.map(([ziel, kurz]) => `
         <a class="conn-btn" href="${esc(scottyLink(start, ziel))}" target="_blank" rel="noopener noreferrer">
-          ${esc(kurz)} <span>›</span></a>`).join('')}
+          🚆 ${esc(kurz)} <span>›</span></a>`).join('')}
+    </div>
+    <div class="conn-row">
+      ${ziele.map(([, kurz, auto]) => `
+        <a class="conn-btn conn-auto" href="${esc(verkehrskarte(auto))}" target="_blank" rel="noopener noreferrer">
+          🚗 ${esc(kurz)}</a>`).join('')}
     </div>
     <div class="conn-row">
       <a class="conn-btn conn-sec" href="${esc(tafelLink(start))}" target="_blank" rel="noopener noreferrer">
         Abfahrten ${esc(nachWien ? 'Korneuburg' : 'Wien Mitte')}</a>
       <a class="conn-btn conn-sec" href="https://anachb.vor.at/" target="_blank" rel="noopener noreferrer">
         Wiener Linien</a>
-      <a class="conn-btn conn-sec" href="${esc(verkehrskarte())}" target="_blank" rel="noopener noreferrer">
-        🚗 Verkehrslage</a>
     </div>
-    <p class="conn-note muted">Öffnet die ÖBB-Fahrplanauskunft mit der aktuellen Uhrzeit.
-      Live-Abfahrten lassen sich nicht in die App holen — ÖBB und Wiener Linien
-      erlauben keinen direkten Zugriff aus dem Browser.</p>
+    <p class="conn-note muted">🚆 öffnet die ÖBB-Fahrplanauskunft ab jetzt, 🚗 die Karte
+      mit der aktuellen Verkehrslage. Beides muss extern geschehen: ÖBB, Wiener Linien
+      und ASFINAG erlauben keinen Zugriff aus dem Browser — ASFINAG blockt automatisierte
+      Abrufe grundsätzlich.</p>
   </section>`
 }
 
@@ -1605,18 +1634,34 @@ document.addEventListener('click', ev => {
   if (card && act) {
     const item = findItem(card.dataset.id)
     if (!item) return
+    // Kein render() beim Bewerten. Ein vollständiger Neuaufbau ordnete den
+    // Feed um und zeigte plötzlich die Graufärbung längst gelesener
+    // Nachbarmeldungen — es sah aus, als hätte der Klick sie ausgegraut.
+    // Stattdessen wird genau die angetippte Karte an Ort und Stelle geändert.
     if (act === 'up') {
       vote(item, 1)
-      render()
+      const an = prefs.votes[item.id]?.v === 1
+      card.classList.toggle('voted-up', an)
+      const knopf = card.querySelector('[data-act="up"]')
+      knopf.classList.toggle('on', an)
+      knopf.textContent = an ? '👍 Relevant ✓' : '👍 Relevant'
+      renderTabs()
     } else if (act === 'down') {
+      // Nur "Eher nicht" lässt die Meldung verschwinden — sofort und nur
+      // diese eine, ohne den Rest des Feeds anzufassen.
       vote(item, -1)
-      card.style.transition = 'opacity .2s, transform .2s'
+      card.style.transition = 'opacity .22s, transform .22s'
       card.style.opacity = '0'
       card.style.transform = 'scale(.97)'
-      setTimeout(render, 200)
+      setTimeout(() => { card.remove(); renderTabs() }, 220)
     } else if (act === 'save') {
+      // Gemerktes wandert in den Merken-Tab UND bleibt hier stehen.
       toggleSave(item)
-      render()
+      const an = isSaved(item.id)
+      const knopf = card.querySelector('[data-act="save"]')
+      knopf.classList.toggle('on', an)
+      knopf.textContent = an ? '🔖 Gemerkt' : '🔖 Merken'
+      renderTabs()
     } else if (act === 'detail') {
       toggleDetail(card, item)
     } else if (act === 'zoom') {

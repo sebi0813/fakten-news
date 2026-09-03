@@ -17,6 +17,7 @@ import {
   SPORT_FOCUS, KI_SIGNIFICANT,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
+import { summarizeMerged } from './summarize.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(__dirname, '../docs/data/news.json')
@@ -1051,6 +1052,14 @@ async function main() {
     + ` ${nSci} Wissenschaft im Schwerpunkt`)
   console.log(`  Sport: ${sportVerteilung[0]} Österreich, ${sportVerteilung[1]} Barcelona/CL,`
     + ` ${sportVerteilung[2]} F1/Tennis, ${sportVerteilung[3]} übrige`)
+
+  // Mehrfach berichtete Meldungen zu einem ausführlichen Text verschmelzen.
+  // Erst nach der Dublettenerkennung, damit alle Fassungen beisammen sind.
+  console.log('\nZusammenfassen …')
+  const zus = await summarizeMerged(items)
+  console.log(`  ${zus.gesamt} Meldungen aus mehreren Quellen:`
+    + ` ${zus.perClaude} über Claude, ${zus.perRegel} regelbasiert,`
+    + ` ${zus.uebersprungen} ohne Gewinn übersprungen`)
 
   // Endgültige Begrenzung
   items = capPerCategory(items, now, MAX_PER_CATEGORY)

@@ -565,3 +565,13 @@ a.info-row:active { background: var(--bg-elev-2); }
   animation: toastIn .2s ease both;
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+/* Hinweis auf einen aus mehreren Quellen zusammengefassten Text */
+.zusammengefasst {
+  margin: 0 0 10px; font-size: 12px; color: #4ade80;
+}
+
+/* Autoroute: eigene Farbe, damit Bahn und Auto auseinanderzuhalten sind */
+.conn-btn.conn-auto {
+  border-color: rgba(251,146,60,.5); background: rgba(251,146,60,.1); color: #fdba74;
+}

@@ -358,6 +358,22 @@ sich unter ⚙ ganz abschalten.
 
 ---
 
+## Was die drei Knöpfe an einer Meldung tun
+
+| Knopf | Wirkung |
+|---|---|
+| 👍 **Relevant** | Die Meldung bleibt **an ihrem Platz** und bekommt nur die Markierung. Das Lernprofil wertet Quelle, Kategorie und Themen positiv. |
+| 👎 **Eher nicht** | Verschwindet sofort und nur diese eine Karte. Fließt als negatives Signal ins Lernprofil. |
+| 🔖 **Merken** | Wandert in den Gemerkt-Tab und **bleibt zusätzlich** im aktuellen Feed stehen. |
+
+Wichtig dabei: Beim Bewerten wird der Feed **nicht neu aufgebaut**. Vorher tat er das,
+mit zwei sichtbaren Folgen — die bewertete Meldung sprang ans Ende („verschwunden"),
+und längst gelesene Nachbarmeldungen bekamen im selben Moment ihre Graufärbung, was
+aussah, als hätte der Klick sie ausgegraut. Jetzt ändert sich genau die angetippte
+Karte.
+
+---
+
 ## Die Lernfunktion
 
 Jede Meldung hat **👍 Relevant** und **👎 Eher nicht**. Daraus lernt die App drei Dinge:
