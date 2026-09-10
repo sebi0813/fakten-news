@@ -13,7 +13,7 @@ import {
   URL_BLOCKLIST, CLICKBAIT_PATTERNS, FOCUS_TOPICS, FLASH_PATTERNS,
   OEBB_FEED, REGION_STATIONS, OEBB_NOISE, OEBB_BAUINFO, OEBB_REGION_LINES,
   REGION_MOTORWAYS, TRAFFIC_EVENT, SCIENCE_FOCUS, CONTEXT_TOPICS,
-  EVENT_PAGES, EVENT_DAYS_AHEAD, EVENT_GENRES, EVENT_EXCLUDE,
+  EVENT_PAGES, EVENT_DAYS_AHEAD, EVENT_GENRES, EVENT_EXCLUDE, REGIONS,
   SPORT_FOCUS, KI_SIGNIFICANT,
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
@@ -33,7 +33,7 @@ const CACHE = resolve(__dirname, '../docs/data/i18n-cache.json')
  * fälschlich als tote Feeds gemeldet.
  */
 const MAX_AGE_H = {
-  korneuburg: 24 * 7,
+  region: 24 * 7,
   wissenschaft: 24 * 7,
   fokus: 24 * 5,
   default: 48,
@@ -349,7 +349,7 @@ function parseFeed(xml, src, now) {
     if (ts < cutoff) continue
     if (ts > now + 6 * 3600_000) continue   // offensichtlich falsches Datum
 
-    // Kategorie "Korneuburg": Regionalfeeds nur mit echtem Ortsbezug
+    // Regionalfeeds mit requireLocal nur mit echtem Ortsbezug
     if (src.requireLocal && !hasLocalRef(`${title} ${summary} ${link}`)) continue
 
     const item = {
@@ -363,7 +363,8 @@ function parseFeed(xml, src, now) {
       cat: src.cat,
       at: !!src.at,
       paywall,
-      presse: !!src.presse,        // Pressemitteilung, keine Redaktion                    // österreichische Wirtschaft steht im Tab oben
+      presse: !!src.presse,        // Pressemitteilung, keine Redaktion
+      region: src.region || null,  // nur bei Regionalquellen gesetzt
       lang: src.lang,
       trust: src.trust,
       published: date ? date.toISOString() : null,
@@ -527,7 +528,7 @@ function isFlash(item) {
   const hay = `${item.title} ${item.summary || ''}`
   if (!FLASH_PATTERNS.event.some(re => re.test(hay))) return false
   const severe = FLASH_PATTERNS.severity.some(re => re.test(hay))
-  const regional = item.local || item.cat === 'korneuburg' || item.cat === 'oesterreich'
+  const regional = item.local || item.cat === 'region' || item.cat === 'oesterreich'
   return severe || regional
 }
 
@@ -1103,6 +1104,7 @@ async function main() {
     version: 3,
     appVersion,
     categories: CATEGORIES,
+    regions: REGIONS.map(r => ({ id: r.id, label: r.label, orte: r.orte })),
     focusTopics: FOCUS_TOPICS.map(t => ({ id: t.id, label: t.label, icon: t.icon })),
     contextTopics: CONTEXT_TOPICS.map(t => ({
       id: t.id, label: t.label, since: t.since, background: t.background,

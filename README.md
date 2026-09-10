@@ -591,6 +591,44 @@ Stunden, wird deshalb auch nachts gebaut.
 
 ---
 
+## Profile bestimmen, was man sieht
+
+Beim Anlegen eines Profils fragt Faktum alles auf einmal ab: Name, Heimatregion,
+welche Reiter sichtbar sind, was beim Verkehr zählt, welche Termin-Sparten
+interessieren. Vorher gab es nur eine Namensabfrage, danach musste man sich die
+passenden Schalter in den Einstellungen zusammensuchen.
+
+Jedes Profil hat eigene Reiter. „Für dich" bleibt immer — dort landet alles mit
+Relevanz.
+
+---
+
+## Region richtet sich nach dem Standort
+
+Der Regionalreiter ist nicht mehr auf Korneuburg festgenagelt. Erkannt wird über
+den Ortsnamen der Standortbestimmung:
+
+| Standort | Reiter zeigt |
+|---|---|
+| Korneuburg, Stockerau, Bisamberg … | Korneuburg |
+| Wien und alle Bezirke | Wien |
+| Tulln, Klosterneuburg … | Tulln |
+| unbekannt oder keine Ortung | die im Profil gewählte Heimatregion |
+
+Der Reiter trägt den Namen der erkannten Region, nicht das Wort „Region" — man soll
+sehen, wo man gerade ist.
+
+---
+
+## Für dich enthält jetzt alles
+
+Die früheren Reiter **Flash** und **Fokus** sind darin aufgegangen. Warnungen,
+schwere Unfälle und die Fokusthemen (Raiffeisen, Agile, KI) werden im Hauptfeed
+nach oben gewichtet und bleiben an ihren Kennzeichen erkennbar. Zwei Reiter
+weniger, und das Dringende steht dort, wo man ohnehin zuerst hinschaut.
+
+---
+
 ## Lokal entwickeln
 
 ```bash

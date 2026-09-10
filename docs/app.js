@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v18'
+const APP_VERSION = 'v20'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -114,6 +114,13 @@ const defaults = {
     ortErlaubt: false, apiKey: '',
     // Welche Termin-Sparten dieses Profil sehen will. Leere Liste = alle.
     eventGenres: ['theater', 'musical', 'klassik', 'konzert'],
+    // Welche Reiter dieses Profil sieht. "Für dich" ist immer dabei.
+    tabs: ['wirtschaft', 'sport-int', 'wissenschaft', 'welt', 'oesterreich',
+      'region', 'termine', 'gemerkt', 'wetter'],
+    // Heimatregion, falls der Standort nicht erkannt wird oder gesperrt ist.
+    heimatRegion: 'korneuburg',
+    // Welche Blöcke im Verkehrsteil von "Für dich" erscheinen.
+    verkehr: { verbindungen: true, bahn: true, strasse: true, wetter: true },
   }),
   read: () => ({}),
   saved: () => ({}),
@@ -457,13 +464,41 @@ function setStatusParts(teile) {
 
 // ------------------------------------------------------------------ Ansicht
 
+/*
+ * "Für dich" ist der Hauptfeed und enthält alles, was Relevanz hat —
+ * einschließlich dessen, was früher eigene Reiter waren: Flash (schwere
+ * Unfälle, Katastrophen, Warnungen) und Fokus (Raiffeisen, Agile, KI).
+ * Beides wird dort nach oben gewichtet und bleibt an den Kennzeichen
+ * "⚡ Flash" und dem Themenetikett erkennbar. Zwei Reiter weniger, und
+ * das Dringende steht dort, wo man ohnehin zuerst hinschaut.
+ */
 const CLIENT_TABS = {
   'fuer-dich': { label: 'Für dich', icon: '⭐' },
-  flash: { label: 'Flash', icon: '⚡' },
   termine: { label: 'Termine', icon: '📅' },
   gemerkt: { label: 'Gemerkt', icon: '🔖' },
   historie: { label: 'Historie', icon: '🕘' },
   wetter: { label: 'Wetter', icon: '🌤' },
+}
+
+/**
+ * Welche Region gilt gerade?
+ *
+ * Der Standort entscheidet: Wer in Wien ist, sieht Wien. Wird der Ort nicht
+ * erkannt oder ist die Ortung gesperrt, greift die im Profil hinterlegte
+ * Heimatregion.
+ */
+function aktuelleRegion() {
+  const ort = (state.weatherPlace || '').toLowerCase()
+  const regionen = state.data?.regions || []
+  const treffer = regionen.find(r => (r.orte || []).some(o => ort.includes(o)))
+  if (treffer) return treffer.id
+  const heimat = settings.heimatRegion
+  return regionen.some(r => r.id === heimat) ? heimat : (regionen[0]?.id || null)
+}
+
+function regionLabel() {
+  const id = aktuelleRegion()
+  return (state.data?.regions || []).find(r => r.id === id)?.label || 'Region'
 }
 
 function matchesSearch(item) {
@@ -501,11 +536,12 @@ function visibleItems() {
   switch (state.tab) {
     case 'gemerkt':
       return Object.values(saved).sort((a, b) => b.savedAt - a.savedAt).filter(matchesSearch)
-    case 'flash':
-      return items.filter(i => i.flash && !isHidden(i)).sort((a, b) => b.ts - a.ts)
-    case 'fokus':
-      return items.filter(i => (i.cat === 'fokus' || i.focus) && !isHidden(i))
-        .sort((a, b) => personalScore(b) - personalScore(a))
+    case 'region': {
+      // Nur die Meldungen der Region, in der man sich gerade befindet.
+      const r = aktuelleRegion()
+      return items.filter(i => i.cat === 'region' && i.region === r && !isHidden(i))
+        .sort((a, b) => b.ts - a.ts)
+    }
     case 'fuer-dich': {
       // Mischung über alle Kategorien, nach persönlichem Rang.
       const scored = items.filter(i => !isHidden(i))
@@ -565,23 +601,33 @@ function renderTabs() {
   const counts = state.data?.counts || {}
   const items = allItems()
 
-  const tabs = [
+  const region = aktuelleRegion()
+
+  const alle = [
     { id: 'fuer-dich', ...CLIENT_TABS['fuer-dich'] },
-    { id: 'flash', ...CLIENT_TABS.flash, count: items.filter(i => i.flash && !isHidden(i)).length },
-    ...cats.map(c => ({
-      ...c,
-      count: c.id === 'fokus'
-        ? items.filter(i => (i.cat === 'fokus' || i.focus) && !isHidden(i)).length
-        : items.filter(i => i.cat === c.id && !isHidden(i)).length,
-    })),
+    // nurFuerDich: Kategorien, die es im Datenbestand gibt, aber nicht als
+    // eigenen Reiter — ihre Meldungen erscheinen im Hauptfeed.
+    ...cats.filter(c => !c.nurFuerDich).map(c => c.id === 'region'
+      // Der Regionalreiter trägt den Namen der erkannten Region, nicht das
+      // Wort "Region" — man soll sehen, wo man gerade ist.
+      ? { ...c, label: regionLabel(),
+          count: items.filter(i => i.cat === 'region' && i.region === region && !isHidden(i)).length }
+      : { ...c, count: items.filter(i => i.cat === c.id && !isHidden(i)).length }),
     { id: 'termine', ...CLIENT_TABS.termine, count: (state.data?.events || []).length },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt, count: Object.keys(saved).length },
     { id: 'wetter', ...CLIENT_TABS.wetter },
     { id: 'historie', ...CLIENT_TABS.historie },
   ]
 
+  // Jedes Profil sieht nur, was es ausgewählt hat. "Für dich" bleibt immer.
+  const gewaehlt = settings.tabs || []
+  const tabs = alle.filter(t => t.id === 'fuer-dich' || gewaehlt.includes(t.id))
+
+  // Steht der offene Reiter nicht mehr zur Auswahl, zurück auf "Für dich".
+  if (!tabs.some(t => t.id === state.tab)) state.tab = 'fuer-dich'
+
   $('#tabs').innerHTML = tabs.map(t => `
-    <button class="tab ${t.id === 'flash' && t.count ? 'tab-flash' : ''}" role="tab"
+    <button class="tab" role="tab"
             data-tab="${t.id}" aria-selected="${state.tab === t.id}">
       ${t.icon} ${esc(t.label)}${t.count != null ? `<span class="tab-count">${t.count}</span>` : ''}
     </button>`).join('')
@@ -625,10 +671,9 @@ function renderEmptyFor(tab) {
       `Zu „${state.search}“ gibt es in den aktuellen Meldungen keinen Treffer.`)
   }
   const texts = {
-    flash: ['⚡', 'Keine Flash-News', 'Aktuell keine schweren Unfälle, Katastrophen oder Warnungen. Gut so.'],
     gemerkt: ['🔖', 'Noch nichts gemerkt', 'Tippe bei einer Meldung auf „Merken“ — Gemerktes bleibt dauerhaft erhalten, auch wenn die Quelle den Artikel löscht.'],
-    fokus: ['🎯', 'Keine Fokus-Meldungen', 'Zu Raiffeisen/RBI, Agile Coaching und KI liegt gerade nichts Neues vor.'],
-    korneuburg: ['📍', 'Nichts aus der Region', 'Für Korneuburg liegen gerade keine neuen Meldungen vor.'],
+    region: ['📍', `Nichts aus ${regionLabel()}`,
+      `Für ${regionLabel()} liegen gerade keine neuen Meldungen vor. Die Region richtet sich nach deinem Standort — unter ⚙ lässt sich eine Heimatregion festlegen.`],
   }
   const [i, t, s] = texts[tab] || ['🗂', 'Alles gelesen',
     'Du hast alle Meldungen dieser Kategorie gesehen oder bewertet. Unter „Historie“ kannst du sie nachlesen.']
@@ -895,6 +940,7 @@ async function fetchWarnings() {
 function infoEntries() {
   const out = []
 
+  const v = settings.verkehr || {}
   for (const w of state.warnings) out.push({ kind: 'warn', icon: '⚠', text: w.text })
 
   const ICON = { traffic: '🚗', oebb: '🚆' }
@@ -907,12 +953,13 @@ function infoEntries() {
   // übersieht irgendwann die eine Meldung, die zählt.
   const info = state.data?.info || []
   for (const t of info) {
-    if (t.kind === 'oebb' && t.neu === false) continue
+    if (t.kind === 'oebb' && (v.bahn === false || t.neu === false)) continue
+    if (t.kind === 'traffic' && v.strasse === false) continue
     out.push({ kind: t.kind, icon: ICON[t.kind] || 'ℹ', label: LABEL[t.kind], text: t.text, link: t.link })
   }
 
   // Wetter am aktuellen Standort — immer, nicht nur als Notnagel.
-  if (state.weather?.hourly) {
+  if (v.wetter !== false && state.weather?.hourly) {
     const w = state.weather
     const jetzt = new Date()
     const start = w.hourly.time.findIndex(t => new Date(t) > jetzt)
@@ -1064,13 +1111,14 @@ function sperrenHTML() {
 
 function infoBlockHTML() {
   if (!settings.info) return ''
+  const v = settings.verkehr || {}
   const entries = infoEntries()
   const sperren = sperrenHTML()
   // Auch ohne akute Meldung soll die Sperren-Rubrik erreichbar bleiben —
   // sonst verschwindet sie genau dann, wenn gerade nichts los ist.
-  if (!entries.length && !sperren) return verbindungenHTML()
+  if (!entries.length && !sperren) return v.verbindungen === false ? '' : verbindungenHTML()
 
-  return verbindungenHTML() + `<section class="infoblock">
+  return (v.verbindungen === false ? '' : verbindungenHTML()) + `<section class="infoblock">
     <h2 class="info-head">📍 In deiner Umgebung</h2>
     ${entries.map(e => {
       const inner = `<span class="info-icon">${e.icon}</span>
@@ -1388,6 +1436,41 @@ function renderGenres() {
     </button>`).join('')
 }
 
+/** Alle wählbaren Reiter außer "Für dich", das immer bleibt. */
+function waehlbareTabs() {
+  return [
+    ...(state.data?.categories || []).filter(c => !c.nurFuerDich).map(c => ({
+      id: c.id, icon: c.icon,
+      label: c.id === 'region' ? regionLabel() : c.label,
+    })),
+    { id: 'termine', ...CLIENT_TABS.termine },
+    { id: 'gemerkt', ...CLIENT_TABS.gemerkt },
+    { id: 'wetter', ...CLIENT_TABS.wetter },
+    { id: 'historie', ...CLIENT_TABS.historie },
+  ]
+}
+
+function renderTabList() {
+  const an = settings.tabs || []
+  $('#tab-list').innerHTML = waehlbareTabs().map(t => `
+    <button class="genre-chip ${an.includes(t.id) ? 'on' : ''}" data-tabpick="${esc(t.id)}">
+      ${t.icon} ${esc(t.label)}
+    </button>`).join('')
+}
+
+function renderRegionList() {
+  const regionen = state.data?.regions || []
+  const erkannt = aktuelleRegion()
+  $('#region-list').innerHTML = regionen.map(r => `
+    <button class="genre-chip ${settings.heimatRegion === r.id ? 'on' : ''}" data-region="${esc(r.id)}">
+      📍 ${esc(r.label)}
+    </button>`).join('')
+  const ort = state.weatherPlace
+  $('#region-info').textContent = ort
+    ? `Standort erkannt: ${ort} → Region ${regionLabel()}. Die Auswahl oben greift nur, wenn kein Standort verfügbar ist.`
+    : 'Kein Standort freigegeben — es gilt die oben gewählte Heimatregion. Der Verkehrsblock in „Für dich“ fragt den Standort ab, sobald du dort auf ↻ tippst.'
+}
+
 function renderProfiles() {
   $('#profile-list').innerHTML = profiles.map(p => `
     <button class="profile-chip ${p.id === activeProfile ? 'on' : ''}" data-profile="${esc(p.id)}">
@@ -1399,6 +1482,13 @@ function openSheet() {
   $('#ai-explain').innerHTML = AI_EXPLAIN
   renderProfiles()
   renderGenres()
+  renderTabList()
+  renderRegionList()
+  const v = settings.verkehr || {}
+  $('#opt-v-verbindungen').checked = v.verbindungen !== false
+  $('#opt-v-bahn').checked = v.bahn !== false
+  $('#opt-v-strasse').checked = v.strasse !== false
+  $('#opt-v-wetter').checked = v.wetter !== false
   const gemerktGesamt = profiles.reduce((n, p) => {
     try { return n + Object.keys(JSON.parse(localStorage.getItem(`faktum.${p.id}.saved.v1`) || '{}')).length }
     catch { return n }
@@ -1699,6 +1789,27 @@ document.addEventListener('click', ev => {
   }
   if (ev.target.closest('#btn-search')) { toggleSearch(); return }
   if (ev.target.closest('#btn-search-clear')) { toggleSearch(false); return }
+  const tchip = ev.target.closest('[data-tabpick]')
+  if (tchip) {
+    const id = tchip.dataset.tabpick
+    const liste = new Set(settings.tabs || [])
+    liste.has(id) ? liste.delete(id) : liste.add(id)
+    settings.tabs = [...liste]
+    save(LS.settings, settings)
+    renderTabList()
+    render()
+    return
+  }
+
+  const rchip = ev.target.closest('[data-region]')
+  if (rchip) {
+    settings.heimatRegion = rchip.dataset.region
+    save(LS.settings, settings)
+    renderRegionList()
+    render()
+    return
+  }
+
   const gchip = ev.target.closest('[data-genre]')
   if (gchip) {
     const id = gchip.dataset.genre
@@ -1752,6 +1863,17 @@ const bindToggle = (sel, key) => $(sel)?.addEventListener('change', e => {
 bindToggle('#opt-hide-read', 'hideRead')
 bindToggle('#opt-hide-lowfact', 'hideLowFact')
 bindToggle('#opt-images', 'images')
+
+/** Verkehrsblöcke: liegen verschachtelt in settings.verkehr. */
+const bindVerkehr = (sel, key) => $(sel)?.addEventListener('change', e => {
+  settings.verkehr = { ...(settings.verkehr || {}), [key]: e.target.checked }
+  save(LS.settings, settings)
+  render()
+})
+bindVerkehr('#opt-v-verbindungen', 'verbindungen')
+bindVerkehr('#opt-v-bahn', 'bahn')
+bindVerkehr('#opt-v-strasse', 'strasse')
+bindVerkehr('#opt-v-wetter', 'wetter')
 bindToggle('#opt-info', 'info')
 
 $('#btn-save-key').addEventListener('click', () => {
@@ -1808,12 +1930,93 @@ $('#btn-reset-learning').addEventListener('click', () => {
 })
 const EMOJIS = ['👤', '🧑', '👩', '👨', '🧓', '👧', '🐧', '🦊']
 
-$('#btn-profile-new').addEventListener('click', () => {
-  const name = prompt('Name für das neue Profil?')?.trim()
-  if (!name) return
-  const id = 'p' + (Date.now().toString(36))
+/* ------------------------------------------------- Profil einrichten
+ *
+ * Statt einer nackten Namensabfrage werden alle Entscheidungen gleich hier
+ * getroffen: Name, Heimatregion, Reiter, Verkehr, Termin-Sparten. Vorher
+ * landete man in einem Profil mit Voreinstellungen und musste sich die
+ * passenden Schalter in den Einstellungen zusammensuchen.
+ */
+
+const VERKEHR_OPTIONEN = [
+  { id: 'verbindungen', label: 'Verbindungen', icon: '🚉' },
+  { id: 'bahn', label: 'Bahn', icon: '🚆' },
+  { id: 'strasse', label: 'Straße', icon: '🚗' },
+  { id: 'wetter', label: 'Wetter', icon: '🌤' },
+]
+
+// Auswahl, solange der Dialog offen ist
+let setupAuswahl = null
+
+function chipsZeichnen(ziel, liste, istAn, attr) {
+  $(ziel).innerHTML = liste.map(x => `
+    <button class="genre-chip ${istAn(x.id) ? 'on' : ''}" data-${attr}="${esc(x.id)}">
+      ${x.icon} ${esc(x.label)}
+    </button>`).join('')
+}
+
+function setupZeichnen() {
+  const a = setupAuswahl
+  chipsZeichnen('#setup-region', (state.data?.regions || []).map(r => ({ ...r, icon: '📍' })),
+    id => a.heimatRegion === id, 'sregion')
+  chipsZeichnen('#setup-tabs', waehlbareTabs(), id => a.tabs.has(id), 'stab')
+  chipsZeichnen('#setup-verkehr', VERKEHR_OPTIONEN, id => a.verkehr.has(id), 'sverkehr')
+  chipsZeichnen('#setup-genres', GENRE_LISTE, id => a.genres.has(id), 'sgenre')
+}
+
+function setupOeffnen() {
+  const std = defaults.settings()
+  setupAuswahl = {
+    heimatRegion: std.heimatRegion,
+    tabs: new Set(std.tabs),
+    verkehr: new Set(VERKEHR_OPTIONEN.map(v => v.id)),
+    genres: new Set(std.eventGenres),
+  }
+  $('#setup-name').value = ''
+  setupZeichnen()
+  $('#setup').hidden = false
+  setTimeout(() => $('#setup-name').focus(), 100)
+}
+
+$('#btn-profile-new').addEventListener('click', setupOeffnen)
+$('#setup-abbrechen').addEventListener('click', () => { $('#setup').hidden = true })
+
+// Auswahl im Dialog umschalten
+document.addEventListener('click', ev => {
+  if ($('#setup').hidden || !setupAuswahl) return
+  const paare = [['sregion', null], ['stab', 'tabs'], ['sverkehr', 'verkehr'], ['sgenre', 'genres']]
+  for (const [attr, feld] of paare) {
+    const chip = ev.target.closest(`[data-${attr}]`)
+    if (!chip) continue
+    const id = chip.dataset[attr]
+    if (feld === null) setupAuswahl.heimatRegion = id            // Region: nur eine
+    else setupAuswahl[feld].has(id) ? setupAuswahl[feld].delete(id) : setupAuswahl[feld].add(id)
+    setupZeichnen()
+    return
+  }
+})
+
+$('#setup-fertig').addEventListener('click', () => {
+  const name = $('#setup-name').value.trim()
+  if (!name) { $('#setup-name').focus(); return }
+
+  const id = 'p' + Date.now().toString(36)
   profiles.push({ id, name: name.slice(0, 20), emoji: EMOJIS[profiles.length % EMOJIS.length] })
   saveProfiles()
+
+  // Einstellungen schreiben, BEVOR gewechselt wird — switchProfile lädt sie.
+  const std = defaults.settings()
+  const neu = {
+    ...std,
+    heimatRegion: setupAuswahl.heimatRegion,
+    tabs: [...setupAuswahl.tabs],
+    eventGenres: [...setupAuswahl.genres],
+    verkehr: Object.fromEntries(VERKEHR_OPTIONEN.map(v => [v.id, setupAuswahl.verkehr.has(v.id)])),
+  }
+  localStorage.setItem(`faktum.${id}.settings.v1`, JSON.stringify(neu))
+
+  $('#setup').hidden = true
+  setupAuswahl = null
   switchProfile(id)
 })
 
@@ -1825,6 +2028,13 @@ $('#btn-profile-rename').addEventListener('click', () => {
   saveProfiles()
   renderProfiles()
   renderGenres()
+  renderTabList()
+  renderRegionList()
+  const v = settings.verkehr || {}
+  $('#opt-v-verbindungen').checked = v.verbindungen !== false
+  $('#opt-v-bahn').checked = v.bahn !== false
+  $('#opt-v-strasse').checked = v.strasse !== false
+  $('#opt-v-wetter').checked = v.wetter !== false
   const gemerktGesamt = profiles.reduce((n, p) => {
     try { return n + Object.keys(JSON.parse(localStorage.getItem(`faktum.${p.id}.saved.v1`) || '{}')).length }
     catch { return n }
@@ -1891,7 +2101,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) fetc
 window.addEventListener('online', () => fetchNews({ force: true }))
 document.addEventListener('keydown', ev => {
   if (ev.key !== 'Escape') return
-  if (!$('#lightbox').hidden) closeLightbox()
+  if (!$('#setup').hidden) $('#setup').hidden = true
+  else if (!$('#lightbox').hidden) closeLightbox()
   else if (!$('#context').hidden) $('#context').hidden = true
   else if (!$('#sheet').hidden) $('#sheet').hidden = true
   else if (!$('#searchbar').hidden) toggleSearch(false)

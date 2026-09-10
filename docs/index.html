@@ -43,6 +43,51 @@
   <div id="empty" class="empty" hidden></div>
 </main>
 
+<!-- Einrichtung eines neuen Profils -->
+<div id="setup" class="sheet" hidden>
+  <div class="sheet-backdrop"></div>
+  <div class="sheet-panel" role="dialog" aria-label="Profil einrichten">
+    <div class="sheet-head">
+      <h2 id="setup-title">Neues Profil</h2>
+      <button class="icon-btn" id="setup-abbrechen" aria-label="Abbrechen">✕</button>
+    </div>
+    <div class="sheet-body">
+      <section class="card-lite">
+        <h3>Wie heißt du?</h3>
+        <input type="text" id="setup-name" placeholder="Name" maxlength="20" autocomplete="off">
+      </section>
+
+      <section class="card-lite">
+        <h3>Wo bist du zu Hause?</h3>
+        <div id="setup-region" class="genre-list"></div>
+        <p class="muted small" style="margin-top:10px">
+          Wird nur verwendet, wenn der Standort nicht erkannt wird. Sonst richtet
+          sich die Region danach, wo du dich gerade befindest.
+        </p>
+      </section>
+
+      <section class="card-lite">
+        <h3>Welche Reiter willst du sehen?</h3>
+        <div id="setup-tabs" class="genre-list"></div>
+      </section>
+
+      <section class="card-lite">
+        <h3>Was ist beim Verkehr wichtig?</h3>
+        <div id="setup-verkehr" class="genre-list"></div>
+      </section>
+
+      <section class="card-lite">
+        <h3>Welche Termine interessieren dich?</h3>
+        <div id="setup-genres" class="genre-list"></div>
+      </section>
+
+      <div class="row" style="padding:0 2px 8px">
+        <button class="btn" id="setup-fertig" style="flex:1">Profil anlegen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Hintergrund zu einem Thema -->
 <div id="context" class="sheet" hidden>
   <div class="sheet-backdrop" data-ctx-close></div>
@@ -112,6 +157,41 @@
         <label class="switch">
           <input type="checkbox" id="opt-images" checked>
           <span>Bilder laden</span>
+        </label>
+      </section>
+
+      <section class="card-lite">
+        <h3>Welche Reiter willst du sehen?</h3>
+        <div id="tab-list" class="genre-list"></div>
+        <p class="muted small" style="margin-top:10px">
+          Gilt nur für dieses Profil. „Für dich“ ist immer dabei — dort landet alles,
+          was Relevanz hat, samt Warnungen und deinen Fokusthemen.
+        </p>
+      </section>
+
+      <section class="card-lite">
+        <h3>Deine Region</h3>
+        <div id="region-list" class="genre-list"></div>
+        <p class="muted small" id="region-info" style="margin-top:10px"></p>
+      </section>
+
+      <section class="card-lite">
+        <h3>Verkehr in „Für dich“</h3>
+        <label class="switch">
+          <input type="checkbox" id="opt-v-verbindungen" checked>
+          <span>Verbindungen <small class="muted">Fahrplanauskunft und Verkehrslage</small></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-v-bahn" checked>
+          <span>Bahn <small class="muted">Störungen und Streckensperren</small></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-v-strasse" checked>
+          <span>Straße <small class="muted">A22, A23, S1 und Umgebung</small></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="opt-v-wetter" checked>
+          <span>Wetter <small class="muted">Aktuell und die nächsten drei Stunden</small></span>
         </label>
       </section>
 

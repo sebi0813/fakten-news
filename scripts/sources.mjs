@@ -15,7 +15,10 @@
 // Unabhängigkeit, die "akkreditierte Berichterstattung" ausmacht.
 
 export const CATEGORIES = [
-  { id: 'fokus', label: 'Fokus', icon: '🎯' },
+  // Fokus ist eine Kategorie im Datenbestand, aber KEIN eigener Reiter mehr.
+  // Diese Meldungen gehen in "Für dich" auf, wo sie bevorzugt werden — samt
+  // Themenetikett, an dem sie erkennbar bleiben.
+  { id: 'fokus', label: 'Fokus', icon: '🎯', nurFuerDich: true },
   // Wirtschaft ist eine Kategorie. Österreichische Meldungen stehen darin
   // oben, internationale darunter — sortiert über das Feld `at` am Eintrag.
   { id: 'wirtschaft', label: 'Wirtschaft', icon: '💶' },
@@ -23,7 +26,9 @@ export const CATEGORIES = [
   { id: 'wissenschaft', label: 'Wissenschaft', icon: '🔬' },
   { id: 'welt', label: 'Welt', icon: '🗺' },
   { id: 'oesterreich', label: 'Österreich', icon: '📰' },
-  { id: 'korneuburg', label: 'Korneuburg', icon: '📍' },
+  // Die Regionalkategorie ist nicht mehr auf Korneuburg festgenagelt.
+  // Welche Region gezeigt wird, entscheidet der Standort (siehe REGIONS).
+  { id: 'region', label: 'Region', icon: '📍' },
 ]
 
 export const SOURCES = [
@@ -43,11 +48,19 @@ export const SOURCES = [
   { name: 'KURIER Chronik', cat: 'oesterreich', trust: 2, lang: 'de',
     url: 'https://kurier.at/chronik/oesterreich/xml/rss', site: 'kurier.at' },
 
-  // ---------- Korneuburg / Region ----------
-  { name: 'meinbezirk Korneuburg', cat: 'korneuburg', trust: 1, lang: 'de',
+  // ---------- Region: richtet sich nach dem Standort ----------
+  // Jede Quelle traegt ihre Region. Der Client zeigt im Regionaltab das,
+  // was zum aktuellen Standort passt — wer in Wien ist, sieht Wien.
+  { name: 'meinbezirk Korneuburg', cat: 'region', region: 'korneuburg', trust: 1, lang: 'de',
     url: 'https://www.meinbezirk.at/korneuburg/rss', site: 'meinbezirk.at' },
-  { name: 'ORF Niederösterreich', cat: 'korneuburg', trust: 3, lang: 'de',
+  { name: 'ORF Niederösterreich', cat: 'region', region: 'korneuburg', trust: 3, lang: 'de',
     url: 'https://rss.orf.at/noe.xml', site: 'orf.at', requireLocal: true },
+  { name: 'meinbezirk Wien', cat: 'region', region: 'wien', trust: 1, lang: 'de',
+    url: 'https://www.meinbezirk.at/wien/rss', site: 'meinbezirk.at' },
+  { name: 'ORF Wien', cat: 'region', region: 'wien', trust: 3, lang: 'de',
+    url: 'https://rss.orf.at/wien.xml', site: 'orf.at' },
+  { name: 'meinbezirk Tulln', cat: 'region', region: 'tulln', trust: 1, lang: 'de',
+    url: 'https://www.meinbezirk.at/tulln/rss', site: 'meinbezirk.at' },
 
   // ---------- Wirtschaft (at:true steht im Tab oben) ----------
   { name: 'DER STANDARD Wirtschaft', cat: 'wirtschaft', at: true, trust: 2, lang: 'de',
@@ -499,7 +512,39 @@ export const OEBB_NOISE = [
   /nicht barrierefrei/i, /bordrestaurant/i, /klimaanlage/i, /wlan\b/i,
 ]
 
-// Ortsbezug für die Korneuburg-Kategorie: Bezirk Korneuburg + direkte Nachbarn.
+// ------------------------------------------------------------------ Regionen
+//
+// Welche Region ein Nutzer sieht, entscheidet sein Standort. Erkannt wird
+// über den Ortsnamen, den die Standortbestimmung liefert (BigDataCloud).
+// Passt nichts, greift die im Profil hinterlegte Heimatregion.
+
+export const REGIONS = [
+  {
+    id: 'korneuburg',
+    label: 'Korneuburg',
+    // Ortsnamen, bei denen diese Region gilt
+    orte: ['korneuburg', 'bisamberg', 'langenzersdorf', 'leobendorf', 'spillern',
+      'stockerau', 'harmannsdorf', 'hagenbrunn', 'enzersfeld', 'niederhollabrunn',
+      'großmugl', 'grossmugl', 'sierndorf', 'gerasdorf', 'ernstbrunn'],
+  },
+  {
+    id: 'wien',
+    label: 'Wien',
+    orte: ['wien', 'vienna', 'floridsdorf', 'donaustadt', 'leopoldstadt',
+      'landstraße', 'landstrasse', 'brigittenau', 'döbling', 'doebling',
+      'hernals', 'währing', 'waehring', 'ottakring', 'penzing', 'hietzing',
+      'meidling', 'favoriten', 'simmering', 'liesing', 'margareten',
+      'mariahilf', 'neubau', 'josefstadt', 'alsergrund', 'wieden', 'innere stadt'],
+  },
+  {
+    id: 'tulln',
+    label: 'Tulln',
+    orte: ['tulln', 'klosterneuburg', 'zeiselmauer', 'sieghartskirchen',
+      'judenau', 'atzenbrugg', 'michelhausen'],
+  },
+]
+
+// Ortsbezug für Regionalquellen mit requireLocal: Bezirk Korneuburg + Nachbarn.
 export const LOCAL_TERMS = [
   'korneuburg', 'bisamberg', 'stockerau', 'langenzersdorf', 'leobendorf',
   'spillern', 'harmannsdorf', 'hagenbrunn', 'enzersfeld', 'klosterneuburg',
