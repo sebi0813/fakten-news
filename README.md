@@ -3,10 +3,12 @@
 Eine werbefreie, faktenorientierte Nachrichten-App als PWA. Läuft auf GitHub Pages,
 kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 
-**Kategorien:** Für dich · Flash · Fokus · Wirtschaft · Sport · Wissenschaft · Welt ·
-Österreich · Korneuburg · Termine · Gemerkt · Wetter · Historie
+**Reiter:** Für dich · Wirtschaft · Sport · Wissenschaft · Welt · Österreich ·
+Region · Termine · Gemerkt · Wetter · Historie — **jedes Profil wählt selbst aus.**
+„Für dich" bleibt immer und enthält alles mit Relevanz, einschließlich Warnungen
+und Fokusthemen.
 
-**25 Quellen, Deutsch und Englisch.** Bewusst knapp gehalten.
+**28 Quellen, Deutsch und Englisch.** Bewusst knapp gehalten.
 
 ---
 
@@ -15,7 +17,7 @@ kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 ```
 Stündlich 5:30–23:00 (Actions)            Beim Öffnen (dein iPhone)
 ┌────────────────────────────┐        ┌──────────────────────────┐
-│ 72 RSS-Feeds abrufen       │        │ news.json laden          │
+│ 28 RSS-Feeds abrufen       │        │ news.json laden          │
 │ Meinung/Werbung filtern    │        │ nach Vorlieben sortieren │
 │ Duplikate zusammenführen   │        │ Wetter per GPS holen     │
 │ ins Deutsche übersetzen    │  --->  │ 👍/👎 lokal speichern    │
@@ -110,20 +112,22 @@ hier nicht: Der Workflow committet selbst und hält das Repo aktiv.
 Schwere Unfälle, Katastrophen und Warnungen — bewusst eng gefasst. Eine Meldung muss
 ein **Ereignis** nennen (Unfall, Brand, Explosion, Hochwasser, Evakuierung, Warnung …)
 *und* zusätzlich **Schwere** (Tote, Schwerverletzte, Großeinsatz) oder **Regionalbezug**
-zeigen. Ohne diese Kombination stünde der Tab voller Alltagskriminalität.
+zeigen. Ohne diese Kombination wäre es voller Alltagskriminalität.
+
+Diese Meldungen haben **keinen eigenen Reiter mehr** — sie stehen in „Für dich" weit
+oben und tragen dort das Kennzeichen ⚡ Flash.
 
 ---
 
 ## Fokusthemen
 
-Raiffeisen/RBI, Agile Coaching und KI-Modelle. Zwei Wege führen in den Fokus-Tab:
+Raiffeisen/RBI, Agile Coaching und KI-Modelle. Zwei Wege führen zum Fokus-Kennzeichen:
 
-1. **Eigene Quellen** — Ars Technica AI, TechCrunch AI, The Verge AI, MIT Technology
-   Review, Google DeepMind, The Register, heise, Golem, t3n, InfoQ Agile,
-   InfoQ Kultur & Methoden, Scrum.org.
+1. **Eigene Quellen** — TechCrunch AI, Ars Technica AI, Scrum.org.
 2. **Stichworttreffer** aus allen anderen Kategorien (siehe `FOCUS_TOPICS`).
 
-Fokusmeldungen werden zusätzlich in „Für dich" nach oben gewichtet.
+Auch das ist **kein eigener Reiter mehr**: Fokusmeldungen werden in „Für dich"
+nach oben gewichtet und bleiben am Themenetikett erkennbar.
 
 Ein starker Begriff **im Titel** genügt. Steht er nur im Fließtext, braucht es ein
 zweites Signal — sonst galt ein Leseraufruf von Le Monde, in dem „künstliche
@@ -141,8 +145,8 @@ Intelligenz" beiläufig vorkam, als KI-Meldung.
 - **Gelesen** wird eine Meldung, wenn sie **5 Sekunden** zu mindestens 60 % sichtbar
   war (`IntersectionObserver`). Sie wird nicht sofort ausgeblendet — das würde beim
   Lesen stören — sondern verschwindet beim nächsten Aufbau des Feeds.
-- **👍 Relevant** heißt „gut ausgewählt, entspricht meinen Kriterien". Die Meldung
-  bleibt sichtbar.
+- **👍 Relevant** heißt „gut ausgewählt". Die Meldung bleibt sichtbar und rutscht
+  ans Ende — Neues steht immer oben.
 - **👎 Eher nicht** blendet aus und merkt sich den Inhalt als unbrauchbar.
 - **Gelöscht** wird nach 3 Tagen: Meldungen und Lesestatus. Die Historie hält 30 Tage.
   **Gemerktes und das Lernprofil bleiben dauerhaft** — sonst würde sich der Algorithmus
@@ -152,13 +156,14 @@ Intelligenz" beiläufig vorkam, als KI-Meldung.
 
 ## Der Info-Block
 
-Über den Meldungen in **Für dich** und **Flash** steht eine Liste mit dem, was gerade
-in der Umgebung zählt:
+Über den Meldungen in **Für dich** steht eine Liste mit dem, was gerade in der
+Umgebung zählt. **Jeder Block ist im Profil einzeln abschaltbar:**
 
-1. **Wetterwarnungen** von GeoSphere Austria für den aktuellen Standort
-2. **Straßenmeldungen** zu A22, A23, A5, S1 und der B3
-3. **ÖBB-Streckensperren** der Region Wien/Niederösterreich
-4. **Wetter** am Standort plus die nächsten drei Stunden
+1. **Verbindungen** — Fahrplanauskunft und Verkehrslage, Richtung nach Standort
+2. **Wetterwarnungen** von GeoSphere Austria für den aktuellen Standort
+3. **Straßenmeldungen** zu A22, A23, A5, S1 und der B3
+4. **ÖBB-Streckensperren** der Region Wien/Niederösterreich
+5. **Wetter** am Standort plus die nächsten drei Stunden
 
 Zuerst war das ein Laufband am unteren Rand. Das war die schlechtere Idee: Ein Ticker
 zwingt zum Warten, bis die gewünschte Zeile vorbeikommt, und die Höhenberechnung
