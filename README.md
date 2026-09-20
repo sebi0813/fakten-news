@@ -4,7 +4,8 @@ Eine werbefreie, faktenorientierte Nachrichten-App als PWA. Läuft auf GitHub Pa
 kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 
 **Reiter:** Für dich · Wirtschaft · Sport · Wissenschaft · Welt · Österreich ·
-Region · Termine · Gemerkt · Wetter · Historie — **jedes Profil wählt selbst aus.**
+Region · check-it · Termine · Gemerkt · Wetter · Historie — **jedes Profil wählt
+selbst aus.**
 „Für dich" bleibt immer und enthält alles mit Relevanz, einschließlich Warnungen
 und Fokusthemen.
 
@@ -461,6 +462,33 @@ Der Workflow versucht es deshalb bis zu fünfmal mit wachsender Pause.
 
 ---
 
+## check-it
+
+Fünf Multiple-Choice-Fragen pro Tag, hergeleitet aus den Themen, die gerade in den
+Meldungen stehen. Gefragt ist der **Hintergrund**, nicht der Inhalt der Meldung:
+nicht „Wie viele Unternehmen hackte Gemini?", sondern „Was ist ein Penetrationstest?".
+Die Felder sind Natur, Physik, Geschichte und Politik.
+
+**Das Niveau wächst mit.** Der Build erzeugt zehn Fragen, je zwei der Stufen 1 bis 5;
+die App wählt daraus die fünf, die am besten zum eigenen Stand passen. Wer vier oder
+fünf richtig hat, bekommt am nächsten Tag schwerere Fragen, wer höchstens eine
+schafft, leichtere. Der Stand liegt im Profil und wandert mit der Sicherung mit.
+
+Zwei Dinge sind bewusst festgezurrt:
+
+- **Der Satz des Tages bleibt stehen.** Er wird beim ersten Öffnen festgehalten.
+  Ohne das hätte die Niveau-Anpassung nach der letzten Antwort sofort andere Fragen
+  ausgewählt — die gerade beantworteten wären verschwunden.
+- **Erzeugt wird einmal am Tag**, nicht bei jedem Aufbau. Der Build übernimmt einen
+  Fragensatz, der schon von heute ist (Wiener Ortszeit). Sonst zöge der stündliche
+  Lauf dem Leser die Fragen unter den Antworten weg und kostete zwanzig
+  Claude-Aufrufe täglich statt einem.
+
+Ohne `ANTHROPIC_API_KEY` entstehen keine Fragen. Der Build läuft trotzdem durch,
+der Reiter bleibt leer und nennt den Grund.
+
+---
+
 ## Termine
 
 Ein eigener Tab zeigt Veranstaltungen der **nächsten zwei Wochen** für Korneuburg,
@@ -654,6 +682,7 @@ Keine npm-Abhängigkeiten. Node 20+ genügt (nutzt `fetch` und `zlib` aus der St
 scripts/build-news.mjs      Feeds holen, filtern, deduplizieren, bewerten
 scripts/sources.mjs         Quellenliste und Filterregeln
 scripts/translate.mjs       Übersetzung ins Deutsche, mit Cache
+scripts/checkit.mjs         Tagesfragen fürs Allgemeinwissen (Claude)
 scripts/make-icons.mjs      PNG-Icons ohne externe Bibliotheken
 docs/index.html             App-Gerüst
 docs/app.js                 Darstellung, Lernprofil, Wetter, Vollbild, Einordnung

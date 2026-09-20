@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v20'
+const APP_VERSION = 'v21'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -108,7 +108,9 @@ const state = {
 // --------------------------------------------------------------- Persistenz
 
 const defaults = {
-  prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {} }),
+  prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {},
+    // check-it: Niveau 1..5, der Tagesstand und die Bilanz der letzten Tage.
+    checkit: { niveau: 3, tag: null, antworten: {}, bilanz: [] } }),
   settings: () => ({
     hideRead: true, hideLowFact: false, images: true, info: true,
     ortErlaubt: false, apiKey: '',
@@ -116,7 +118,7 @@ const defaults = {
     eventGenres: ['theater', 'musical', 'klassik', 'konzert'],
     // Welche Reiter dieses Profil sieht. "Für dich" ist immer dabei.
     tabs: ['wirtschaft', 'sport-int', 'wissenschaft', 'welt', 'oesterreich',
-      'region', 'termine', 'gemerkt', 'wetter'],
+      'region', 'checkit', 'termine', 'gemerkt', 'wetter'],
     // Heimatregion, falls der Standort nicht erkannt wird oder gesperrt ist.
     heimatRegion: 'korneuburg',
     // Welche Blöcke im Verkehrsteil von "Für dich" erscheinen.
@@ -163,6 +165,15 @@ function migratePrefs() {
     geändert = true
   }
   if (geändert) save(LS.prefs, prefs)
+
+  // Neuer Reiter, bestehendes Profil: Die gespeicherte Reiterliste ersetzt
+  // die Vorgabe vollständig, check-it käme dort also nie an. Einmalig
+  // nachtragen — wer ihn danach abwählt, behält das.
+  if (Array.isArray(settings.tabs) && !settings.checkitNachgetragen) {
+    if (!settings.tabs.includes('checkit')) settings.tabs.push('checkit')
+    settings.checkitNachgetragen = true
+    save(LS.settings, settings)
+  }
 }
 
 function switchProfile(id) {
@@ -474,6 +485,7 @@ function setStatusParts(teile) {
  */
 const CLIENT_TABS = {
   'fuer-dich': { label: 'Für dich', icon: '⭐' },
+  checkit: { label: 'check-it', icon: '🧠' },
   termine: { label: 'Termine', icon: '📅' },
   gemerkt: { label: 'Gemerkt', icon: '🔖' },
   historie: { label: 'Historie', icon: '🕘' },
@@ -613,6 +625,7 @@ function renderTabs() {
       ? { ...c, label: regionLabel(),
           count: items.filter(i => i.cat === 'region' && i.region === region && !isHidden(i)).length }
       : { ...c, count: items.filter(i => i.cat === c.id && !isHidden(i)).length }),
+    { id: 'checkit', ...CLIENT_TABS.checkit, count: checkitOffen() || undefined },
     { id: 'termine', ...CLIENT_TABS.termine, count: (state.data?.events || []).length },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt, count: Object.keys(saved).length },
     { id: 'wetter', ...CLIENT_TABS.wetter },
@@ -649,6 +662,7 @@ function render() {
 
   if (state.tab === 'historie') { renderHistory(); return }
   if (state.tab === 'termine') { renderEvents(); return }
+  if (state.tab === 'checkit') { renderCheckIt(); return }
 
   // Nur in "Für dich". Flash bleibt schweren Unfällen, Katastrophen und
   // Warnungen vorbehalten — Bahn- und Straßeninfo hat dort nichts verloren.
@@ -708,6 +722,162 @@ function renderHistory() {
 const GENRE_ICON = { theater: '🎭 ', musical: '🎤 ', klassik: '🎻 ', konzert: '🎵 ' }
 
 /** Termine der nächsten zwei Wochen, nach Nähe zum Standort gruppiert. */
+// ---------------------------------------------------------------- check-it
+//
+// Fünf Wissensfragen pro Tag, erzeugt aus den Themen des Tages. Das Niveau
+// wächst mit: Wer vier oder fünf richtig hat, bekommt morgen schwerere
+// Fragen, wer zwei oder weniger schafft, leichtere.
+
+const CHECKIT_ANZAHL = 5
+
+/** Tagesschlüssel in Ortszeit — sv-SE liefert genau YYYY-MM-DD. */
+function heuteKey() { return new Date().toLocaleDateString('sv-SE') }
+
+/** Fortschritt des laufenden Tages; wechselt der Tag, beginnt er neu. */
+function checkitStand() {
+  const c = prefs.checkit ||= { niveau: 3, tag: null, antworten: {}, bilanz: [], satz: null }
+  if (c.tag !== heuteKey()) { c.tag = heuteKey(); c.antworten = {}; c.satz = null }
+  return c
+}
+
+/**
+ * Fünf Fragen aus dem Tagesvorrat, möglichst nah am eigenen Niveau.
+ * Ohne Zufall — sonst stünden nach jedem Neuzeichnen andere Fragen da.
+ */
+function checkitAuswahl(fragen, niveau, anzahl = CHECKIT_ANZAHL) {
+  return (fragen || [])
+    .map((f, i) => ({ f, i, d: Math.abs((f.niveau ?? 3) - niveau) }))
+    .sort((a, b) => (a.d - b.d) || (a.i - b.i))
+    .slice(0, anzahl)
+    .sort((a, b) => a.i - b.i)
+    .map(x => ({ ...x.f, idx: x.i }))
+}
+
+/**
+ * Die fünf Fragen des Tages. Die Auswahl wird beim ersten Aufruf festgehalten
+ * und bis Mitternacht nicht mehr angerührt: Sonst hätte die Niveau-Anpassung
+ * nach der letzten Antwort sofort andere Fragen ausgewählt — die gerade
+ * beantworteten wären verschwunden und der Zähler stünde wieder bei fünf.
+ */
+function checkitHeute() {
+  const daten = state.data?.checkit
+  if (!daten?.fragen?.length) return []
+  const c = checkitStand()
+
+  // Nur ein Fragensatz aus einem ANDEREN Tag macht den gespeicherten Satz
+  // ungültig. Verglichen wird deshalb das Datum, nicht der Zeitstempel: Der
+  // Aufbau läuft stündlich, und bei jedem Durchlauf die Antworten des Tages
+  // zu verwerfen wäre genau das Gegenteil von "fünf Fragen pro Tag".
+  const stand = String(daten.erstellt || '').slice(0, 10)
+  if (c.satz && c.satzStand !== stand) { c.satz = null; c.antworten = {} }
+
+  if (!c.satz) {
+    c.satz = checkitAuswahl(daten.fragen, c.niveau, daten.proTag || CHECKIT_ANZAHL).map(f => f.idx)
+    c.satzStand = stand
+    save(LS.prefs, prefs)
+  }
+  // idx am Eintrag selbst mitführen, nicht über die Position: Fällt eine Frage
+  // weg, würden sonst alle folgenden Antworten der falschen Frage zugeordnet.
+  return c.satz.map(i => (daten.fragen[i] ? { ...daten.fragen[i], idx: i } : null)).filter(Boolean)
+}
+
+/** Wie viele Fragen heute noch offen sind — für die Zahl am Reiter. */
+function checkitOffen() {
+  if (!settings.tabs?.includes('checkit')) return 0
+  const c = checkitStand()
+  return checkitHeute().filter(f => c.antworten[f.idx] == null).length
+}
+
+function checkitAntwort(idx, gewaehlt) {
+  const c = checkitStand()
+  if (c.antworten[idx] != null) return        // jede Frage nur einmal
+  c.antworten[idx] = gewaehlt
+
+  // Ist der Tag vollständig, das Niveau nachziehen und die Bilanz festhalten.
+  const heute = checkitHeute()
+  if (heute.every(f => c.antworten[f.idx] != null)) {
+    const richtig = heute.filter(f => c.antworten[f.idx] === f.richtig).length
+    const alt = c.niveau
+    if (richtig >= heute.length - 1) c.niveau = Math.min(5, c.niveau + 1)
+    else if (richtig <= Math.floor(heute.length / 2) - 1) c.niveau = Math.max(1, c.niveau - 1)
+    c.bilanz = [{ tag: c.tag, richtig, von: heute.length, niveau: alt }, ...(c.bilanz || [])].slice(0, 30)
+  }
+  save(LS.prefs, prefs)
+  renderCheckIt()
+  renderTabs()
+}
+
+const NIVEAU_NAME = ['', 'Einstieg', 'Solide', 'Mittel', 'Anspruchsvoll', 'Schwer']
+
+function checkitFrageHTML(f, nr, gewaehlt) {
+  const offen = gewaehlt == null
+  const optionen = f.optionen.map((o, i) => {
+    let cls = 'ci-opt'
+    if (!offen) {
+      if (i === f.richtig) cls += ' richtig'
+      else if (i === gewaehlt) cls += ' falsch'
+      else cls += ' aus'
+    }
+    return `<button class="${cls}" ${offen ? `data-ci="${f.idx}" data-opt="${i}"` : 'disabled'}>
+      <span class="ci-buchstabe">${'ABCD'[i]}</span> ${esc(o)}
+    </button>`
+  }).join('')
+
+  return `<article class="card ci-frage">
+    <div class="ci-kopf">
+      <span class="ci-nr">Frage ${nr}</span>
+      ${f.feld ? `<span class="ci-feld">${esc(f.feld)}</span>` : ''}
+      <span class="ci-stufe" title="Schwierigkeit">${'●'.repeat(f.niveau ?? 3)}${'○'.repeat(5 - (f.niveau ?? 3))}</span>
+    </div>
+    <h2 class="ci-text">${esc(f.frage)}</h2>
+    <div class="ci-optionen">${optionen}</div>
+    ${offen ? '' : `<div class="ci-loesung ${gewaehlt === f.richtig ? 'ok' : 'nok'}">
+      <b>${gewaehlt === f.richtig ? '✓ Richtig' : '✗ Leider nicht'}</b>
+      <p>${esc(f.erklaerung)}</p>
+      ${f.quelle?.link ? `<a href="${esc(f.quelle.link)}" target="_blank" rel="noopener">
+        Dazu heute: ${esc(f.quelle.title)} · ${esc(f.quelle.source || '')}</a>` : ''}
+    </div>`}
+  </article>`
+}
+
+function renderCheckIt() {
+  const daten = state.data?.checkit
+  $('#feed').innerHTML = ''
+  if (!daten?.fragen?.length) {
+    return showEmpty('🧠', 'Heute keine Fragen',
+      'Die Fragen entstehen beim stündlichen Aufbau aus den Themen des Tages. '
+      + 'Dafür braucht der Build den Anthropic-Schlüssel als Repository-Secret — '
+      + 'fehlt er, bleibt check-it leer.')
+  }
+
+  const c = checkitStand()
+  const heute = checkitHeute()
+  const beantwortet = heute.filter(f => c.antworten[f.idx] != null)
+  const richtig = beantwortet.filter(f => c.antworten[f.idx] === f.richtig).length
+  const fertig = beantwortet.length === heute.length
+
+  const kopf = `<div class="ci-stand">
+    <div>
+      <b>check-it</b>
+      <span class="muted small">Niveau ${c.niveau} · ${NIVEAU_NAME[c.niveau]}</span>
+    </div>
+    <div class="ci-punkte">${richtig} / ${heute.length}</div>
+  </div>`
+
+  const schluss = fertig ? `<div class="card-lite ci-schluss">
+    <h3>${richtig === heute.length ? '🏆 Alles richtig' : richtig >= heute.length - 1 ? '👏 Stark' : richtig >= 2 ? '👍 Passt' : '🙂 Morgen wieder'}</h3>
+    <p class="muted small">${esc(
+      richtig >= heute.length - 1 ? `Das nächste Mal wird es schwerer — Niveau ${c.niveau}.`
+      : richtig <= Math.floor(heute.length / 2) - 1 ? `Die Fragen werden leichter — Niveau ${c.niveau}.`
+      : `Das Niveau bleibt bei ${c.niveau}.`)}</p>
+    <p class="muted small">Morgen gibt es fünf neue Fragen.</p>
+  </div>` : ''
+
+  $('#feed').innerHTML = kopf
+    + heute.map((f, i) => checkitFrageHTML(f, i + 1, c.antworten[f.idx])).join('')
+    + schluss
+}
+
 function renderEvents() {
   let events = (state.data?.events || []).filter(e => e.ts > Date.now() - 12 * 3600_000)
   const alleAnzahl = events.length
@@ -794,10 +964,10 @@ function cardHTML(item) {
             ? `<button class="ctx-btn" data-act="context" title="Hintergrund zum Thema"
                        aria-label="Hintergrund zum Thema">i</button>` : ''}</h2>
           ${item.combined
-            ? `<p class="sum">${esc(item.combined)}</p>
-               <p class="zusammengefasst">✦ Aus ${item.combinedSources?.length || (item.also.length + 1)} Quellen zusammengefasst${
+            ? textBlockHTML(item.combined)
+              + `<p class="zusammengefasst">✦ Aus ${item.combinedSources?.length || (item.also.length + 1)} Quellen zusammengefasst${
                  item.combinedBy === 'claude' ? '' : ' (regelbasiert)'}</p>`
-            : (item.summary ? `<p class="sum">${esc(item.summary)}</p>` : '')}
+            : (item.summary ? textBlockHTML(item.summary) : '')}
         </div>
         ${showImg ? `<button class="thumb" data-act="zoom" aria-label="Bild vergrößern">
             <img src="${esc(item.image)}" alt="" loading="lazy" decoding="async"
@@ -827,6 +997,20 @@ const SPRACHE_KURZ = {
   fi: 'Finnisch', pt: 'Portugiesisch', ja: 'Japanisch',
 }
 const sprachKurz = l => SPRACHE_KURZ[l] || String(l || '').toUpperCase()
+
+// Ab dieser Länge wird eingeklappt. Zwei bis drei Sätze stehen sofort da,
+// der Rest kommt auf Wunsch. Gekürzt wird seit v21 nichts mehr — vorher
+// schnitt der Build bei 420 Zeichen ab und der Rest war verloren.
+const TEXT_KURZ = 280
+
+function textBlockHTML(text) {
+  const t = String(text || '')
+  if (t.length <= TEXT_KURZ) return `<p class="sum">${esc(t)}</p>`
+  // An der Wortgrenze trennen, damit der Anriss nicht mitten im Wort endet.
+  const schnitt = t.slice(0, TEXT_KURZ).replace(/\s\S*$/, '')
+  return `<p class="sum sum-kurz">${esc(schnitt)}<span class="sum-rest" hidden>${esc(t.slice(schnitt.length))}</span></p>
+    <button class="mehr-btn" data-act="mehr">weiterlesen</button>`
+}
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c =>
@@ -1298,13 +1482,27 @@ async function loadWeather({ force = false } = {}) {
   const p = pos || FALLBACK_POS
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}`
-      + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m`
+      + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m`
       + `&hourly=temperature_2m,weather_code,precipitation_probability`
       + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset`
       + `&forecast_days=5&forecast_hours=12&timezone=auto`
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     state.weather = await res.json()
+
+    // Seegang nur dort, wo es welchen gibt. Eine Küstenlinien-Datenbank
+    // braucht es dafür nicht: Der Marine-Dienst liefert im Binnenland null
+    // zurück — geprüft für Korneuburg und den Neusiedler See, während
+    // Rijeka und Grado echte Werte melden.
+    state.marine = null
+    try {
+      const m = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${p.lat}&longitude=${p.lon}`
+        + `&current=wave_height,wave_direction,wave_period&timezone=auto`)
+      if (m.ok) {
+        const j = await m.json()
+        if (j?.current?.wave_height != null) state.marine = j.current
+      }
+    } catch { /* ohne Seegang bleibt es beim normalen Wetter */ }
     state.weatherPlace = pos
       ? (await placeName(p.lat, p.lon)) || `${p.lat.toFixed(2)}, ${p.lon.toFixed(2)}`
       : `${FALLBACK_POS.name} (Standort nicht freigegeben)`
@@ -1328,6 +1526,34 @@ async function renderWeather({ force = false } = {}) {
     return
   }
   paintWeather(el)
+}
+
+/** Gradzahl in die Himmelsrichtung, wie sie auf dem Wasser genannt wird. */
+function himmelsrichtung(grad) {
+  const r = ['N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO',
+    'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+  return r[Math.round((grad % 360) / 22.5) % 16]
+}
+
+/** Beaufort aus km/h — auf dem Wasser die gebräuchlichere Angabe. */
+function beaufort(kmh) {
+  const g = [1, 6, 12, 20, 29, 39, 50, 62, 75, 89, 103, 118]
+  for (let i = 0; i < g.length; i++) if (kmh < g[i]) return i
+  return 12
+}
+
+function segelBlockHTML(c) {
+  const m = state.marine
+  return `<div class="wx-segel">
+    <h3>⛵ Wind und Seegang</h3>
+    <div class="segel-grid">
+      <div><b>${esc(himmelsrichtung(c.wind_direction_10m))}</b><small>${Math.round(c.wind_direction_10m)}°</small></div>
+      <div><b>${Math.round(c.wind_speed_10m)}</b><small>km/h · ${beaufort(c.wind_speed_10m)} Bft</small></div>
+      <div><b>${Math.round(c.wind_gusts_10m ?? 0)}</b><small>km/h Böen</small></div>
+      ${m ? `<div><b>${Number(m.wave_height).toFixed(1)} m</b><small>Welle aus ${esc(himmelsrichtung(m.wave_direction))}</small></div>
+             <div><b>${Number(m.wave_period).toFixed(1)} s</b><small>Periode</small></div>` : ''}
+    </div>
+  </div>`
 }
 
 function paintWeather(el) {
@@ -1377,6 +1603,7 @@ function paintWeather(el) {
         ☀ ${sunrise} &nbsp;·&nbsp; 🌙 ${sunset}
       </div>
     </div>
+    ${state.marine ? segelBlockHTML(c) : ''}
     ${hours ? `<div class="wx-hours">${hours}</div>` : ''}
     <div class="wx-days">${days}</div>
     <div class="wx-actions">
@@ -1443,6 +1670,7 @@ function waehlbareTabs() {
       id: c.id, icon: c.icon,
       label: c.id === 'region' ? regionLabel() : c.label,
     })),
+    { id: 'checkit', ...CLIENT_TABS.checkit },
     { id: 'termine', ...CLIENT_TABS.termine },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt },
     { id: 'wetter', ...CLIENT_TABS.wetter },
@@ -1718,6 +1946,12 @@ document.addEventListener('click', ev => {
     return
   }
 
+  const ciOpt = ev.target.closest('[data-ci]')
+  if (ciOpt) {
+    checkitAntwort(Number(ciOpt.dataset.ci), Number(ciOpt.dataset.opt))
+    return
+  }
+
   const card = ev.target.closest('.card')
   const act = ev.target.closest('[data-act]')?.dataset.act
 
@@ -1758,6 +1992,14 @@ document.addEventListener('click', ev => {
       openLightbox(item)
     } else if (act === 'context') {
       openContext(item)
+    } else if (act === 'mehr') {
+      const p = card.querySelector('.sum-kurz')
+      const rest = p?.querySelector('.sum-rest')
+      if (!rest) return
+      const auf = rest.hidden
+      rest.hidden = !auf
+      p.classList.toggle('sum-kurz', !auf)
+      ev.target.closest('[data-act="mehr"]').textContent = auf ? 'weniger' : 'weiterlesen'
     }
     return
   }

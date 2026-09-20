@@ -18,6 +18,7 @@ import {
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 import { summarizeMerged } from './summarize.mjs'
+import { buildCheckIt } from './checkit.mjs'
 import { claudeVerfügbar } from './translate.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -43,6 +44,9 @@ const STALE_FEED_DAYS = 7          // ab hier gilt ein Feed als aufgegeben
 
 // Weniger Text als das ist keine Meldung, sondern ein Anreißer.
 const MIN_SUMMARY_CHARS = 80
+
+// Nur als Notbremse gegen Feeds, die komplette Seiten ausliefern.
+const MAX_SUMMARY_CHARS = 5000
 
 /**
  * Obergrenze pro Quelle innerhalb einer Kategorie — abhängig davon, wie viele
@@ -327,7 +331,12 @@ function parseFeed(xml, src, now) {
     if (isOpinionOrAd(title, link, cats)) continue
 
     let summary = clean(tagContent(block, 'description', 'summary', 'content:encoded', 'content'))
-    if (summary.length > 420) summary = summary.slice(0, 417).replace(/\s\S*$/, '') + '…'
+    // Nicht mehr bei 420 Zeichen abschneiden — der Text soll vollständig
+    // ankommen und in der App aufklappbar sein. Die Obergrenze bleibt nur
+    // als Schutz vor Feeds, die ganze Artikel samt Navigation liefern.
+    if (summary.length > MAX_SUMMARY_CHARS) {
+      summary = summary.slice(0, MAX_SUMMARY_CHARS - 1).replace(/\s\S*$/, '') + '…'
+    }
     if (normalizeTitle(summary).startsWith(normalizeTitle(title).slice(0, 40))) {
       summary = summary.slice(title.length).replace(/^[\s–—-]+/, '')
     }
@@ -872,6 +881,30 @@ function insideUpdateWindow() {
 }
 
 /** Wie alt ist der zuletzt gebaute Datenstand? Stunden, oder null. */
+/** Datum in Wiener Ortszeit (YYYY-MM-DD) — der Tag, für den check-it gilt. */
+function tagStempel(d = new Date()) {
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Europe/Vienna', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d)
+}
+
+/**
+ * Fünf Fragen pro TAG, nicht pro Aufbau. Der Aufbau läuft stündlich — würde
+ * er jedes Mal neue Fragen erzeugen, zöge er dem Leser den Satz unter den
+ * bereits gegebenen Antworten weg und kostete zwanzig Claude-Aufrufe täglich
+ * statt einem. Also: Was von heute da ist, bleibt.
+ */
+async function checkItTagesstand(items) {
+  try {
+    const alt = JSON.parse(await readFile(OUT, 'utf8'))?.checkit
+    if (alt?.fragen?.length && tagStempel(new Date(alt.erstellt)) === tagStempel()) {
+      console.log(`  check-it: ${alt.fragen.length} Fragen von heute übernommen`)
+      return alt
+    }
+  } catch { /* kein brauchbarer Vorgänger — dann eben neu */ }
+  return buildCheckIt(items)
+}
+
 async function alterDesBestands() {
   try {
     const d = JSON.parse(await readFile(OUT, 'utf8'))
@@ -1085,6 +1118,9 @@ async function main() {
   console.log(`  ${traffic.length} Straße, ${closures.length} Streckensperren, ${oebb.length} Zugmeldungen`)
   for (const c of closures) console.log(`     ${c.text.slice(0, 90)}`)
 
+  console.log('\ncheck-it …')
+  const checkit = await checkItTagesstand(items)
+
   console.log('\nVeranstaltungen (nächste 2 Wochen) …')
   const events = await buildEvents(now)
   console.log(`  ${events.length} Termine gesamt`)
@@ -1120,6 +1156,7 @@ async function main() {
     focusCount: items.filter(i => i.focus).length,
     info,
     events,
+    checkit,
     sourceReport: report,
     items,
   }
