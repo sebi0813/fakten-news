@@ -18,7 +18,7 @@ import {
 } from './sources.mjs'
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 import { summarizeMerged } from './summarize.mjs'
-import { buildCheckIt } from './checkit.mjs'
+import { buildFragenkatalog } from './fragenkatalog.mjs'
 import { claudeVerfügbar } from './translate.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -881,30 +881,6 @@ function insideUpdateWindow() {
 }
 
 /** Wie alt ist der zuletzt gebaute Datenstand? Stunden, oder null. */
-/** Datum in Wiener Ortszeit (YYYY-MM-DD) — der Tag, für den check-it gilt. */
-function tagStempel(d = new Date()) {
-  return new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Europe/Vienna', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(d)
-}
-
-/**
- * Fünf Fragen pro TAG, nicht pro Aufbau. Der Aufbau läuft stündlich — würde
- * er jedes Mal neue Fragen erzeugen, zöge er dem Leser den Satz unter den
- * bereits gegebenen Antworten weg und kostete zwanzig Claude-Aufrufe täglich
- * statt einem. Also: Was von heute da ist, bleibt.
- */
-async function checkItTagesstand(items) {
-  try {
-    const alt = JSON.parse(await readFile(OUT, 'utf8'))?.checkit
-    if (alt?.fragen?.length && tagStempel(new Date(alt.erstellt)) === tagStempel()) {
-      console.log(`  check-it: ${alt.fragen.length} Fragen von heute übernommen`)
-      return alt
-    }
-  } catch { /* kein brauchbarer Vorgänger — dann eben neu */ }
-  return buildCheckIt(items)
-}
-
 async function alterDesBestands() {
   try {
     const d = JSON.parse(await readFile(OUT, 'utf8'))
@@ -1119,7 +1095,7 @@ async function main() {
   for (const c of closures) console.log(`     ${c.text.slice(0, 90)}`)
 
   console.log('\ncheck-it …')
-  const checkit = await checkItTagesstand(items)
+  const checkit = await buildFragenkatalog()
 
   console.log('\nVeranstaltungen (nächste 2 Wochen) …')
   const events = await buildEvents(now)

@@ -1,0 +1,407 @@
+[
+  {
+    "id": "pol-001",
+    "frage": "Aus wie vielen Bundesländern besteht Österreich?",
+    "optionen": ["Zehn", "Neun", "Acht", "Sieben"],
+    "richtig": 1,
+    "erklaerung": "Österreich ist ein Bundesstaat aus neun Ländern. Wien ist dabei ein Sonderfall, weil es zugleich Bundesland und Gemeinde ist.",
+    "feld": "Politik",
+    "niveau": 1
+  },
+  {
+    "id": "pol-002",
+    "frage": "In welchem Jahr trat Österreich der Europäischen Union bei?",
+    "optionen": ["1989", "1992", "1995", "2004"],
+    "richtig": 2,
+    "erklaerung": "Nach der Volksabstimmung im Juni 1994, bei der rund zwei Drittel zustimmten, erfolgte der Beitritt am 1. Jänner 1995 gemeinsam mit Schweden und Finnland.",
+    "feld": "Politik",
+    "niveau": 1
+  },
+  {
+    "id": "pol-003",
+    "frage": "Welche Kammer des österreichischen Parlaments vertritt die Interessen der Bundesländer?",
+    "optionen": ["Der Bundesrat", "Der Nationalrat", "Die Bundesversammlung", "Der Landtag"],
+    "richtig": 0,
+    "erklaerung": "Die Mitglieder des Bundesrats werden von den Landtagen entsandt. Gegen Gesetzesbeschlüsse des Nationalrats kann er in den meisten Fällen nur ein aufschiebendes Veto einlegen.",
+    "feld": "Politik",
+    "niveau": 1
+  },
+  {
+    "id": "pol-004",
+    "frage": "Was ist das Kennzeichen eines Verhältniswahlrechts?",
+    "optionen": ["Nur die stimmenstärkste Partei im Wahlkreis erhält ein Mandat", "Die Wählerinnen und Wähler bestimmen den Regierungschef direkt", "Jede Partei erhält unabhängig vom Ergebnis gleich viele Mandate", "Die Mandate werden entsprechend den Stimmenanteilen der Parteien vergeben"],
+    "richtig": 3,
+    "erklaerung": "Der österreichische Nationalrat wird nach dem Verhältniswahlrecht gewählt. Das Gegenmodell ist die Mehrheitswahl, bei der pro Wahlkreis nur der Erstplatzierte ein Mandat erhält.",
+    "feld": "Politik",
+    "niveau": 1
+  },
+  {
+    "id": "pol-005",
+    "frage": "Wie viele Abgeordnete gehören dem österreichischen Nationalrat an?",
+    "optionen": ["165", "183", "200", "244"],
+    "richtig": 1,
+    "erklaerung": "Der Nationalrat hat 183 Mandate. Diese werden in drei Ermittlungsverfahren verteilt: in den Regionalwahlkreisen, in den Landeswahlkreisen und schließlich auf Bundesebene.",
+    "feld": "Politik",
+    "niveau": 2
+  },
+  {
+    "id": "pol-006",
+    "frage": "Für welche Amtsdauer wird der österreichische Bundespräsident gewählt?",
+    "optionen": ["Vier Jahre", "Fünf Jahre", "Sechs Jahre", "Sieben Jahre"],
+    "richtig": 2,
+    "erklaerung": "Die Funktionsperiode beträgt sechs Jahre, eine unmittelbare Wiederwahl ist nur einmal zulässig. Gewählt wird seit 1951 direkt vom Volk.",
+    "feld": "Politik",
+    "niveau": 2
+  },
+  {
+    "id": "pol-007",
+    "frage": "Wer ernennt in Österreich den Bundeskanzler?",
+    "optionen": ["Der Bundespräsident", "Der Nationalrat durch Wahl", "Die Bundesversammlung", "Der Bundesrat"],
+    "richtig": 0,
+    "erklaerung": "Der Bundespräsident ernennt den Bundeskanzler und auf dessen Vorschlag die übrigen Regierungsmitglieder. Die Regierung braucht dennoch das Vertrauen des Nationalrats, der sie jederzeit durch ein Misstrauensvotum stürzen kann.",
+    "feld": "Politik",
+    "niveau": 2
+  },
+  {
+    "id": "pol-008",
+    "frage": "Wie viele ständige Mitglieder mit Vetorecht hat der Sicherheitsrat der Vereinten Nationen?",
+    "optionen": ["Drei", "Fünf", "Zehn", "Fünfzehn"],
+    "richtig": 1,
+    "erklaerung": "Fünf Staaten sind ständige Mitglieder mit Vetorecht: die USA, Russland, China, Frankreich und das Vereinigte Königreich. Dazu kommen zehn nichtständige Mitglieder, die für jeweils zwei Jahre gewählt werden.",
+    "feld": "Politik",
+    "niveau": 2
+  },
+  {
+    "id": "pol-009",
+    "frage": "Welches österreichische Höchstgericht prüft, ob ein Gesetz der Verfassung entspricht?",
+    "optionen": ["Der Oberste Gerichtshof", "Der Verwaltungsgerichtshof", "Der Verfassungsgerichtshof", "Der Europäische Gerichtshof"],
+    "richtig": 2,
+    "erklaerung": "Der Verfassungsgerichtshof kann verfassungswidrige Gesetze aufheben. Der Verwaltungsgerichtshof kontrolliert dagegen Entscheidungen der Verwaltungsgerichte, der Oberste Gerichtshof ist letzte Instanz in Zivil- und Strafsachen.",
+    "feld": "Politik",
+    "niveau": 3
+  },
+  {
+    "id": "pol-010",
+    "frage": "In welchem Jahr beschloss Österreich das Bundesverfassungsgesetz über seine immerwährende Neutralität?",
+    "optionen": ["1945", "1949", "1955", "1966"],
+    "richtig": 2,
+    "erklaerung": "Der Nationalrat beschloss es am 26. Oktober 1955, kurz nach dem Abzug der letzten Besatzungstruppen; der Staatsvertrag war im Mai desselben Jahres unterzeichnet worden. Der 26. Oktober ist seit 1965 Nationalfeiertag.",
+    "feld": "Politik",
+    "niveau": 3
+  },
+  {
+    "id": "pol-011",
+    "frage": "Was ist die zentrale Aufgabe der Bundesversammlung in Österreich?",
+    "optionen": ["Die Wahl des Bundeskanzlers", "Die Beschlussfassung über das Bundesbudget", "Die Bestellung der Mitglieder des Verfassungsgerichtshofs", "Die Angelobung des Bundespräsidenten"],
+    "richtig": 3,
+    "erklaerung": "Nationalrat und Bundesrat treten als Bundesversammlung zusammen, vor allem zur Angelobung des Bundespräsidenten. Sie kann außerdem eine Volksabstimmung über dessen Absetzung einleiten.",
+    "feld": "Politik",
+    "niveau": 3
+  },
+  {
+    "id": "pol-012",
+    "frage": "Welches EU-Organ besteht aus je einem Fachminister der Mitgliedstaaten und beschließt gemeinsam mit dem Europäischen Parlament die Gesetze?",
+    "optionen": ["Die Europäische Kommission", "Der Rat der Europäischen Union", "Der Europäische Rat", "Der Europäische Wirtschafts- und Sozialausschuss"],
+    "richtig": 1,
+    "erklaerung": "Der Rat der Europäischen Union, meist Ministerrat genannt, ist die zweite Kammer der EU-Gesetzgebung. Davon zu unterscheiden ist der Europäische Rat, der aus den Staats- und Regierungschefs besteht und nur die politischen Leitlinien vorgibt.",
+    "feld": "Politik",
+    "niveau": 3
+  },
+  {
+    "id": "pol-013",
+    "frage": "Worin unterscheiden sich der Internationale Gerichtshof (IGH) und der Internationale Strafgerichtshof (IStGH)?",
+    "optionen": ["Der IGH entscheidet Streitigkeiten zwischen Staaten, der IStGH verfolgt einzelne Personen", "Der IGH verfolgt einzelne Personen, der IStGH entscheidet zwischen Staaten", "Der IGH ist ein Organ der EU, der IStGH eines der Vereinten Nationen", "Der IGH ist für Handelsrecht zuständig, der IStGH für Menschenrechtsbeschwerden"],
+    "richtig": 0,
+    "erklaerung": "Der IGH ist das Hauptrechtsprechungsorgan der Vereinten Nationen und entscheidet zwischenstaatliche Streitfälle. Der IStGH beruht auf dem Römischen Statut und verfolgt Einzelpersonen wegen Völkermord, Kriegsverbrechen und Verbrechen gegen die Menschlichkeit; beide haben ihren Sitz in Den Haag.",
+    "feld": "Politik",
+    "niveau": 3
+  },
+  {
+    "id": "pol-014",
+    "frage": "Wie viel Prozent der gültigen Stimmen muss eine Partei bundesweit mindestens erreichen, um in den Nationalrat einzuziehen?",
+    "optionen": ["Drei Prozent", "Vier Prozent", "Fünf Prozent", "Sieben Prozent"],
+    "richtig": 1,
+    "erklaerung": "Die Hürde liegt bei vier Prozent. Alternativ genügt ein Grundmandat in einem der Regionalwahlkreise, um an der weiteren Mandatsverteilung teilzunehmen.",
+    "feld": "Politik",
+    "niveau": 4
+  },
+  {
+    "id": "pol-015",
+    "frage": "Wer hat in der Europäischen Union grundsätzlich das alleinige Recht, Gesetzgebungsvorschläge einzubringen?",
+    "optionen": ["Das Europäische Parlament", "Der Rat der Europäischen Union", "Der Europäische Rat", "Die Europäische Kommission"],
+    "richtig": 3,
+    "erklaerung": "Das sogenannte Initiativmonopol liegt bei der Kommission. Parlament und Rat können sie zwar auffordern, tätig zu werden, beschließen aber nur über die vorgelegten Entwürfe.",
+    "feld": "Politik",
+    "niveau": 4
+  },
+  {
+    "id": "pol-016",
+    "frage": "Worin unterscheidet sich eine EU-Verordnung von einer EU-Richtlinie?",
+    "optionen": ["Die Verordnung gilt unmittelbar in allen Mitgliedstaaten, die Richtlinie muss erst national umgesetzt werden", "Die Richtlinie gilt unmittelbar, die Verordnung muss national umgesetzt werden", "Beide müssen von den Mitgliedstaaten in nationales Recht umgesetzt werden", "Die Verordnung bindet ausschließlich die EU-Organe selbst"],
+    "richtig": 0,
+    "erklaerung": "Verordnungen sind in allen Teilen verbindlich und gelten direkt in jedem Mitgliedstaat. Richtlinien geben nur das Ziel vor, Form und Mittel der Umsetzung bleiben den Mitgliedstaaten überlassen.",
+    "feld": "Politik",
+    "niveau": 4
+  },
+  {
+    "id": "pol-017",
+    "frage": "Welche Folge hat ein erfolgreiches Misstrauensvotum des Nationalrats gegen die Bundesregierung?",
+    "optionen": ["Der Nationalrat löst sich damit automatisch auf", "Der Bundespräsident muss zurücktreten", "Der Bundespräsident muss die Regierung ihres Amtes entheben", "Es müssen binnen 30 Tagen Neuwahlen stattfinden"],
+    "richtig": 2,
+    "erklaerung": "Spricht der Nationalrat der Regierung oder einem einzelnen Mitglied das Misstrauen aus, ist der Bundespräsident zur Amtsenthebung verpflichtet. Neuwahlen sind damit nicht automatisch verbunden.",
+    "feld": "Politik",
+    "niveau": 4
+  },
+  {
+    "id": "pol-018",
+    "frage": "Welchen Rang hat die Europäische Menschenrechtskonvention (EMRK) in der österreichischen Rechtsordnung?",
+    "optionen": ["Den eines einfachen Bundesgesetzes", "Den einer unverbindlichen politischen Absichtserklärung", "Sie gilt nur in jenen Bundesländern, die sie übernommen haben", "Sie steht im Verfassungsrang"],
+    "richtig": 3,
+    "erklaerung": "Österreich hat der EMRK 1964 rückwirkend Verfassungsrang verliehen. Ihre Garantien sind dadurch wie andere Grundrechte vor dem Verfassungsgerichtshof durchsetzbar, was im europäischen Vergleich eine Besonderheit ist.",
+    "feld": "Politik",
+    "niveau": 5
+  },
+  {
+    "id": "pol-019",
+    "frage": "Wem steht nach dem österreichischen Bundes-Verfassungsgesetz eine Zuständigkeit zu, die nicht ausdrücklich dem Bund zugewiesen ist?",
+    "optionen": ["Den Ländern", "Dem Bund", "Den Gemeinden", "Dem Verfassungsgerichtshof"],
+    "richtig": 0,
+    "erklaerung": "Artikel 15 B-VG enthält eine Generalklausel zugunsten der Länder. In der Praxis bleibt deren Spielraum dennoch begrenzt, weil die Kompetenzkataloge des Bundes sehr umfangreich sind.",
+    "feld": "Politik",
+    "niveau": 5
+  },
+  {
+    "id": "pol-020",
+    "frage": "Wie viele Unterstützungen braucht ein Volksbegehren in Österreich, damit es dem Nationalrat vorgelegt werden muss?",
+    "optionen": ["25.000", "50.000", "100.000", "200.000"],
+    "richtig": 2,
+    "erklaerung": "Erforderlich sind 100.000 Unterschriften oder je ein Sechstel der Stimmberechtigten in drei Bundesländern. Der Nationalrat muss das Anliegen dann behandeln, ist inhaltlich aber nicht daran gebunden.",
+    "feld": "Politik",
+    "niveau": 5
+  },
+  {
+    "id": "wir-001",
+    "frage": "Was versteht man unter Inflation?",
+    "optionen": ["Einen Rückgang der gesamtwirtschaftlichen Produktion", "Einen anhaltenden Anstieg des allgemeinen Preisniveaus", "Einen Anstieg der Arbeitslosenquote", "Eine Zunahme der Staatsverschuldung"],
+    "richtig": 1,
+    "erklaerung": "Inflation bedeutet, dass Geld an Kaufkraft verliert, weil die Preise breit und dauerhaft steigen. Gemessen wird sie in Österreich über den Verbraucherpreisindex, europaweit vergleichbar über den harmonisierten Index HVPI.",
+    "feld": "Wirtschaft",
+    "niveau": 1
+  },
+  {
+    "id": "wir-002",
+    "frage": "Wann wurde der Euro in Österreich als Bargeld eingeführt?",
+    "optionen": ["1995", "1999", "2002", "2004"],
+    "richtig": 2,
+    "erklaerung": "Der Euro existierte ab 1999 zunächst als Buchgeld, Scheine und Münzen kamen am 1. Jänner 2002. Der Schilling war zuvor mit einem Kurs von 13,7603 je Euro unwiderruflich fixiert worden.",
+    "feld": "Wirtschaft",
+    "niveau": 1
+  },
+  {
+    "id": "wir-003",
+    "frage": "Was erwirbt man mit dem Kauf einer Aktie?",
+    "optionen": ["Ein verzinstes Darlehen an das Unternehmen", "Einen Anspruch auf eine fixe jährliche Zahlung", "Eine Versicherung gegen Kursverluste", "Einen Anteil am Eigenkapital einer Aktiengesellschaft"],
+    "richtig": 3,
+    "erklaerung": "Aktionäre sind Miteigentümer und tragen unternehmerisches Risiko; Dividenden hängen vom Ergebnis ab und sind nicht garantiert. Wer dem Unternehmen dagegen Geld leiht, kauft eine Anleihe und ist Gläubiger.",
+    "feld": "Wirtschaft",
+    "niveau": 1
+  },
+  {
+    "id": "wir-004",
+    "frage": "Welche Institution ist für die Geldpolitik im Euroraum zuständig?",
+    "optionen": ["Die Europäische Zentralbank", "Die Europäische Kommission", "Die Europäische Investitionsbank", "Jede nationale Notenbank für ihr eigenes Land"],
+    "richtig": 0,
+    "erklaerung": "Die EZB und die nationalen Zentralbanken der Euroländer bilden gemeinsam das Eurosystem. Die Oesterreichische Nationalbank wirkt an den Entscheidungen mit und setzt sie um, betreibt aber keine eigene Geldpolitik.",
+    "feld": "Wirtschaft",
+    "niveau": 2
+  },
+  {
+    "id": "wir-005",
+    "frage": "Welches Ziel nennen die EU-Verträge als vorrangiges Ziel der Europäischen Zentralbank?",
+    "optionen": ["Vollbeschäftigung", "Möglichst hohes Wirtschaftswachstum", "Preisstabilität", "Ein ausgeglichenes Staatsbudget"],
+    "richtig": 2,
+    "erklaerung": "Preisstabilität steht an erster Stelle; nur soweit diese nicht beeinträchtigt wird, unterstützt die EZB die allgemeine Wirtschaftspolitik der Union. Wie Preisstabilität zahlenmäßig definiert wird, legt die EZB selbst fest.",
+    "feld": "Wirtschaft",
+    "niveau": 2
+  },
+  {
+    "id": "wir-006",
+    "frage": "Was misst das Bruttoinlandsprodukt (BIP)?",
+    "optionen": ["Das Gesamtvermögen aller privaten Haushalte", "Die Summe aller ausgezahlten Löhne und Gehälter", "Die gesamten Einnahmen des Staates", "Den Wert aller Waren und Dienstleistungen, die in einem Zeitraum im Inland erzeugt werden"],
+    "richtig": 3,
+    "erklaerung": "Das BIP ist eine Stromgröße für die Wirtschaftsleistung eines Gebiets, kein Bestand an Vermögen; gezählt wird die Wertschöpfung, also der Produktionswert abzüglich der Vorleistungen. Entscheidend ist das Inlandsprinzip: Es zählt, was im Land produziert wird.",
+    "feld": "Wirtschaft",
+    "niveau": 2
+  },
+  {
+    "id": "wir-007",
+    "frage": "Was ist ein ETF?",
+    "optionen": ["Ein börsengehandelter Fonds, der meist einen Index nachbildet", "Eine Anleihe mit variabler Verzinsung", "Ein Termingeschäft auf Rohstoffe", "Ein Sparbuch mit garantierter Mindestverzinsung"],
+    "richtig": 0,
+    "erklaerung": "Exchange Traded Funds werden laufend an der Börse gehandelt und folgen in der Regel passiv einem Index. Weil kein aktives Management nötig ist, sind die laufenden Kosten meist niedriger als bei klassischen Investmentfonds.",
+    "feld": "Wirtschaft",
+    "niveau": 2
+  },
+  {
+    "id": "wir-008",
+    "frage": "Was unterscheidet eine Genossenschaft strukturell von einer Aktiengesellschaft?",
+    "optionen": ["Eine Genossenschaft darf keinerlei Überschüsse erwirtschaften", "In der Generalversammlung hat jedes Mitglied grundsätzlich eine Stimme, unabhängig von der Höhe seines Anteils", "Eine Genossenschaft hat keine gewählte Leitung", "Genossenschaftsanteile werden an der Börse gehandelt"],
+    "richtig": 1,
+    "erklaerung": "Es gilt das Kopfstimmrecht statt des Kapitalstimmrechts. Zweck einer Genossenschaft ist laut Gesetz die Förderung ihrer Mitglieder und nicht die Maximierung der Kapitalrendite.",
+    "feld": "Wirtschaft",
+    "niveau": 3
+  },
+  {
+    "id": "wir-009",
+    "frage": "Welche drei Grundsätze prägen das von Friedrich Wilhelm Raiffeisen begründete Genossenschaftsmodell?",
+    "optionen": ["Angebot, Nachfrage und Preis", "Planung, Steuerung und Kontrolle", "Haftung, Hierarchie und Handel", "Selbsthilfe, Selbstverwaltung und Selbstverantwortung"],
+    "richtig": 3,
+    "erklaerung": "Raiffeisen gründete ab der Mitte des 19. Jahrhunderts ländliche Darlehenskassenvereine, um Bauern von Wucherern unabhängig zu machen. Die drei Grundsätze prägen das Genossenschaftswesen bis heute, auch das der österreichischen Raiffeisenbanken.",
+    "feld": "Wirtschaft",
+    "niveau": 3
+  },
+  {
+    "id": "wir-010",
+    "frage": "Was zeigt die Passivseite einer Bilanz?",
+    "optionen": ["Die Herkunft des Kapitals, also Eigen- und Fremdkapital", "Die Vermögensgegenstände des Unternehmens", "Die Erträge und Aufwendungen des Geschäftsjahres", "Die Zahlungsein- und -ausgänge des Geschäftsjahres"],
+    "richtig": 0,
+    "erklaerung": "Die Aktivseite zeigt die Mittelverwendung, also das Vermögen, die Passivseite die Mittelherkunft, also die Finanzierung; beide Seiten sind definitionsgemäß gleich hoch. Erträge und Aufwendungen stehen dagegen in der Gewinn- und Verlustrechnung.",
+    "feld": "Wirtschaft",
+    "niveau": 3
+  },
+  {
+    "id": "wir-011",
+    "frage": "Wie verändert sich in der Regel der Kurs einer bereits laufenden, festverzinslichen Anleihe, wenn das Marktzinsniveau steigt?",
+    "optionen": ["Er steigt ebenfalls", "Er bleibt unverändert, weil der Kupon fix ist", "Er sinkt", "Er richtet sich allein nach der Bonität des Emittenten"],
+    "richtig": 2,
+    "erklaerung": "Neu begebene Anleihen bieten dann höhere Kupons, ältere Papiere werden dadurch unattraktiver und notieren unter ihrem Nennwert. Je länger die Restlaufzeit, desto stärker fällt dieser Effekt aus.",
+    "feld": "Wirtschaft",
+    "niveau": 3
+  },
+  {
+    "id": "wir-012",
+    "frage": "Was bezweckt eine Zentralbank typischerweise mit einer Anhebung ihrer Leitzinsen?",
+    "optionen": ["Die Staatsverschuldung unmittelbar zu senken", "Den Wechselkurs auf einem fixen Niveau festzuschreiben", "Die Steuereinnahmen zu erhöhen", "Kredit und Nachfrage zu dämpfen und so den Preisauftrieb zu bremsen"],
+    "richtig": 3,
+    "erklaerung": "Höhere Leitzinsen verteuern Kredite und machen Sparen attraktiver, was die Nachfrage und damit den Preisdruck bremst. Diese Wirkung tritt allerdings erst mit einer Verzögerung von mehreren Quartalen ein.",
+    "feld": "Wirtschaft",
+    "niveau": 3
+  },
+  {
+    "id": "wir-013",
+    "frage": "Wie entsteht im heutigen Geldsystem der weitaus größte Teil der Geldmenge?",
+    "optionen": ["Durch die Kreditvergabe der Geschäftsbanken", "Durch den Druck von Banknoten durch die Zentralbank", "Durch Goldkäufe der Zentralbank", "Durch die Steuereinnahmen des Staates"],
+    "richtig": 0,
+    "erklaerung": "Vergibt eine Bank einen Kredit, schreibt sie dem Kunden den Betrag als Sichteinlage gut, und es entsteht Buchgeld. Die Zentralbank steuert diesen Prozess indirekt über Zinsen, Mindestreserven und aufsichtsrechtliche Eigenkapitalvorschriften.",
+    "feld": "Wirtschaft",
+    "niveau": 4
+  },
+  {
+    "id": "wir-014",
+    "frage": "Wie berechnet sich die Eigenkapitalquote eines Unternehmens?",
+    "optionen": ["Gewinn geteilt durch Eigenkapital", "Eigenkapital geteilt durch Bilanzsumme", "Eigenkapital geteilt durch Umsatz", "Fremdkapital geteilt durch Eigenkapital"],
+    "richtig": 1,
+    "erklaerung": "Die Eigenkapitalquote zeigt, welcher Anteil des Vermögens mit eigenen Mitteln finanziert ist, und gilt als Maß für die Krisenfestigkeit. Gewinn geteilt durch Eigenkapital ergibt dagegen die Eigenkapitalrendite, Fremd- zu Eigenkapital den Verschuldungsgrad.",
+    "feld": "Wirtschaft",
+    "niveau": 4
+  },
+  {
+    "id": "wir-015",
+    "frage": "Welche Obergrenze für das jährliche Haushaltsdefizit eines Mitgliedstaats nennen die Maastricht-Kriterien?",
+    "optionen": ["Ein Prozent des BIP", "Drei Prozent des BIP", "Fünf Prozent des BIP", "Zehn Prozent des BIP"],
+    "richtig": 1,
+    "erklaerung": "Neben dem Defizit von höchstens drei Prozent des BIP gilt ein öffentlicher Schuldenstand von höchstens 60 Prozent des BIP als Referenzwert. Beide Werte sind im EU-Vertrag samt Protokoll verankert.",
+    "feld": "Wirtschaft",
+    "niveau": 4
+  },
+  {
+    "id": "wir-016",
+    "frage": "Was bezeichnet man im Bankwesen als Fristentransformation?",
+    "optionen": ["Die Umrechnung von Fremdwährungsbeträgen in Euro", "Die Verlängerung der Rückzahlungsfrist eines notleidenden Kredits", "Die Umwandlung von Eigenkapital in Fremdkapital", "Die Verwendung kurzfristig verfügbarer Einlagen zur Finanzierung langfristiger Kredite"],
+    "richtig": 3,
+    "erklaerung": "Fristentransformation ist eine Kernfunktion von Banken und zugleich eine Risikoquelle. Steigen die Zinsen oder ziehen viele Kunden gleichzeitig ihre Einlagen ab, schlagen daraus Zins- und Liquiditätsrisiken durch.",
+    "feld": "Wirtschaft",
+    "niveau": 5
+  },
+  {
+    "id": "wir-017",
+    "frage": "Was verlangt das strenge Niederstwertprinzip für Gegenstände des Umlaufvermögens?",
+    "optionen": ["Den Ansatz mit dem niedrigeren Wert aus Anschaffungskosten und beizulegendem Wert am Bilanzstichtag", "Den Ansatz stets zum aktuellen Marktwert, auch wenn dieser über den Anschaffungskosten liegt", "Den Ansatz stets zu den ursprünglichen Anschaffungskosten", "Den Ansatz zum Durchschnitt aus Einkaufs- und Verkaufspreis"],
+    "richtig": 0,
+    "erklaerung": "Das Prinzip folgt dem Vorsichtsgrundsatz des Rechnungswesens: Drohende Verluste werden vorweggenommen, noch nicht realisierte Gewinne dagegen nicht ausgewiesen. Diese ungleiche Behandlung nennt man Imparitätsprinzip.",
+    "feld": "Wirtschaft",
+    "niveau": 5
+  },
+  {
+    "id": "arb-001",
+    "frage": "Wie lange dauert das Daily Scrum höchstens?",
+    "optionen": ["5 Minuten", "15 Minuten", "30 Minuten", "60 Minuten"],
+    "richtig": 1,
+    "erklaerung": "Das Daily ist ein auf 15 Minuten begrenztes tägliches Ereignis der Entwickler, um die Arbeit der nächsten 24 Stunden abzustimmen. Es ist ausdrücklich kein Statusbericht an Vorgesetzte.",
+    "feld": "Arbeitswelt",
+    "niveau": 1
+  },
+  {
+    "id": "arb-002",
+    "frage": "Was bewirkt ein WIP-Limit in einem Kanban-System?",
+    "optionen": ["Es begrenzt die Länge einer Iteration", "Es begrenzt die Anzahl der Teammitglieder", "Es begrenzt die Anzahl der gleichzeitig in Bearbeitung befindlichen Aufgaben", "Es legt fest, wie viel Dokumentation mindestens zu erstellen ist"],
+    "richtig": 2,
+    "erklaerung": "WIP steht für Work in Progress. Weniger Parallelarbeit bedeutet weniger Umschaltverluste und kürzere Durchlaufzeiten, und ein erreichtes Limit macht Engpässe im Prozess sofort sichtbar.",
+    "feld": "Arbeitswelt",
+    "niveau": 2
+  },
+  {
+    "id": "arb-003",
+    "frage": "Wer verantwortet im Scrum-Rahmenwerk die Reihenfolge der Einträge im Product Backlog?",
+    "optionen": ["Der Scrum Master", "Die Entwickler gemeinsam", "Der Auftraggeber oder ein Lenkungsausschuss", "Der Product Owner"],
+    "richtig": 3,
+    "erklaerung": "Der Product Owner verantwortet den Wert des Produkts und damit die Ordnung des Backlogs. Der Scrum Master verantwortet die Wirksamkeit der Arbeitsweise, die Entwickler entscheiden, wie viel sie in einen Sprint übernehmen.",
+    "feld": "Arbeitswelt",
+    "niveau": 2
+  },
+  {
+    "id": "arb-004",
+    "frage": "Worin unterscheidet sich Kanban grundlegend von Scrum?",
+    "optionen": ["Kanban arbeitet ohne feste Iterationen und steuert über Visualisierung und WIP-Limits im kontinuierlichen Fluss", "Kanban verzichtet bewusst auf jede Visualisierung der Arbeit", "Kanban schreibt feste Rollen und Ereignisse vor, Scrum nicht", "Kanban ist ausschließlich in der Softwareentwicklung anwendbar"],
+    "richtig": 0,
+    "erklaerung": "Scrum ist ein Rahmenwerk mit Sprints fester Länge, definierten Verantwortlichkeiten und Ereignissen. Kanban setzt dagegen auf dem bestehenden Prozess auf und verbessert ihn schrittweise, ohne ihn zu Beginn umzubauen.",
+    "feld": "Arbeitswelt",
+    "niveau": 3
+  },
+  {
+    "id": "arb-005",
+    "frage": "Was ist die Definition of Done in Scrum?",
+    "optionen": ["Die Liste der Akzeptanzkriterien eines einzelnen Backlog-Eintrags", "Ein gemeinsam vereinbarter Qualitätsstandard, den ein Inkrement erfüllen muss, um als fertig zu gelten", "Das Ziel, das sich das Team für den Sprint setzt", "Die formale Abnahmeerklärung des Kunden nach der Auslieferung"],
+    "richtig": 1,
+    "erklaerung": "Die Definition of Done gilt für jedes Inkrement und schafft Transparenz darüber, was fertig überhaupt bedeutet. Akzeptanzkriterien beschreiben dagegen die inhaltlichen Anforderungen eines einzelnen Eintrags.",
+    "feld": "Arbeitswelt",
+    "niveau": 3
+  },
+  {
+    "id": "arb-006",
+    "frage": "Was bezeichnet die Durchlaufzeit (Lead Time) einer Aufgabe?",
+    "optionen": ["Die reine Bearbeitungszeit ohne Warte- und Liegezeiten", "Die Länge einer Iteration", "Den Abstand zwischen zwei Auslieferungen", "Die gesamte Zeit vom Eintreffen der Anforderung bis zu ihrer Auslieferung"],
+    "richtig": 3,
+    "erklaerung": "Die Durchlaufzeit schließt Wartezeiten ein und ist damit die aus Kundensicht entscheidende Größe. Nach Littles Gesetz gilt näherungsweise Durchlaufzeit gleich Bestand geteilt durch Durchsatz, weshalb weniger angefangene Arbeit die Zeit verkürzt.",
+    "feld": "Arbeitswelt",
+    "niveau": 4
+  },
+  {
+    "id": "arb-007",
+    "frage": "Was beschreibt das magische Dreieck des Projektmanagements?",
+    "optionen": ["Die drei Projektphasen Planung, Umsetzung und Abschluss", "Die drei Rollen Auftraggeber, Projektleitung und Lenkungsausschuss", "Die drei voneinander abhängigen Zielgrößen Zeit, Kosten und Leistungsumfang", "Die drei Ebenen Strategie, Taktik und operatives Geschäft"],
+    "richtig": 2,
+    "erklaerung": "Verändert man eine der drei Größen, wirkt sich das zwangsläufig auf mindestens eine der anderen aus. Agile Vorgehensweisen fixieren deshalb meist Zeit und Kosten und lassen bewusst den Umfang variabel.",
+    "feld": "Arbeitswelt",
+    "niveau": 4
+  },
+  {
+    "id": "arb-008",
+    "frage": "Was besagt Conways Gesetz?",
+    "optionen": ["Organisationen entwerfen Systeme, die die Kommunikationsstrukturen dieser Organisationen abbilden", "Ein verspätetes Projekt wird durch zusätzliche Mitarbeiter noch später", "Arbeit dehnt sich so weit aus, dass sie die verfügbare Zeit ausfüllt", "Mitarbeiter steigen so lange auf, bis sie eine Stufe erreichen, der sie nicht mehr gewachsen sind"],
+    "richtig": 0,
+    "erklaerung": "Melvin Conway formulierte diesen Zusammenhang 1967; er erklärt, warum Systemarchitektur und Organisationsstruktur einander spiegeln und warum Umbauten an Systemen oft Umbauten an der Organisation verlangen. Die drei anderen Aussagen sind Brooks' Gesetz, das Parkinsonsche Gesetz und das Peter-Prinzip.",
+    "feld": "Arbeitswelt",
+    "niveau": 5
+  }
+]

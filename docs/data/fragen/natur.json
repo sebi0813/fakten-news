@@ -1,0 +1,432 @@
+[
+  {
+    "id": "nat-001",
+    "frage": "Welches Gas nehmen grüne Pflanzen bei der Photosynthese aus der Luft auf?",
+    "optionen": ["Stickstoff", "Sauerstoff", "Kohlendioxid", "Wasserstoff"],
+    "richtig": 2,
+    "erklaerung": "Aus Kohlendioxid und Wasser bauen Pflanzen mithilfe von Lichtenergie Zucker auf; der freigesetzte Sauerstoff stammt dabei aus dem gespaltenen Wasser, nicht aus dem Kohlendioxid.",
+    "feld": "Natur",
+    "niveau": 1
+  },
+  {
+    "id": "nat-002",
+    "frage": "Wie viele Beine hat ein ausgewachsenes Insekt?",
+    "optionen": ["Vier", "Sechs", "Acht", "Zehn"],
+    "richtig": 1,
+    "erklaerung": "Insekten tragen an den drei Brustsegmenten je ein Beinpaar, also sechs Beine. Spinnentiere mit acht Beinen gehören deshalb nicht zu den Insekten.",
+    "feld": "Natur",
+    "niveau": 1
+  },
+  {
+    "id": "nat-003",
+    "frage": "Welches ist das größte Organ des menschlichen Körpers?",
+    "optionen": ["Die Leber", "Die Lunge", "Die Haut", "Der Dünndarm"],
+    "richtig": 2,
+    "erklaerung": "Die Haut bringt es bei Erwachsenen auf rund zwei Quadratmeter Fläche und mehrere Kilogramm Gewicht. Sie schützt vor Austrocknung und Krankheitserregern und reguliert die Körpertemperatur.",
+    "feld": "Natur",
+    "niveau": 1
+  },
+  {
+    "id": "nat-004",
+    "frage": "Welcher Bestandteil des Blutes transportiert den Sauerstoff?",
+    "optionen": ["Die weißen Blutkörperchen", "Die Blutplättchen", "Das Blutplasma", "Die roten Blutkörperchen"],
+    "richtig": 3,
+    "erklaerung": "Die roten Blutkörperchen enthalten den eisenhaltigen Farbstoff Hämoglobin, an den sich Sauerstoff locker bindet. Weiße Blutkörperchen dienen der Abwehr, Blutplättchen der Gerinnung.",
+    "feld": "Natur",
+    "niveau": 1
+  },
+  {
+    "id": "nat-005",
+    "frage": "Wie viele Chromosomenpaare besitzt eine normale menschliche Körperzelle?",
+    "optionen": ["21 Paare", "22 Paare", "23 Paare", "24 Paare"],
+    "richtig": 2,
+    "erklaerung": "46 Chromosomen bilden 23 Paare, darunter ein Paar Geschlechtschromosomen. Eizellen und Spermien enthalten dagegen nur einen einfachen Satz von 23 Chromosomen.",
+    "feld": "Natur",
+    "niveau": 2
+  },
+  {
+    "id": "nat-006",
+    "frage": "Welches Gas ist mit Abstand der Hauptbestandteil der Erdatmosphäre?",
+    "optionen": ["Sauerstoff", "Stickstoff", "Kohlendioxid", "Argon"],
+    "richtig": 1,
+    "erklaerung": "Stickstoff macht etwa 78 Prozent der trockenen Luft aus, Sauerstoff rund 21 Prozent. Der reaktionsträge Stickstoff ist für die meisten Lebewesen nur über Umwege nutzbar.",
+    "feld": "Natur",
+    "niveau": 2
+  },
+  {
+    "id": "nat-007",
+    "frage": "In welchem Zellbestandteil einer Pflanze läuft die Photosynthese ab?",
+    "optionen": ["In den Mitochondrien", "In den Chloroplasten", "Im Zellkern", "An den Ribosomen"],
+    "richtig": 1,
+    "erklaerung": "Chloroplasten enthalten das grüne Chlorophyll, das Lichtenergie einfängt. Mitochondrien leisten das Gegenteil: Sie gewinnen Energie durch den Abbau von Nährstoffen.",
+    "feld": "Natur",
+    "niveau": 2
+  },
+  {
+    "id": "nat-008",
+    "frage": "Welcher Teil des menschlichen Gehirns steuert vor allem Gleichgewicht und Bewegungskoordination?",
+    "optionen": ["Das Großhirn", "Der Hirnstamm", "Das Kleinhirn", "Der Thalamus"],
+    "richtig": 2,
+    "erklaerung": "Das Kleinhirn stimmt Bewegungsabläufe fein aufeinander ab und speichert eingeübte Bewegungsmuster. Schäden dort führen zu unsicherem Gang und zitternden Zielbewegungen.",
+    "feld": "Natur",
+    "niveau": 2
+  },
+  {
+    "id": "nat-009",
+    "frage": "Welche Pflanzenfamilie lebt typischerweise in Symbiose mit stickstoffbindenden Knöllchenbakterien?",
+    "optionen": ["Die Süßgräser", "Die Kreuzblütler", "Die Doldenblütler", "Die Hülsenfrüchtler"],
+    "richtig": 3,
+    "erklaerung": "Erbsen, Bohnen, Klee und Lupinen beherbergen in Wurzelknöllchen Bakterien, die Luftstickstoff verfügbar machen. Deshalb werden Leguminosen in der Fruchtfolge zur Bodenverbesserung angebaut.",
+    "feld": "Natur",
+    "niveau": 3
+  },
+  {
+    "id": "nat-010",
+    "frage": "Was versteht die Evolutionsbiologie unter konvergenter Entwicklung?",
+    "optionen": [
+      "Nicht näher verwandte Arten entwickeln unabhängig voneinander ähnliche Merkmale",
+      "Verwandte Arten entwickeln sich in unterschiedliche Richtungen auseinander",
+      "Zwei Arten verschmelzen im Lauf der Zeit zu einer einzigen Art",
+      "Ein Merkmal bildet sich im Lauf der Generationen wieder zurück"
+    ],
+    "richtig": 0,
+    "erklaerung": "Ähnlicher Selektionsdruck führt zu ähnlichen Lösungen: Der stromlinienförmige Körper von Hai, Delfin und Ichthyosaurier ist ein klassisches Beispiel. Solche Ähnlichkeiten heißen Analogien, nicht Homologien.",
+    "feld": "Natur",
+    "niveau": 3
+  },
+  {
+    "id": "nat-011",
+    "frage": "Wie nennt man die Abgabe von Wasserdampf über die Spaltöffnungen der Blätter?",
+    "optionen": ["Transpiration", "Guttation", "Osmose", "Plasmolyse"],
+    "richtig": 0,
+    "erklaerung": "Die Transpiration erzeugt einen Sog, der Wasser aus der Wurzel bis in die Krone zieht. Guttation bezeichnet dagegen das Ausscheiden flüssiger Wassertropfen über eigene Drüsen am Blattrand.",
+    "feld": "Natur",
+    "niveau": 3
+  },
+  {
+    "id": "nat-012",
+    "frage": "Aus welchem Teil des Herzens wird das Blut in die Lunge gepumpt?",
+    "optionen": ["Aus der linken Herzkammer", "Aus der rechten Herzkammer", "Aus dem linken Vorhof", "Aus dem rechten Vorhof"],
+    "richtig": 1,
+    "erklaerung": "Die rechte Kammer treibt sauerstoffarmes Blut über die Lungenarterien in den Lungenkreislauf. Die linke Kammer versorgt anschließend mit deutlich höherem Druck den gesamten Körperkreislauf.",
+    "feld": "Natur",
+    "niveau": 3
+  },
+  {
+    "id": "nat-013",
+    "frage": "Wie bezeichnet man Arten, die von Natur aus nur in einem eng begrenzten Gebiet vorkommen?",
+    "optionen": ["Endemiten", "Ubiquisten", "Neobiota", "Kosmopoliten"],
+    "richtig": 0,
+    "erklaerung": "Endemiten entstehen oft auf Inseln oder in isolierten Gebirgsregionen und sind durch ihr kleines Verbreitungsgebiet besonders aussterbegefährdet. Kosmopoliten sind das Gegenteil: weltweit verbreitete Arten.",
+    "feld": "Natur",
+    "niveau": 3
+  },
+  {
+    "id": "nat-014",
+    "frage": "Wie heißt die erste Phase der Mitose, in der die Chromosomen als Einzelstrukturen sichtbar werden?",
+    "optionen": ["Metaphase", "Prophase", "Anaphase", "Telophase"],
+    "richtig": 1,
+    "erklaerung": "In der Prophase verdichtet sich das Chromatin zu kompakten Chromosomen und die Kernhülle löst sich auf. Erst in der Metaphase ordnen sie sich in der Äquatorialebene an.",
+    "feld": "Natur",
+    "niveau": 4
+  },
+  {
+    "id": "nat-015",
+    "frage": "Welches Hormon der Nebennierenrinde reguliert vor allem den Natrium- und Kaliumhaushalt?",
+    "optionen": ["Cortisol", "Adrenalin", "Aldosteron", "Insulin"],
+    "richtig": 2,
+    "erklaerung": "Aldosteron lässt die Niere Natrium zurückhalten und Kalium ausscheiden und beeinflusst damit auch den Blutdruck. Adrenalin stammt aus dem Nebennierenmark, nicht aus der Rinde.",
+    "feld": "Natur",
+    "niveau": 4
+  },
+  {
+    "id": "nat-016",
+    "frage": "Welche Zellen des Immunsystems stellen Antikörper her?",
+    "optionen": ["Makrophagen", "T-Killerzellen", "Granulozyten", "Plasmazellen"],
+    "richtig": 3,
+    "erklaerung": "Plasmazellen entstehen aus aktivierten B-Lymphozyten und produzieren massenhaft passgenaue Antikörper. T-Killerzellen vernichten dagegen infizierte Körperzellen direkt, ohne Antikörper zu bilden.",
+    "feld": "Natur",
+    "niveau": 4
+  },
+  {
+    "id": "nat-017",
+    "frage": "Wie nennt man eine Art, deren Verschwinden ein ganzes Ökosystem überproportional stark verändert?",
+    "optionen": ["Pionierart", "Schlüsselart", "Zeigerart", "Leitart"],
+    "richtig": 1,
+    "erklaerung": "Schlüsselarten haben eine Wirkung, die weit über ihre Individuenzahl hinausgeht, etwa wenn ein Räuber die Zahl dominanter Beutetiere begrenzt. Zeigerarten dienen dagegen nur als Anzeiger für bestimmte Standortbedingungen.",
+    "feld": "Natur",
+    "niveau": 4
+  },
+  {
+    "id": "nat-018",
+    "frage": "In welchem Abschnitt der Niere findet die Filtration des Blutes zum Primärharn statt?",
+    "optionen": ["Im Nierenbecken", "In der Henle-Schleife", "Im Sammelrohr", "Im Nierenkörperchen"],
+    "richtig": 3,
+    "erklaerung": "Im Nierenkörperchen presst der Blutdruck Flüssigkeit aus dem Kapillarknäuel in die umgebende Kapsel. In den nachgeschalteten Tubulusabschnitten wird der Großteil dieses Primärharns wieder zurückgewonnen.",
+    "feld": "Natur",
+    "niveau": 5
+  },
+  {
+    "id": "nat-019",
+    "frage": "Welches Enzym bindet im Calvin-Zyklus das Kohlendioxid an einen Zuckerbaustein?",
+    "optionen": ["Die ATP-Synthase", "Die Nitrogenase", "Die RuBisCO", "Die Carboanhydrase"],
+    "richtig": 2,
+    "erklaerung": "RuBisCO überträgt Kohlendioxid auf Ribulose-1,5-bisphosphat und gilt als das mengenmäßig häufigste Enzym der Erde. Es arbeitet vergleichsweise langsam und bindet gelegentlich irrtümlich Sauerstoff.",
+    "feld": "Natur",
+    "niveau": 5
+  },
+  {
+    "id": "nat-020",
+    "frage": "Wie heißen die Abschnitte eines Gens, die nach der Reifung in der fertigen mRNA erhalten bleiben?",
+    "optionen": ["Introns", "Exons", "Codons", "Operons"],
+    "richtig": 1,
+    "erklaerung": "Beim Spleißen werden die dazwischenliegenden Introns herausgeschnitten und die Exons aneinandergefügt. Durch alternatives Spleißen kann ein einziges Gen mehrere verschiedene Proteine liefern.",
+    "feld": "Natur",
+    "niveau": 5
+  },
+  {
+    "id": "ern-001",
+    "frage": "Welcher Hauptnährstoff liefert pro Gramm die meiste Energie?",
+    "optionen": ["Eiweiß", "Fett", "Kohlenhydrate", "Ballaststoffe"],
+    "richtig": 1,
+    "erklaerung": "Fett liefert rund 9 Kilokalorien je Gramm, Eiweiß und Kohlenhydrate jeweils etwa 4. Deshalb sind fettreiche Lebensmittel bei gleichem Gewicht deutlich energiedichter.",
+    "feld": "Ernährung",
+    "niveau": 1
+  },
+  {
+    "id": "ern-002",
+    "frage": "Welches Vitamin kann der Körper mithilfe von Sonnenlicht in der Haut selbst bilden?",
+    "optionen": ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin K"],
+    "richtig": 2,
+    "erklaerung": "UV-B-Strahlung wandelt eine Vorstufe in der Haut in Vitamin D um, das dann in Leber und Niere aktiviert wird. In den sonnenarmen Wintermonaten ist die Eigenbildung in unseren Breiten stark eingeschränkt.",
+    "feld": "Ernährung",
+    "niveau": 1
+  },
+  {
+    "id": "ern-003",
+    "frage": "Welcher Mineralstoff ist der wichtigste Baustoff von Knochen und Zähnen?",
+    "optionen": ["Calcium", "Kalium", "Magnesium", "Natrium"],
+    "richtig": 0,
+    "erklaerung": "Rund 99 Prozent des Körpercalciums stecken im Skelett, das zugleich als Speicher dient. Für den Einbau ist ausreichend Vitamin D nötig, das die Calciumaufnahme im Darm steigert.",
+    "feld": "Ernährung",
+    "niveau": 1
+  },
+  {
+    "id": "ern-004",
+    "frage": "Der Mangel an welchem Vitamin verursacht die Krankheit Skorbut?",
+    "optionen": ["Vitamin B12", "Vitamin C", "Vitamin D", "Vitamin E"],
+    "richtig": 1,
+    "erklaerung": "Vitamin C wird für den Aufbau von stabilem Kollagen gebraucht; fehlt es, kommt es zu Zahnfleischbluten und schlechter Wundheilung. Seefahrer erkrankten früher auf langen Reisen ohne frische Pflanzenkost daran.",
+    "feld": "Ernährung",
+    "niveau": 1
+  },
+  {
+    "id": "ern-005",
+    "frage": "Welches Spurenelement braucht die Schilddrüse zur Bildung ihrer Hormone?",
+    "optionen": ["Jod", "Eisen", "Zink", "Selen"],
+    "richtig": 0,
+    "erklaerung": "Die Schilddrüsenhormone enthalten Jod fest eingebaut. Weil viele Böden jodarm sind, wird Speisesalz in zahlreichen Ländern mit Jod angereichert.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-006",
+    "frage": "Welcher Mineralstoff ist zentraler Bestandteil des roten Blutfarbstoffs Hämoglobin?",
+    "optionen": ["Magnesium", "Zink", "Kupfer", "Eisen"],
+    "richtig": 3,
+    "erklaerung": "Das Eisenion im Hämmolekül bindet den Sauerstoff reversibel. Bei Eisenmangel bildet der Körper kleinere und blassere rote Blutkörperchen, was zu Müdigkeit und Leistungsschwäche führt.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-007",
+    "frage": "In welchem Abschnitt des Verdauungstrakts wird der größte Teil der Nährstoffe ins Blut aufgenommen?",
+    "optionen": ["Im Magen", "Im Dünndarm", "Im Dickdarm", "In der Speiseröhre"],
+    "richtig": 1,
+    "erklaerung": "Zotten und Mikrovilli vergrößern die Oberfläche des Dünndarms auf ein Vielfaches und ermöglichen so die Resorption. Der Dickdarm entzieht dem Speisebrei vor allem noch Wasser und Salze.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-008",
+    "frage": "Welches Hormon senkt den Blutzuckerspiegel?",
+    "optionen": ["Glukagon", "Cortisol", "Insulin", "Adrenalin"],
+    "richtig": 2,
+    "erklaerung": "Insulin aus den Betazellen der Bauchspeicheldrüse schleust Glukose in Muskel- und Fettzellen. Sein Gegenspieler Glukagon hebt den Blutzucker, indem er in der Leber Glykogen abbauen lässt.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-009",
+    "frage": "Was kennzeichnet Ballaststoffe?",
+    "optionen": [
+      "Sie sind besonders energiereiche Fettbegleitstoffe",
+      "Sie sind Eiweißbausteine, die der Körper nicht selbst bilden kann",
+      "Sie sind Mineralstoffe, die nur in Vollkorn vorkommen",
+      "Sie sind überwiegend pflanzliche Bestandteile, die menschliche Enzyme kaum abbauen können"
+    ],
+    "richtig": 3,
+    "erklaerung": "Ballaststoffe gelangen weitgehend unverdaut in den Dickdarm, wo ein Teil von Darmbakterien vergoren wird. Sie erhöhen das Stuhlvolumen, verlängern das Sättigungsgefühl und bremsen den Blutzuckeranstieg.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-010",
+    "frage": "Welches Vitamin ist als Baustein des Sehfarbstoffs für das Sehen bei schwachem Licht nötig?",
+    "optionen": ["Vitamin A", "Vitamin B1", "Vitamin D", "Vitamin K"],
+    "richtig": 0,
+    "erklaerung": "Vitamin A bildet im Auge den lichtempfindlichen Sehfarbstoff Rhodopsin; ein Mangel äußert sich früh als Nachtblindheit. Die Vorstufe Betacarotin steckt vor allem in Karotten, Kürbis und dunkelgrünem Gemüse.",
+    "feld": "Ernährung",
+    "niveau": 2
+  },
+  {
+    "id": "ern-011",
+    "frage": "Welche Gruppe von Vitaminen ist fettlöslich?",
+    "optionen": ["A, D, E und K", "B1, B6, B12 und C", "C, B2 und Folsäure", "A, C, E und Niacin"],
+    "richtig": 0,
+    "erklaerung": "Die fettlöslichen Vitamine A, D, E und K brauchen für die Aufnahme etwas Nahrungsfett und werden im Körper gespeichert. Deshalb sind Überdosierungen bei ihnen eher möglich als bei den wasserlöslichen Vitaminen.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-012",
+    "frage": "Welches Enzym im Speichel beginnt bereits im Mund mit dem Abbau von Stärke?",
+    "optionen": ["Pepsin", "Amylase", "Lipase", "Trypsin"],
+    "richtig": 1,
+    "erklaerung": "Die Speichelamylase spaltet Stärke in kürzere Zuckerketten, weshalb länger gekautes Brot süßlich schmeckt. Im sauren Magen wird sie inaktiviert, die Verdauung setzt sich im Dünndarm fort.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-013",
+    "frage": "Was bedeutet es, dass eine Aminosäure essenziell ist?",
+    "optionen": [
+      "Sie kommt ausschließlich in tierischen Lebensmitteln vor",
+      "Sie wird besonders rasch zu Energie verbrannt",
+      "Sie ist der häufigste Baustein der Muskeleiweiße",
+      "Der Körper kann sie nicht selbst herstellen und muss sie mit der Nahrung aufnehmen"
+    ],
+    "richtig": 3,
+    "erklaerung": "Für den Menschen sind acht bis neun der zwanzig proteinbildenden Aminosäuren essenziell. Werden pflanzliche Eiweißquellen wie Getreide und Hülsenfrüchte kombiniert, ergänzen sich ihre Aminosäuremuster gut.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-014",
+    "frage": "Welches Vitamin wird für die Bildung mehrerer Gerinnungsfaktoren in der Leber benötigt?",
+    "optionen": ["Vitamin C", "Vitamin D", "Vitamin E", "Vitamin K"],
+    "richtig": 3,
+    "erklaerung": "Vitamin K ermöglicht eine chemische Nachbearbeitung der Gerinnungsfaktoren, ohne die diese unwirksam bleiben. Ein Teil des Bedarfs wird von Bakterien im Dickdarm gedeckt, der Rest stammt aus grünem Gemüse.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-015",
+    "frage": "Was gibt der glykämische Index eines Lebensmittels an?",
+    "optionen": [
+      "Wie stark es den Blutzucker im Vergleich zu einer Referenzmenge Glukose ansteigen lässt",
+      "Wie viel Gesamtzucker in hundert Gramm enthalten ist",
+      "Wie viele Kalorien pro Portion aus Kohlenhydraten stammen",
+      "Wie lange das Lebensmittel im Magen verbleibt"
+    ],
+    "richtig": 0,
+    "erklaerung": "Der Index vergleicht den Blutzuckerverlauf nach einer festgelegten Kohlenhydratmenge mit dem nach reiner Glukose. Weil er die tatsächliche Portionsgröße ignoriert, wird ergänzend die glykämische Last betrachtet.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-016",
+    "frage": "Welche Fettsäure ist die essenzielle Ausgangssubstanz der Omega-3-Fettsäuren?",
+    "optionen": ["Ölsäure", "Stearinsäure", "Alpha-Linolensäure", "Palmitinsäure"],
+    "richtig": 2,
+    "erklaerung": "Alpha-Linolensäure steckt reichlich in Lein-, Raps- und Walnussöl; der Körper kann sie nur begrenzt in die längerkettigen Fettsäuren EPA und DHA umbauen. Ölsäure dagegen ist eine einfach ungesättigte Fettsäure, die der Körper selbst bilden kann.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-017",
+    "frage": "Wie viel Energie liefert ein Gramm reiner Alkohol ungefähr?",
+    "optionen": ["Etwa 2 Kilokalorien", "Etwa 4 Kilokalorien", "Etwa 7 Kilokalorien", "Etwa 9 Kilokalorien"],
+    "richtig": 2,
+    "erklaerung": "Mit rund 7 Kilokalorien je Gramm liegt Alkohol energetisch zwischen Kohlenhydraten und Fett. Der Körper baut ihn bevorzugt ab, wodurch der Fettabbau währenddessen gebremst wird.",
+    "feld": "Ernährung",
+    "niveau": 3
+  },
+  {
+    "id": "ern-018",
+    "frage": "Für die Aufnahme welches Vitamins im Darm wird der im Magen gebildete Intrinsic Factor benötigt?",
+    "optionen": ["Vitamin B12", "Vitamin B6", "Vitamin C", "Vitamin E"],
+    "richtig": 0,
+    "erklaerung": "Der Intrinsic Factor aus der Magenschleimhaut bindet Vitamin B12, das erst als Komplex im letzten Dünndarmabschnitt aufgenommen wird. Fehlt er, etwa nach Magenoperationen, entsteht trotz ausreichender Zufuhr ein Mangel.",
+    "feld": "Ernährung",
+    "niveau": 4
+  },
+  {
+    "id": "ern-019",
+    "frage": "Wie heißt der Stoffwechselweg, bei dem Glukose im Zytoplasma zu Brenztraubensäure abgebaut wird?",
+    "optionen": ["Glukoneogenese", "Glykogenolyse", "Glykolyse", "Citratzyklus"],
+    "richtig": 2,
+    "erklaerung": "Die Glykolyse liefert auch ohne Sauerstoff einen kleinen Energiegewinn und ist deshalb bei kurzer, intensiver Belastung wichtig. Die Glukoneogenese ist der umgekehrte Weg: Neubildung von Glukose aus Nicht-Kohlenhydraten.",
+    "feld": "Ernährung",
+    "niveau": 4
+  },
+  {
+    "id": "ern-020",
+    "frage": "Unter welcher Bezeichnung aus der B-Gruppe ist die Folsäure bekannt?",
+    "optionen": ["Vitamin B3", "Vitamin B6", "Vitamin B12", "Vitamin B9"],
+    "richtig": 3,
+    "erklaerung": "Folat beziehungsweise Vitamin B9 wird für Zellteilung und Blutbildung gebraucht. Eine ausreichende Versorgung schon vor und in der Frühschwangerschaft senkt das Risiko für Neuralrohrdefekte beim Kind.",
+    "feld": "Ernährung",
+    "niveau": 4
+  },
+  {
+    "id": "ern-021",
+    "frage": "Welches Organ gibt gespeichertes Glykogen wieder als Glukose ins Blut ab und hält so den Blutzucker stabil?",
+    "optionen": ["Die Skelettmuskulatur", "Die Niere", "Die Bauchspeicheldrüse", "Die Leber"],
+    "richtig": 3,
+    "erklaerung": "Nur die Leber besitzt das Enzym, mit dem freie Glukose aus dem Glykogen ins Blut abgegeben werden kann. Muskelglykogen bleibt dagegen der Muskelzelle selbst vorbehalten.",
+    "feld": "Ernährung",
+    "niveau": 4
+  },
+  {
+    "id": "ern-022",
+    "frage": "Welchen Effekt hat Vitamin C auf die Eisenversorgung?",
+    "optionen": [
+      "Es verbessert die Aufnahme des Eisens aus pflanzlichen Lebensmitteln",
+      "Es bindet überschüssiges Eisen und fördert dessen Ausscheidung",
+      "Es ersetzt Eisen als Sauerstoffträger im Blut",
+      "Es verlangsamt die Eisenaufnahme und schützt so vor Überladung"
+    ],
+    "richtig": 0,
+    "erklaerung": "Vitamin C reduziert dreiwertiges zu zweiwertigem Eisen, das die Darmschleimhaut deutlich besser aufnimmt. Ein Glas Orangensaft zum Getreidegericht steigert daher die Eisenausbeute spürbar.",
+    "feld": "Ernährung",
+    "niveau": 4
+  },
+  {
+    "id": "ern-023",
+    "frage": "In welcher Transportform verlassen die aufgenommenen Nahrungsfette die Darmschleimhaut?",
+    "optionen": ["Als LDL", "Als HDL", "Als VLDL", "Als Chylomikronen"],
+    "richtig": 3,
+    "erklaerung": "Chylomikronen sind sehr fettreiche Lipoproteine, die zunächst in die Lymphe und erst danach ins Blut gelangen. VLDL bildet dagegen die Leber, um körpereigene Fette zu verteilen.",
+    "feld": "Ernährung",
+    "niveau": 5
+  },
+  {
+    "id": "ern-024",
+    "frage": "Der Mangel an welchem Vitamin führt zum Krankheitsbild Beriberi?",
+    "optionen": ["Vitamin B1", "Vitamin B3", "Vitamin B12", "Vitamin A"],
+    "richtig": 0,
+    "erklaerung": "Thiamin ist für den Abbau von Kohlenhydraten im Energiestoffwechsel unentbehrlich; fehlt es, leiden Nerven und Herz. Die Krankheit trat gehäuft dort auf, wo poliert geschälter Reis das Grundnahrungsmittel war.",
+    "feld": "Ernährung",
+    "niveau": 5
+  },
+  {
+    "id": "ern-025",
+    "frage": "Wo in der Zelle läuft der Citratzyklus ab?",
+    "optionen": ["Im Zytoplasma", "Im Zellkern", "Am endoplasmatischen Retikulum", "In den Mitochondrien"],
+    "richtig": 3,
+    "erklaerung": "Der Citratzyklus arbeitet in der Matrix der Mitochondrien und liefert die Elektronenüberträger für die anschließende Atmungskette. Dort in der inneren Mitochondrienmembran entsteht der weitaus größte Teil des ATP.",
+    "feld": "Ernährung",
+    "niveau": 5
+  }
+]

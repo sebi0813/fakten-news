@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v21'
+const APP_VERSION = 'v22'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -109,8 +109,8 @@ const state = {
 
 const defaults = {
   prefs: () => ({ sources: {}, cats: {}, keywords: {}, focus: {}, votes: {},
-    // check-it: Niveau 1..5, der Tagesstand und die Bilanz der letzten Tage.
-    checkit: { niveau: 3, tag: null, antworten: {}, bilanz: [] } }),
+    // check-it: Niveau, Tagesstand, Leitner-Fächer je Frage und die Bilanz.
+    checkit: { niveau: 3, tag: null, antworten: {}, satz: null, stand: {}, bilanz: [] } }),
   settings: () => ({
     hideRead: true, hideLowFact: false, images: true, info: true,
     ortErlaubt: false, apiKey: '',
@@ -724,84 +724,150 @@ const GENRE_ICON = { theater: '🎭 ', musical: '🎤 ', klassik: '🎻 ', konze
 /** Termine der nächsten zwei Wochen, nach Nähe zum Standort gruppiert. */
 // ---------------------------------------------------------------- check-it
 //
-// Fünf Wissensfragen pro Tag, erzeugt aus den Themen des Tages. Das Niveau
-// wächst mit: Wer vier oder fünf richtig hat, bekommt morgen schwerere
-// Fragen, wer zwei oder weniger schafft, leichtere.
+// Fünf Fragen pro Tag aus einem festen Vorrat im Repository — unabhängig von
+// der Nachrichtenlage und ohne Schlüssel. Ziel ist nicht Unterhaltung,
+// sondern Behalten.
+//
+// Wiedervorlage nach Leitner: Jede Frage sitzt in einem Fach. Richtig
+// beantwortet rückt sie ein Fach weiter und kommt entsprechend später wieder,
+// falsch beantwortet fällt sie zurück in Fach 1 und steht in zwei Tagen
+// erneut da. Wer eine Frage fünfmal hintereinander kann, sieht sie ein
+// halbes Jahr lang nicht.
 
 const CHECKIT_ANZAHL = 5
+const CHECKIT_URL = 'data/fragen.json'
+
+// Abstand bis zur Wiedervorlage in Tagen, Index entspricht dem Fach.
+const LEITNER_TAGE = [0, 2, 7, 21, 60, 180]
+
+// Höchstens so viele der fünf Tagesfragen sind Wiederholungen — sonst
+// besteht der Tag irgendwann nur noch aus Bekanntem und es kommt nichts
+// Neues mehr dazu.
+const MAX_WIEDERHOLUNG = 3
 
 /** Tagesschlüssel in Ortszeit — sv-SE liefert genau YYYY-MM-DD. */
 function heuteKey() { return new Date().toLocaleDateString('sv-SE') }
 
+/** Kleine Streuung, damit nicht jeden Tag dieselbe Reihenfolge entsteht. */
+function streuung(text) {
+  let h = 0
+  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) | 0
+  return h >>> 0
+}
+
 /** Fortschritt des laufenden Tages; wechselt der Tag, beginnt er neu. */
 function checkitStand() {
-  const c = prefs.checkit ||= { niveau: 3, tag: null, antworten: {}, bilanz: [], satz: null }
-  if (c.tag !== heuteKey()) { c.tag = heuteKey(); c.antworten = {}; c.satz = null }
+  const c = prefs.checkit ||= {}
+  c.niveau ??= 3
+  c.stand ??= {}          // je Frage: { box, faellig, falsch }
+  c.bilanz ??= []
+  c.serie ??= 0           // aufeinanderfolgende starke (+) oder schwache (−) Tage
+  if (c.tag !== heuteKey()) {
+    c.tag = heuteKey()
+    c.antworten = {}
+    c.satz = null
+    c.wiederholung = []
+  }
+  c.antworten ??= {}
   return c
 }
 
 /**
- * Fünf Fragen aus dem Tagesvorrat, möglichst nah am eigenen Niveau.
- * Ohne Zufall — sonst stünden nach jedem Neuzeichnen andere Fragen da.
+ * Die fünf Fragen des Tages. Einmal festgelegt, bleiben sie bis Mitternacht
+ * stehen — sonst zöge die Niveau-Anpassung nach der letzten Antwort den Satz
+ * unter den bereits gegebenen Antworten weg.
  */
-function checkitAuswahl(fragen, niveau, anzahl = CHECKIT_ANZAHL) {
-  return (fragen || [])
-    .map((f, i) => ({ f, i, d: Math.abs((f.niveau ?? 3) - niveau) }))
-    .sort((a, b) => (a.d - b.d) || (a.i - b.i))
-    .slice(0, anzahl)
-    .sort((a, b) => a.i - b.i)
-    .map(x => ({ ...x.f, idx: x.i }))
-}
-
-/**
- * Die fünf Fragen des Tages. Die Auswahl wird beim ersten Aufruf festgehalten
- * und bis Mitternacht nicht mehr angerührt: Sonst hätte die Niveau-Anpassung
- * nach der letzten Antwort sofort andere Fragen ausgewählt — die gerade
- * beantworteten wären verschwunden und der Zähler stünde wieder bei fünf.
- */
-function checkitHeute() {
-  const daten = state.data?.checkit
-  if (!daten?.fragen?.length) return []
+function checkitTagesfragen() {
+  const alle = state.fragen?.fragen
+  if (!alle?.length) return []
   const c = checkitStand()
 
-  // Nur ein Fragensatz aus einem ANDEREN Tag macht den gespeicherten Satz
-  // ungültig. Verglichen wird deshalb das Datum, nicht der Zeitstempel: Der
-  // Aufbau läuft stündlich, und bei jedem Durchlauf die Antworten des Tages
-  // zu verwerfen wäre genau das Gegenteil von "fünf Fragen pro Tag".
-  const stand = String(daten.erstellt || '').slice(0, 10)
-  if (c.satz && c.satzStand !== stand) { c.satz = null; c.antworten = {} }
-
-  if (!c.satz) {
-    c.satz = checkitAuswahl(daten.fragen, c.niveau, daten.proTag || CHECKIT_ANZAHL).map(f => f.idx)
-    c.satzStand = stand
-    save(LS.prefs, prefs)
+  if (c.satz) {
+    const gefunden = c.satz.map(id => alle.find(f => f.id === id)).filter(Boolean)
+    if (gefunden.length) return gefunden
+    c.satz = null                       // Katalog hat sich grundlegend geändert
   }
-  // idx am Eintrag selbst mitführen, nicht über die Position: Fällt eine Frage
-  // weg, würden sonst alle folgenden Antworten der falschen Frage zugeordnet.
-  return c.satz.map(i => (daten.fragen[i] ? { ...daten.fragen[i], idx: i } : null)).filter(Boolean)
+
+  const jetzt = Date.now()
+  const gesehen = c.stand
+
+  // Fällige Wiederholungen zuerst, die am längsten überfälligen zuoberst.
+  const faellig = alle.filter(f => gesehen[f.id] && gesehen[f.id].faellig <= jetzt)
+    .sort((a, b) => gesehen[a.id].faellig - gesehen[b.id].faellig)
+
+  // Neue Fragen möglichst nah am eigenen Niveau, innerhalb einer Stufe gestreut.
+  const neu = alle.filter(f => !gesehen[f.id])
+    .map(f => ({ f, d: Math.abs((f.niveau ?? 3) - c.niveau) }))
+    .sort((a, b) => (a.d - b.d) || (streuung(a.f.id + c.tag) - streuung(b.f.id + c.tag)))
+    .map(x => x.f)
+
+  const satz = []
+  const dazu = f => { if (satz.length < CHECKIT_ANZAHL && !satz.includes(f)) satz.push(f) }
+
+  for (const f of faellig.slice(0, MAX_WIEDERHOLUNG)) dazu(f)
+  for (const f of neu) dazu(f)
+  for (const f of faellig) dazu(f)          // nichts Neues mehr übrig
+  if (satz.length < CHECKIT_ANZAHL) {
+    // Vorrat erschöpft: das am längsten nicht Gefragte noch einmal.
+    for (const f of alle.slice().sort((a, b) =>
+      (gesehen[a.id]?.faellig || 0) - (gesehen[b.id]?.faellig || 0))) dazu(f)
+  }
+
+  c.satz = satz.map(f => f.id)
+  c.wiederholung = satz.filter(f => gesehen[f.id]).map(f => f.id)
+  save(LS.prefs, prefs)
+  return satz
 }
 
 /** Wie viele Fragen heute noch offen sind — für die Zahl am Reiter. */
 function checkitOffen() {
-  if (!settings.tabs?.includes('checkit')) return 0
+  if (!state.fragen || !settings.tabs?.includes('checkit')) return 0
   const c = checkitStand()
-  return checkitHeute().filter(f => c.antworten[f.idx] == null).length
+  return checkitTagesfragen().filter(f => c.antworten[f.id] == null).length
 }
 
-function checkitAntwort(idx, gewaehlt) {
+function checkitAntwort(id, gewaehlt) {
   const c = checkitStand()
-  if (c.antworten[idx] != null) return        // jede Frage nur einmal
-  c.antworten[idx] = gewaehlt
+  if (c.antworten[id] != null) return                 // jede Frage nur einmal
+  const frage = state.fragen?.fragen?.find(f => f.id === id)
+  if (!frage) return
+
+  const richtig = gewaehlt === frage.richtig
+  c.antworten[id] = gewaehlt
+
+  // Leitner: eine Stufe vor oder ganz zurück.
+  const alt = c.stand[id] || { box: 0, falsch: 0, richtig: 0 }
+  const box = richtig ? Math.min(5, alt.box + 1) : 1
+  c.stand[id] = {
+    box,
+    faellig: Date.now() + LEITNER_TAGE[box] * DAY,
+    falsch: (alt.falsch || 0) + (richtig ? 0 : 1),
+    richtig: (alt.richtig || 0) + (richtig ? 1 : 0),
+  }
 
   // Ist der Tag vollständig, das Niveau nachziehen und die Bilanz festhalten.
-  const heute = checkitHeute()
-  if (heute.every(f => c.antworten[f.idx] != null)) {
-    const richtig = heute.filter(f => c.antworten[f.idx] === f.richtig).length
-    const alt = c.niveau
-    if (richtig >= heute.length - 1) c.niveau = Math.min(5, c.niveau + 1)
-    else if (richtig <= Math.floor(heute.length / 2) - 1) c.niveau = Math.max(1, c.niveau - 1)
-    c.bilanz = [{ tag: c.tag, richtig, von: heute.length, niveau: alt }, ...(c.bilanz || [])].slice(0, 30)
+  const heute = checkitTagesfragen()
+  if (heute.every(f => c.antworten[f.id] != null)) {
+    const treffer = heute.filter(f => c.antworten[f.id] === f.richtig).length
+    const stark = treffer >= heute.length - 1
+    const schwach = treffer <= Math.floor(heute.length / 2) - 1
+
+    // Eine Stufe verlangt ZWEI bestätigende Tage. Ein einzelner guter Tag
+    // schob das Niveau sonst binnen einer Woche ans obere Ende — vier von
+    // fünf Treffern hat man auch mit Glück, und danach kam nur noch
+    // Schweres.
+    if (stark) c.serie = Math.max(1, c.serie + 1)
+    else if (schwach) c.serie = Math.min(-1, c.serie - 1)
+    else c.serie = 0
+
+    const vorher = c.niveau
+    if (c.serie >= 2) { c.niveau = Math.min(5, c.niveau + 1); c.serie = 0 }
+    else if (c.serie <= -2) { c.niveau = Math.max(1, c.niveau - 1); c.serie = 0 }
+
+    c.bilanz = [{ tag: c.tag, richtig: treffer, von: heute.length, niveau: vorher, neu: c.niveau },
+      ...c.bilanz].slice(0, 60)
   }
+
   save(LS.prefs, prefs)
   renderCheckIt()
   renderTabs()
@@ -809,7 +875,21 @@ function checkitAntwort(idx, gewaehlt) {
 
 const NIVEAU_NAME = ['', 'Einstieg', 'Solide', 'Mittel', 'Anspruchsvoll', 'Schwer']
 
-function checkitFrageHTML(f, nr, gewaehlt) {
+/** Holt den Fragenvorrat — einmal pro Sitzung, danach aus dem Speicher. */
+async function ladeFragen() {
+  if (state.fragen) return state.fragen
+  try {
+    const res = await fetch(`${CHECKIT_URL}?t=${Math.floor(Date.now() / 3600_000)}`, { cache: 'no-cache' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const k = await res.json()
+    state.fragen = Array.isArray(k?.fragen) ? k : { fragen: [] }
+  } catch {
+    state.fragen = { fragen: [] }
+  }
+  return state.fragen
+}
+
+function checkitFrageHTML(f, nr, gewaehlt, istWiederholung) {
   const offen = gewaehlt == null
   const optionen = f.optionen.map((o, i) => {
     let cls = 'ci-opt'
@@ -818,15 +898,18 @@ function checkitFrageHTML(f, nr, gewaehlt) {
       else if (i === gewaehlt) cls += ' falsch'
       else cls += ' aus'
     }
-    return `<button class="${cls}" ${offen ? `data-ci="${f.idx}" data-opt="${i}"` : 'disabled'}>
+    return `<button class="${cls}" ${offen ? `data-ci="${esc(f.id)}" data-opt="${i}"` : 'disabled'}>
       <span class="ci-buchstabe">${'ABCD'[i]}</span> ${esc(o)}
     </button>`
   }).join('')
+
+  const fach = prefs.checkit?.stand?.[f.id]?.box
 
   return `<article class="card ci-frage">
     <div class="ci-kopf">
       <span class="ci-nr">Frage ${nr}</span>
       ${f.feld ? `<span class="ci-feld">${esc(f.feld)}</span>` : ''}
+      ${istWiederholung ? '<span class="ci-feld ci-wdh">↻ Wiederholung</span>' : ''}
       <span class="ci-stufe" title="Schwierigkeit">${'●'.repeat(f.niveau ?? 3)}${'○'.repeat(5 - (f.niveau ?? 3))}</span>
     </div>
     <h2 class="ci-text">${esc(f.frage)}</h2>
@@ -834,27 +917,52 @@ function checkitFrageHTML(f, nr, gewaehlt) {
     ${offen ? '' : `<div class="ci-loesung ${gewaehlt === f.richtig ? 'ok' : 'nok'}">
       <b>${gewaehlt === f.richtig ? '✓ Richtig' : '✗ Leider nicht'}</b>
       <p>${esc(f.erklaerung)}</p>
-      ${f.quelle?.link ? `<a href="${esc(f.quelle.link)}" target="_blank" rel="noopener">
-        Dazu heute: ${esc(f.quelle.title)} · ${esc(f.quelle.source || '')}</a>` : ''}
+      <p class="ci-wieder">${esc(wiedervorlageText(fach))}</p>
     </div>`}
   </article>`
 }
 
+function wiedervorlageText(fach) {
+  if (!fach) return ''
+  const tage = LEITNER_TAGE[fach]
+  if (fach === 1) return 'Kommt in 2 Tagen noch einmal.'
+  if (fach === 5) return 'Sitzt — kommt erst in einem halben Jahr wieder.'
+  return `Fach ${fach} von 5 — Wiedervorlage in ${tage < 30 ? `${tage} Tagen` : `${Math.round(tage / 30)} Monaten`}.`
+}
+
+/** Was die Auswertung des Tages am Niveau geändert hat — im Klartext. */
+function niveauText(c) {
+  const b = c.bilanz[0]
+  if (b && b.neu > b.niveau) return `Zwei starke Tage in Folge — die Fragen werden schwerer, Niveau ${c.niveau}.`
+  if (b && b.neu < b.niveau) return `Die Fragen werden leichter, Niveau ${c.niveau}.`
+  if (c.serie >= 1) return `Stark. Noch so ein Tag, dann wird es schwerer. Niveau ${c.niveau}.`
+  if (c.serie <= -1) return `Noch so ein Tag, dann wird es leichter. Niveau ${c.niveau}.`
+  return `Das Niveau bleibt bei ${c.niveau}.`
+}
+
 function renderCheckIt() {
-  const daten = state.data?.checkit
+  if (!state.fragen) {
+    $('#feed').innerHTML = '<p class="muted" style="padding:20px;text-align:center">Fragen werden geladen …</p>'
+    ladeFragen().then(() => { if (state.tab === 'checkit') { renderCheckIt(); renderTabs() } })
+    return
+  }
+
+  const alle = state.fragen.fragen || []
   $('#feed').innerHTML = ''
-  if (!daten?.fragen?.length) {
-    return showEmpty('🧠', 'Heute keine Fragen',
-      'Die Fragen entstehen beim stündlichen Aufbau aus den Themen des Tages. '
-      + 'Dafür braucht der Build den Anthropic-Schlüssel als Repository-Secret — '
-      + 'fehlt er, bleibt check-it leer.')
+  if (!alle.length) {
+    return showEmpty('🧠', 'Kein Fragenvorrat',
+      'Die Datei mit den Fragen konnte nicht geladen werden. Beim nächsten Aufbau der App wird sie neu erzeugt.')
   }
 
   const c = checkitStand()
-  const heute = checkitHeute()
-  const beantwortet = heute.filter(f => c.antworten[f.idx] != null)
-  const richtig = beantwortet.filter(f => c.antworten[f.idx] === f.richtig).length
+  const heute = checkitTagesfragen()
+  const beantwortet = heute.filter(f => c.antworten[f.id] != null)
+  const richtig = beantwortet.filter(f => c.antworten[f.id] === f.richtig).length
   const fertig = beantwortet.length === heute.length
+
+  // Wie viel vom Vorrat sitzt schon?
+  const gelernt = Object.values(c.stand).filter(s => s.box >= 4).length
+  const imUmlauf = Object.keys(c.stand).length
 
   const kopf = `<div class="ci-stand">
     <div>
@@ -865,16 +973,16 @@ function renderCheckIt() {
   </div>`
 
   const schluss = fertig ? `<div class="card-lite ci-schluss">
-    <h3>${richtig === heute.length ? '🏆 Alles richtig' : richtig >= heute.length - 1 ? '👏 Stark' : richtig >= 2 ? '👍 Passt' : '🙂 Morgen wieder'}</h3>
-    <p class="muted small">${esc(
-      richtig >= heute.length - 1 ? `Das nächste Mal wird es schwerer — Niveau ${c.niveau}.`
-      : richtig <= Math.floor(heute.length / 2) - 1 ? `Die Fragen werden leichter — Niveau ${c.niveau}.`
-      : `Das Niveau bleibt bei ${c.niveau}.`)}</p>
-    <p class="muted small">Morgen gibt es fünf neue Fragen.</p>
+    <h3>${richtig === heute.length ? '🏆 Alles richtig' : richtig >= heute.length - 1 ? '👏 Stark'
+      : richtig >= 2 ? '👍 Passt' : '🙂 Morgen wieder'}</h3>
+    <p class="muted small">${esc(niveauText(c))}</p>
+    <p class="muted small">${imUmlauf} von ${alle.length} Fragen im Umlauf, ${gelernt} davon sitzen.
+      Falsch beantwortete kommen in zwei Tagen wieder.</p>
   </div>` : ''
 
   $('#feed').innerHTML = kopf
-    + heute.map((f, i) => checkitFrageHTML(f, i + 1, c.antworten[f.idx])).join('')
+    + heute.map((f, i) => checkitFrageHTML(f, i + 1, c.antworten[f.id],
+        (c.wiederholung || []).includes(f.id))).join('')
     + schluss
 }
 
@@ -1948,7 +2056,7 @@ document.addEventListener('click', ev => {
 
   const ciOpt = ev.target.closest('[data-ci]')
   if (ciOpt) {
-    checkitAntwort(Number(ciOpt.dataset.ci), Number(ciOpt.dataset.opt))
+    checkitAntwort(ciOpt.dataset.ci, Number(ciOpt.dataset.opt))
     return
   }
 
@@ -2368,6 +2476,10 @@ fetchNews({ force: true })
 // Info-Blocks.
 if (settings.ortErlaubt) {
   loadWeather().then(() => { render(); if (state.tab === 'wetter') renderWeather() })
+
+  // Den Fragenvorrat im Hintergrund holen, damit die Zahl am check-it-Reiter
+  // schon beim ersten Blick stimmt und nicht erst nach dem Antippen.
+  if (settings.tabs?.includes('checkit')) ladeFragen().then(() => renderTabs())
   fetchWarnings().then(render)
 }
 

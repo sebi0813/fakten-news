@@ -464,28 +464,63 @@ Der Workflow versucht es deshalb bis zu fünfmal mit wachsender Pause.
 
 ## check-it
 
-Fünf Multiple-Choice-Fragen pro Tag, hergeleitet aus den Themen, die gerade in den
-Meldungen stehen. Gefragt ist der **Hintergrund**, nicht der Inhalt der Meldung:
-nicht „Wie viele Unternehmen hackte Gemini?", sondern „Was ist ein Penetrationstest?".
-Die Felder sind Natur, Physik, Geschichte und Politik.
+Fünf Multiple-Choice-Fragen pro Tag aus einem festen Vorrat im Repository.
+**Kein Schlüssel, keine Netzabfrage, keine laufenden Kosten** — die App holt
+einmal `docs/data/fragen.json` und kommt damit aus, auch offline.
 
-**Das Niveau wächst mit.** Der Build erzeugt zehn Fragen, je zwei der Stufen 1 bis 5;
-die App wählt daraus die fünf, die am besten zum eigenen Stand passen. Wer vier oder
-fünf richtig hat, bekommt am nächsten Tag schwerere Fragen, wer höchstens eine
-schafft, leichtere. Der Stand liegt im Profil und wandert mit der Sicherung mit.
+Warum ein eigener Vorrat und keine fremde Datenbank? Weil es keine gibt, die
+passt. Geprüft wurden:
 
-Zwei Dinge sind bewusst festgezurrt:
+| Quelle | Warum nicht |
+|---|---|
+| Open Trivia DB (CC BY-SA, ~4.000 Fragen) | englisch, ohne Erklärungen |
+| OpenTriviaQA | englisch |
+| KWDB Open Dataset (~5.000, CC BY-NC) | deutsch, aber Frage-Antwort-Paare ohne Antwortmöglichkeiten, Erklärungen und Schwierigkeitsgrade |
 
-- **Der Satz des Tages bleibt stehen.** Er wird beim ersten Öffnen festgehalten.
-  Ohne das hätte die Niveau-Anpassung nach der letzten Antwort sofort andere Fragen
-  ausgewählt — die gerade beantworteten wären verschwunden.
-- **Erzeugt wird einmal am Tag**, nicht bei jedem Aufbau. Der Build übernimmt einen
-  Fragensatz, der schon von heute ist (Wiener Ortszeit). Sonst zöge der stündliche
-  Lauf dem Leser die Fragen unter den Antworten weg und kostete zwanzig
-  Claude-Aufrufe täglich statt einem.
+### Wiedervorlage nach Leitner
 
-Ohne `ANTHROPIC_API_KEY` entstehen keine Fragen. Der Build läuft trotzdem durch,
-der Reiter bleibt leer und nennt den Grund.
+Jede Frage sitzt in einem von fünf Fächern. Richtig beantwortet rückt sie eine
+Stufe vor und kommt entsprechend später wieder, falsch beantwortet fällt sie
+zurück in Fach 1.
+
+| Fach | nächste Wiedervorlage |
+|---|---|
+| 1 | nach 2 Tagen |
+| 2 | nach 1 Woche |
+| 3 | nach 3 Wochen |
+| 4 | nach 2 Monaten |
+| 5 | nach 6 Monaten |
+
+Der Tagessatz besteht aus **höchstens drei Wiederholungen**, der Rest sind neue
+Fragen. Ohne diese Grenze bestünde der Tag nach einigen Wochen nur noch aus
+Bekanntem und es käme nichts Neues mehr dazu. Ist der Vorrat erschöpft, füllt
+die App mit dem auf, was am längsten nicht gefragt wurde.
+
+Das Niveau wächst mit: vier oder fünf Treffer heben es, höchstens einer senkt
+es. Neue Fragen werden nach der Nähe zum eigenen Niveau ausgewählt.
+
+Der Satz des Tages wird beim ersten Öffnen festgehalten. Ohne das hätte die
+Niveau-Anpassung nach der letzten Antwort sofort andere Fragen ausgewählt —
+die gerade beantworteten wären verschwunden.
+
+### Fragen ergänzen
+
+Jede Datei in `docs/data/fragen/` ist ein JSON-Array. Neue Datei anlegen,
+Fragen hineinschreiben, fertig — der Bauschritt führt alle Dateien zusammen
+und prüft dabei:
+
+- genau vier Antwortmöglichkeiten, keine zwei davon gleich
+- `richtig` als Index zwischen 0 und 3
+- Erklärung vorhanden und nicht bloß eine Wiederholung der Antwort
+- Niveau zwischen 1 und 5
+- keine doppelten Kennungen, keine zweimal gestellte Frage
+
+Eine fehlerhafte Frage fliegt mit Namen und Grund aus dem Katalog, der Bau
+läuft weiter. Sie soll beim Bauen auffallen, nicht erst auf dem Telefon.
+
+**Wichtigste Regel beim Schreiben: Zeitlosigkeit.** Keine amtierenden
+Politiker, keine aktuellen Rekorde, keine Tagespreise. Bei einem festen Vorrat
+wäre so eine Frage in einem Jahr schlicht falsch.
 
 ---
 
@@ -682,7 +717,7 @@ Keine npm-Abhängigkeiten. Node 20+ genügt (nutzt `fetch` und `zlib` aus der St
 scripts/build-news.mjs      Feeds holen, filtern, deduplizieren, bewerten
 scripts/sources.mjs         Quellenliste und Filterregeln
 scripts/translate.mjs       Übersetzung ins Deutsche, mit Cache
-scripts/checkit.mjs         Tagesfragen fürs Allgemeinwissen (Claude)
+scripts/fragenkatalog.mjs   Fragenvorrat prüfen und zusammenführen
 scripts/make-icons.mjs      PNG-Icons ohne externe Bibliotheken
 docs/index.html             App-Gerüst
 docs/app.js                 Darstellung, Lernprofil, Wetter, Vollbild, Einordnung
@@ -691,5 +726,7 @@ docs/sw.js                  Service Worker (offline, network-first)
 docs/manifest.webmanifest   PWA-Manifest fürs Homescreen-Icon
 docs/data/news.json         Erzeugt — stündlich überschrieben
 docs/data/i18n-cache.json   Übersetzungs-Cache — muss mitcommittet werden
+docs/data/fragen/           Fragenvorrat für check-it, eine Datei je Themenblock
+docs/data/fragen.json       Erzeugt — der zusammengeführte Katalog
 .github/workflows/          Stündlicher Build + Pages-Deploy
 ```

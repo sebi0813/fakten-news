@@ -1,0 +1,407 @@
+[
+  {
+    "id": "ges-001",
+    "frage": "In welchem Jahr begann der Erste Weltkrieg?",
+    "optionen": ["1914", "1912", "1916", "1918"],
+    "richtig": 0,
+    "erklaerung": "Nach dem Attentat von Sarajevo erklärte Österreich-Ungarn am 28. Juli 1914 Serbien den Krieg. Innerhalb weniger Tage traten über die Bündnissysteme auch Russland, Deutschland, Frankreich und Großbritannien ein.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-002",
+    "frage": "In welchem Jahr fiel die Berliner Mauer?",
+    "optionen": ["1987", "1989", "1990", "1991"],
+    "richtig": 1,
+    "erklaerung": "Am 9. November 1989 öffneten sich die Grenzübergänge nach einer missverständlichen Pressekonferenz der DDR-Führung. Die staatliche Wiedervereinigung Deutschlands folgte erst am 3. Oktober 1990.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-003",
+    "frage": "Wer gilt als erster römischer Kaiser?",
+    "optionen": ["Gaius Iulius Caesar", "Tiberius", "Augustus", "Nero"],
+    "richtig": 2,
+    "erklaerung": "Octavian, der Großneffe und Erbe Caesars, erhielt 27 v. Chr. den Ehrennamen Augustus und begründete damit das Prinzipat. Caesar war nie Kaiser, sondern Diktator der Republik.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-004",
+    "frage": "Welches Ereignis vom 14. Juli 1789 gilt als Beginn der Französischen Revolution?",
+    "optionen": ["Die Hinrichtung Ludwigs XVI.", "Der Ballhausschwur", "Der Zug der Frauen nach Versailles", "Der Sturm auf die Bastille"],
+    "richtig": 3,
+    "erklaerung": "Die Erstürmung des Pariser Staatsgefängnisses Bastille wurde zum Symbol des Aufstands gegen die absolute Monarchie. Der 14. Juli ist bis heute französischer Nationalfeiertag.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-005",
+    "frage": "In welcher Stadt veröffentlichte Martin Luther 1517 seine 95 Thesen?",
+    "optionen": ["Worms", "Wittenberg", "Eisenach", "Erfurt"],
+    "richtig": 1,
+    "erklaerung": "Luther lehrte an der Universität Wittenberg; ob er die Thesen tatsächlich an die Tür der Schlosskirche schlug, ist in der Forschung umstritten. 1521 musste er sich auf dem Reichstag zu Worms verantworten.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-006",
+    "frage": "In welcher Schlacht wurde Napoleon 1815 endgültig besiegt?",
+    "optionen": ["Bei Waterloo", "Bei Leipzig", "Bei Austerlitz", "Bei Jena und Auerstedt"],
+    "richtig": 0,
+    "erklaerung": "Am 18. Juni 1815 unterlag Napoleon südlich von Brüssel den Briten unter Wellington und den Preußen unter Blücher. Bei Austerlitz hatte er 1805 noch einen seiner größten Siege errungen.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-007",
+    "frage": "Wer flog 1961 als erster Mensch ins Weltall?",
+    "optionen": ["Alan Shepard", "German Titow", "John Glenn", "Juri Gagarin"],
+    "richtig": 3,
+    "erklaerung": "Juri Gagarin umrundete am 12. April 1961 an Bord von Wostok 1 einmal die Erde. Der Amerikaner John Glenn folgte als erster US-Astronaut im Orbit erst im Februar 1962.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-008",
+    "frage": "In welchem Jahr wurde Karl der Große in Rom zum Kaiser gekrönt?",
+    "optionen": ["795", "797", "800", "814"],
+    "richtig": 2,
+    "erklaerung": "Papst Leo III. krönte ihn am Weihnachtstag des Jahres 800 im Petersdom. Karl starb 814 in Aachen, wo er auch begraben liegt.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-009",
+    "frage": "In welchem Jahr eroberten die Osmanen Konstantinopel?",
+    "optionen": ["1204", "1389", "1453", "1492"],
+    "richtig": 2,
+    "erklaerung": "Sultan Mehmed II. nahm die Stadt 1453 ein und beendete damit das Byzantinische Reich. 1204 war Konstantinopel bereits einmal geplündert worden, damals von den Kreuzfahrern des Vierten Kreuzzugs.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-010",
+    "frage": "Welcher Friedensschluss beendete 1648 den Dreißigjährigen Krieg?",
+    "optionen": ["Der Augsburger Religionsfriede", "Der Friede von Utrecht", "Der Friede von Nimwegen", "Der Westfälische Friede"],
+    "richtig": 3,
+    "erklaerung": "Verhandelt wurde jahrelang parallel in Münster und Osnabrück. Der Vertrag ordnete die Konfessionsverhältnisse im Reich neu und bestätigte die Unabhängigkeit der Niederlande und der Schweiz.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-011",
+    "frage": "In welchem Jahr brachte die Kubakrise die Welt an den Rand eines Atomkriegs?",
+    "optionen": ["1962", "1959", "1965", "1968"],
+    "richtig": 0,
+    "erklaerung": "Im Oktober 1962 entdeckten die USA sowjetische Mittelstreckenraketen auf Kuba. Chruschtschow ließ sie abziehen, Kennedy verzichtete im Gegenzug auf eine Invasion; heimlich wurden auch US-Raketen aus der Türkei abgebaut.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-012",
+    "frage": "In welchem Jahr endete das Heilige Römische Reich mit der Niederlegung der Kaiserkrone?",
+    "optionen": ["1804", "1806", "1815", "1848"],
+    "richtig": 1,
+    "erklaerung": "Franz II. legte die Reichskrone am 6. August 1806 unter dem Druck Napoleons nieder. Bereits 1804 hatte er sich vorsorglich als Franz I. zum Kaiser von Österreich ausgerufen.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-013",
+    "frage": "In welchem Jahr musste der englische König Johann Ohneland die Magna Carta besiegeln?",
+    "optionen": ["1066", "1189", "1199", "1215"],
+    "richtig": 3,
+    "erklaerung": "Der Adel erzwang 1215 bei Runnymede Zugeständnisse, die die königliche Willkür begrenzten. Die Urkunde gilt als früher Meilenstein auf dem Weg zu Rechtsstaat und Parlamentarismus.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-014",
+    "frage": "Wer gewann 1066 die Schlacht bei Hastings und wurde König von England?",
+    "optionen": ["Heinrich II.", "Richard Löwenherz", "Wilhelm der Eroberer", "Harald Hardrada"],
+    "richtig": 2,
+    "erklaerung": "Wilhelm, Herzog der Normandie, besiegte den angelsächsischen König Harold II. und wurde zu Weihnachten 1066 gekrönt. Die normannische Eroberung prägte Sprache und Adel Englands dauerhaft.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-015",
+    "frage": "Welcher Kaiser erhob das Christentum 380 mit dem Edikt von Thessaloniki zur Staatsreligion des Römischen Reiches?",
+    "optionen": ["Konstantin der Große", "Theodosius I.", "Diokletian", "Julian Apostata"],
+    "richtig": 1,
+    "erklaerung": "Konstantin hatte 313 lediglich Religionsfreiheit gewährt; erst Theodosius machte das nizänische Christentum verbindlich. Unter Diokletian war es um 300 noch blutig verfolgt worden.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-016",
+    "frage": "Welcher Papst rief 1095 in Clermont zum Ersten Kreuzzug auf?",
+    "optionen": ["Urban II.", "Gregor VII.", "Innozenz III.", "Coelestin III."],
+    "richtig": 0,
+    "erklaerung": "Urban II. verband den Aufruf mit dem Versprechen des Sündenerlasses. 1099 eroberten die Kreuzfahrer Jerusalem und gründeten dort ein Königreich.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-017",
+    "frage": "Welcher Vertrag teilte 1494 die überseeischen Einflusszonen zwischen Spanien und Portugal auf?",
+    "optionen": ["Der Vertrag von Utrecht", "Der Vertrag von Saragossa", "Der Vertrag von Tordesillas", "Der Vertrag von Alcáçovas"],
+    "richtig": 2,
+    "erklaerung": "Die vereinbarte Demarkationslinie verlief westlich der Kapverdischen Inseln. Weil sie den östlichen Teil Südamerikas erfasste, wurde Brasilien portugiesisch und der Rest des Kontinents spanisch.",
+    "feld": "Geschichte",
+    "niveau": 5
+  },
+  {
+    "id": "ges-018",
+    "frage": "In welchen Jahren wurde der Siebenjährige Krieg geführt?",
+    "optionen": ["1740 bis 1748", "1748 bis 1755", "1750 bis 1757", "1756 bis 1763"],
+    "richtig": 3,
+    "erklaerung": "Preußen und Großbritannien standen Österreich, Frankreich und Russland gegenüber; gekämpft wurde auch in Nordamerika und Indien. Maria Theresia gelang die Rückgewinnung Schlesiens nicht, der Friede von Hubertusburg bestätigte 1763 den Vorkriegsstand.",
+    "feld": "Geschichte",
+    "niveau": 5
+  },
+  {
+    "id": "ges-019",
+    "frage": "In welchem Jahr wurde der österreichische Staatsvertrag unterzeichnet?",
+    "optionen": ["1955", "1945", "1938", "1961"],
+    "richtig": 0,
+    "erklaerung": "Die Unterzeichnung erfolgte am 15. Mai 1955 im Schloss Belvedere in Wien. Der Vertrag beendete die zehnjährige Besatzung durch die vier Alliierten; im Oktober folgte die Neutralitätserklärung.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-020",
+    "frage": "Welche Habsburgerin trat 1740 die Herrschaft an und regierte rund 40 Jahre lang?",
+    "optionen": ["Maria Anna", "Maria Theresia", "Elisabeth Christine", "Maria Karolina"],
+    "richtig": 1,
+    "erklaerung": "Nach dem Tod ihres Vaters Karl VI. musste sie ihr Erbe im Österreichischen Erbfolgekrieg verteidigen. Zu ihren bekanntesten Reformen zählt die Einführung der allgemeinen Unterrichtspflicht 1774.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-021",
+    "frage": "In welchem Zeitraum regierte Kaiser Franz Joseph I.?",
+    "optionen": ["Von 1835 bis 1888", "Von 1840 bis 1900", "Von 1867 bis 1916", "Von 1848 bis 1916"],
+    "richtig": 3,
+    "erklaerung": "Er kam im Revolutionsjahr 1848 mit 18 Jahren auf den Thron und starb im November 1916 mitten im Ersten Weltkrieg. Mit 68 Jahren ist das die längste Regierungszeit der österreichischen Geschichte.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-022",
+    "frage": "Wer wurde am 28. Juni 1914 in Sarajevo ermordet?",
+    "optionen": ["Kaiser Franz Joseph I.", "Kronprinz Rudolf", "Thronfolger Franz Ferdinand", "Erzherzog Karl"],
+    "richtig": 2,
+    "erklaerung": "Der Attentäter Gavrilo Princip erschoss den Thronfolger und dessen Gattin Sophie. Das folgende Ultimatum an Serbien löste die Julikrise und den Ersten Weltkrieg aus.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-023",
+    "frage": "In welchem Jahr entstand durch den Ausgleich mit Ungarn die Doppelmonarchie Österreich-Ungarn?",
+    "optionen": ["1848", "1867", "1871", "1878"],
+    "richtig": 1,
+    "erklaerung": "Nach der Niederlage gegen Preußen 1866 musste Wien den ungarischen Forderungen nachgeben. Gemeinsam blieben nur Außenpolitik, Heer und die zugehörigen Finanzen; Franz Joseph wurde in Budapest zum König von Ungarn gekrönt.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-024",
+    "frage": "In welchem Jahr erfolgte der \"Anschluss\" Österreichs an das nationalsozialistische Deutsche Reich?",
+    "optionen": ["1938", "1934", "1936", "1940"],
+    "richtig": 0,
+    "erklaerung": "Im März 1938 marschierte die Wehrmacht ein, Österreich wurde zur \"Ostmark\". Bereits 1934 hatten der Februaraufstand und der nationalsozialistische Juliputsch mit der Ermordung von Kanzler Dollfuß das Land erschüttert.",
+    "feld": "Geschichte",
+    "niveau": 1
+  },
+  {
+    "id": "ges-025",
+    "frage": "In welchem Jahr fand die Zweite Türkenbelagerung Wiens statt?",
+    "optionen": ["1529", "1663", "1683", "1697"],
+    "richtig": 2,
+    "erklaerung": "Die Entsatzschlacht am Kahlenberg am 12. September 1683 beendete die Belagerung; entscheidend war das Heer unter dem polnischen König Jan Sobieski. Die Erste Belagerung hatte 1529 stattgefunden.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-026",
+    "frage": "Was beschloss der Nationalrat am 26. Oktober 1955?",
+    "optionen": ["Den Beitritt zu den Vereinten Nationen", "Die Unterzeichnung des Staatsvertrags", "Die Gründung der Zweiten Republik", "Das Bundesverfassungsgesetz über die immerwährende Neutralität"],
+    "richtig": 3,
+    "erklaerung": "Der Beschluss fiel einen Tag nach dem Abzug der letzten Besatzungssoldaten. Seit 1965 ist der 26. Oktober österreichischer Nationalfeiertag.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-027",
+    "frage": "Wann trat Österreich der Europäischen Union bei?",
+    "optionen": ["1993", "1995", "1998", "2004"],
+    "richtig": 1,
+    "erklaerung": "Der Beitritt erfolgte am 1. Jänner 1995 gemeinsam mit Schweden und Finnland. In der Volksabstimmung im Juni 1994 hatten rund zwei Drittel der Wählerinnen und Wähler zugestimmt.",
+    "feld": "Geschichte",
+    "niveau": 2
+  },
+  {
+    "id": "ges-028",
+    "frage": "An welchem Tag wurde die Republik Deutschösterreich vor dem Parlament in Wien ausgerufen?",
+    "optionen": ["Am 12. November 1918", "Am 11. November 1918", "Am 21. Oktober 1918", "Am 1. Oktober 1920"],
+    "richtig": 0,
+    "erklaerung": "Einen Tag zuvor hatte Kaiser Karl I. auf jeden Anteil an den Staatsgeschäften verzichtet. Die Bundes-Verfassung, die Österreich bis heute prägt, folgte am 1. Oktober 1920.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-029",
+    "frage": "In welcher Stadt wurde Kaiserin Elisabeth 1898 ermordet?",
+    "optionen": ["In Triest", "Auf Korfu", "In Meran", "In Genf"],
+    "richtig": 3,
+    "erklaerung": "Am 10. September 1898 stach der italienische Anarchist Luigi Lucheni am Genfer Seeufer mit einer Feile auf sie ein. Auf Korfu hatte sich Elisabeth zuvor mit dem Achilleion ein Refugium bauen lassen.",
+    "feld": "Geschichte",
+    "niveau": 3
+  },
+  {
+    "id": "ges-030",
+    "frage": "Wen besiegte Rudolf von Habsburg 1278 in der Schlacht auf dem Marchfeld?",
+    "optionen": ["Matthias Corvinus", "Andreas III. von Ungarn", "Ottokar II. Přemysl", "Heinrich den Löwen"],
+    "richtig": 2,
+    "erklaerung": "Der böhmische König fiel bei Dürnkrut und Jedenspeigen. Der Sieg begründete die Herrschaft der Habsburger in Österreich, die bis 1918 dauern sollte.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-031",
+    "frage": "Wer war der erste Bundespräsident der Zweiten Republik?",
+    "optionen": ["Karl Renner", "Theodor Körner", "Adolf Schärf", "Leopold Figl"],
+    "richtig": 0,
+    "erklaerung": "Renner hatte 1945 die provisorische Staatsregierung geleitet und wurde im Dezember 1945 zum Bundespräsidenten gewählt. Er starb 1950 im Amt; sein Nachfolger wurde der Wiener Bürgermeister Theodor Körner.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-032",
+    "frage": "Welche Schlacht entschied 1866 den Krieg zwischen Österreich und Preußen?",
+    "optionen": ["Die Schlacht bei Solferino", "Die Schlacht bei Königgrätz", "Die Schlacht bei Custozza", "Die Schlacht bei Magenta"],
+    "richtig": 1,
+    "erklaerung": "Am 3. Juli 1866 unterlag die Nordarmee in Böhmen den Preußen. Österreich schied aus dem Deutschen Bund aus und musste Venetien abtreten, obwohl es bei Custozza gegen Italien gesiegt hatte.",
+    "feld": "Geschichte",
+    "niveau": 4
+  },
+  {
+    "id": "ges-033",
+    "frage": "Womit sicherte Kaiser Karl VI. 1713 die habsburgische Erbfolge auch in weiblicher Linie?",
+    "optionen": ["Mit dem Privilegium maius", "Mit der Goldenen Bulle", "Mit der Pragmatischen Sanktion", "Mit dem Hausvertrag von Pavia"],
+    "richtig": 2,
+    "erklaerung": "Das Hausgesetz erklärte die habsburgischen Länder für unteilbar und ließ weibliche Nachfolge zu. Es ermöglichte 1740 die Thronfolge Maria Theresias, verhinderte aber den Erbfolgekrieg nicht.",
+    "feld": "Geschichte",
+    "niveau": 5
+  },
+  {
+    "id": "kul-001",
+    "frage": "Wer komponierte die Oper \"Die Zauberflöte\"?",
+    "optionen": ["Joseph Haydn", "Christoph Willibald Gluck", "Ludwig van Beethoven", "Wolfgang Amadeus Mozart"],
+    "richtig": 3,
+    "erklaerung": "Die Uraufführung fand am 30. September 1791 in Wien statt, wenige Wochen vor Mozarts Tod. Das Textbuch stammt von Emanuel Schikaneder, der bei der Premiere selbst den Papageno sang.",
+    "feld": "Kultur",
+    "niveau": 1
+  },
+  {
+    "id": "kul-002",
+    "frage": "Wer komponierte den Walzer \"An der schönen blauen Donau\"?",
+    "optionen": ["Johann Strauss Sohn", "Johann Strauss Vater", "Josef Lanner", "Josef Strauss"],
+    "richtig": 0,
+    "erklaerung": "Der Walzer entstand 1867 ursprünglich als Chorwalzer für den Wiener Männergesang-Verein. Er gilt als heimliche Hymne Österreichs; der Vater ist vor allem für den Radetzkymarsch bekannt.",
+    "feld": "Kultur",
+    "niveau": 1
+  },
+  {
+    "id": "kul-003",
+    "frage": "Wer komponierte die Operette \"Die lustige Witwe\"?",
+    "optionen": ["Emmerich Kálmán", "Franz Lehár", "Carl Millöcker", "Oscar Straus"],
+    "richtig": 1,
+    "erklaerung": "Die Uraufführung fand 1905 im Theater an der Wien statt und begründete Lehárs Weltruhm. Das Werk um Hanna Glawari und Graf Danilo gilt als Hauptwerk der \"Silbernen Operettenära\".",
+    "feld": "Kultur",
+    "niveau": 2
+  },
+  {
+    "id": "kul-004",
+    "frage": "Welcher Komponist hinterließ die h-Moll-Sinfonie, die als \"Unvollendete\" bekannt ist?",
+    "optionen": ["Anton Bruckner", "Gustav Mahler", "Franz Schubert", "Robert Schumann"],
+    "richtig": 2,
+    "erklaerung": "Schubert schrieb 1822 nur zwei Sätze und legte das Werk beiseite. Uraufgeführt wurde es erst 1865, Jahrzehnte nach seinem Tod im Jahr 1828.",
+    "feld": "Kultur",
+    "niveau": 2
+  },
+  {
+    "id": "kul-005",
+    "frage": "In welcher Stadt wurde Mozarts \"Don Giovanni\" 1787 uraufgeführt?",
+    "optionen": ["Wien", "Salzburg", "München", "Prag"],
+    "richtig": 3,
+    "erklaerung": "Die Premiere fand am 29. Oktober 1787 im Prager Ständetheater statt. Prag hatte zuvor schon \"Figaros Hochzeit\" begeistert aufgenommen, weshalb Mozart der Auftrag von dort kam.",
+    "feld": "Kultur",
+    "niveau": 3
+  },
+  {
+    "id": "kul-006",
+    "frage": "In welcher Stadt wurde Giuseppe Verdis Oper \"Aida\" 1871 uraufgeführt?",
+    "optionen": ["In Mailand", "In Kairo", "In Neapel", "In Paris"],
+    "richtig": 1,
+    "erklaerung": "Die Uraufführung fand im Dezember 1871 im Opernhaus von Kairo statt, angeregt aus dem Umfeld des ägyptischen Vizekönigs nach der Eröffnung des Sueskanals. Das Libretto schrieb Antonio Ghislanzoni.",
+    "feld": "Kultur",
+    "niveau": 3
+  },
+  {
+    "id": "kul-007",
+    "frage": "Wer schrieb das Libretto zu Richard Strauss' Oper \"Der Rosenkavalier\"?",
+    "optionen": ["Hugo von Hofmannsthal", "Stefan Zweig", "Arthur Schnitzler", "Clemens Krauss"],
+    "richtig": 0,
+    "erklaerung": "Die Oper wurde 1911 in Dresden uraufgeführt. Hofmannsthal und Strauss arbeiteten auch bei \"Elektra\", \"Ariadne auf Naxos\" und \"Die Frau ohne Schatten\" zusammen.",
+    "feld": "Kultur",
+    "niveau": 3
+  },
+  {
+    "id": "kul-008",
+    "frage": "Welcher Komponist leitete von 1897 bis 1907 die Wiener Hofoper?",
+    "optionen": ["Richard Strauss", "Hans Richter", "Gustav Mahler", "Felix Weingartner"],
+    "richtig": 2,
+    "erklaerung": "Mahler erneuerte in diesen zehn Jahren Repertoire und Aufführungspraxis des Hauses grundlegend. Sein Nachfolger an der Hofoper wurde Felix Weingartner.",
+    "feld": "Kultur",
+    "niveau": 4
+  },
+  {
+    "id": "kul-009",
+    "frage": "In welchem Jahr wurde das Haus am Ring, die heutige Wiener Staatsoper, eröffnet?",
+    "optionen": ["1857", "1848", "1889", "1869"],
+    "richtig": 3,
+    "erklaerung": "Die Eröffnung fand im Mai 1869 statt; die Architekten van der Nüll und Sicardsburg erlebten sie nicht mehr. 1945 wurde das Haus durch Bomben zerstört und 1955 wiedereröffnet.",
+    "feld": "Kultur",
+    "niveau": 4
+  },
+  {
+    "id": "kul-010",
+    "frage": "Wer verfasste die Libretti zu Mozarts \"Figaros Hochzeit\", \"Don Giovanni\" und \"Così fan tutte\"?",
+    "optionen": ["Lorenzo Da Ponte", "Emanuel Schikaneder", "Pietro Metastasio", "Giovanni Battista Varesco"],
+    "richtig": 0,
+    "erklaerung": "Da Ponte war Hofdichter in Wien und schrieb die drei italienischen Meisterwerke Mozarts. Später wanderte er aus und starb 1838 in New York.",
+    "feld": "Kultur",
+    "niveau": 5
+  },
+  {
+    "id": "kul-011",
+    "frage": "Mit welchem Werk wurden 1876 die ersten Bayreuther Festspiele eröffnet?",
+    "optionen": ["Mit \"Parsifal\"", "Mit \"Das Rheingold\"", "Mit \"Tristan und Isolde\"", "Mit \"Die Meistersinger von Nürnberg\""],
+    "richtig": 1,
+    "erklaerung": "Am 13. August 1876 begann im neuen Festspielhaus der erste vollständige Zyklus des \"Rings des Nibelungen\" mit dem Vorabend \"Das Rheingold\". \"Parsifal\" folgte erst 1882.",
+    "feld": "Kultur",
+    "niveau": 5
+  },
+  {
+    "id": "kul-012",
+    "frage": "Wer komponierte die Oper \"Wozzeck\" nach dem Dramenfragment Georg Büchners?",
+    "optionen": ["Arnold Schönberg", "Anton Webern", "Alban Berg", "Ernst Krenek"],
+    "richtig": 2,
+    "erklaerung": "Die Uraufführung fand 1925 in Berlin statt. Berg gehörte wie Webern zur Zweiten Wiener Schule um Schönberg; seine zweite Oper \"Lulu\" blieb unvollendet.",
+    "feld": "Kultur",
+    "niveau": 5
+  }
+]
