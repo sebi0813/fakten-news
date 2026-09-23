@@ -46,6 +46,45 @@ export function pruefeFrage(f) {
  * Fehlerhafte Fragen fliegen raus und werden benannt — der Bau läuft weiter,
  * damit eine einzelne schiefe Frage nicht die ganze App aufhält.
  */
+// Wörter, die in fast jeder Frage stehen und deshalb nichts über Ähnlichkeit
+// aussagen. Ohne sie wären "Welches..." und "Was ist..." schon halbe Treffer.
+const FUELLWOERTER = new Set(['was', 'wer', 'wie', 'wo', 'welche', 'welcher', 'welches', 'welchem',
+  'welchen', 'der', 'die', 'das', 'des', 'dem', 'den', 'ein', 'eine', 'einer', 'eines', 'einem',
+  'einen', 'ist', 'sind', 'wird', 'werden', 'hat', 'haben', 'man', 'sich', 'von', 'vom', 'zu',
+  'zum', 'zur', 'in', 'im', 'auf', 'bei', 'mit', 'für', 'und', 'oder', 'als', 'bezeichnet',
+  'nennt', 'versteht', 'heißt', 'gilt', 'viele', 'viel', 'jahr', 'welchem'])
+
+/**
+ * Meldet Fragenpaare, die sich stark überschneiden. Der Abgleich weiter oben
+ * fängt nur wortgleiche Dubletten; "Welches Organ bildet die Galle" und
+ * "Welches Organ produziert die Galle" kämen beide durch. Hier wird nur
+ * gewarnt, nicht aussortiert — ob zwei ähnliche Fragen wirklich dieselbe
+ * sind, entscheidet ein Mensch besser.
+ */
+function aehnlichePaare(fragen, schwelle = 0.6) {
+  const mengen = fragen.map(f => new Set(
+    normal(f.frage).split(' ').filter(w => w.length > 2 && !FUELLWOERTER.has(w))))
+
+  let treffer = 0
+  for (let i = 0; i < fragen.length; i++) {
+    for (let j = i + 1; j < fragen.length; j++) {
+      const a = mengen[i]; const b = mengen[j]
+      if (!a.size || !b.size) continue
+      let schnitt = 0
+      for (const w of a) if (b.has(w)) schnitt++
+      const wert = schnitt / (a.size + b.size - schnitt)
+      if (wert >= schwelle) {
+        if (!treffer) console.warn('    Ähnliche Fragen — bitte ansehen:')
+        console.warn(`      ${wert.toFixed(2)}  ${fragen[i].id}: ${fragen[i].frage}`)
+        console.warn(`            ${fragen[j].id}: ${fragen[j].frage}`)
+        treffer++
+      }
+    }
+  }
+  if (!treffer) console.log('    keine inhaltlich ähnlichen Fragenpaare')
+  return treffer
+}
+
 export async function buildFragenkatalog() {
   let dateien = []
   try {
@@ -113,6 +152,8 @@ export async function buildFragenkatalog() {
     console.warn('  check-it: keine gültige Frage übrig')
     return null
   }
+
+  aehnlichePaare(fragen)
 
   const felder = {}
   for (const f of fragen) felder[f.feld] = (felder[f.feld] || 0) + 1

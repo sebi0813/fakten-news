@@ -1,0 +1,362 @@
+[
+  {
+    "id": "geo-001",
+    "frage": "Welcher ist der flächengrößte Ozean der Erde?",
+    "optionen": ["Der Atlantische Ozean", "Der Indische Ozean", "Der Pazifische Ozean", "Das Nordpolarmeer"],
+    "richtig": 2,
+    "erklaerung": "Er bedeckt rund ein Drittel der gesamten Erdoberfläche, also mehr Fläche als alle Kontinente zusammen. In seinem Marianengraben liegt mit knapp 11.000 Metern die tiefste bekannte Stelle der Weltmeere.",
+    "feld": "Geografie",
+    "niveau": 1
+  },
+  {
+    "id": "geo-002",
+    "frage": "Welcher Berg ist der höchste Afrikas?",
+    "optionen": ["Der Kilimandscharo", "Der Mount Kenya", "Der Ras Daschan", "Der Mount Stanley"],
+    "richtig": 0,
+    "erklaerung": "Der rund 5.895 Meter hohe Vulkan liegt in Tansania nahe der Grenze zu Kenia und ist ein freistehender Berg, kein Teil einer Gebirgskette. Trotz der Lage knapp südlich des Äquators trägt sein Gipfel Gletscherreste.",
+    "feld": "Geografie",
+    "niveau": 1
+  },
+  {
+    "id": "geo-003",
+    "frage": "Welche Meerenge trennt Europa von Afrika?",
+    "optionen": ["Die Straße von Gibraltar", "Der Bosporus", "Die Straße von Messina", "Der Ärmelkanal"],
+    "richtig": 0,
+    "erklaerung": "An der schmalsten Stelle liegen zwischen Spanien und Marokko nur etwa 14 Kilometer. Sie ist zugleich die einzige natürliche Verbindung des Mittelmeers zum Atlantik.",
+    "feld": "Geografie",
+    "niveau": 1
+  },
+  {
+    "id": "geo-004",
+    "frage": "In welches Meer mündet die Donau?",
+    "optionen": ["In das Mittelmeer", "In die Nordsee", "In das Kaspische Meer", "In das Schwarze Meer"],
+    "richtig": 3,
+    "erklaerung": "Der Strom endet in einem weitläufigen Delta an der Grenze zwischen Rumänien und der Ukraine, das als Biosphärenreservat geschützt ist. Auf ihrem Weg dorthin durchquert oder berührt die Donau zehn Staaten.",
+    "feld": "Geografie",
+    "niveau": 1
+  },
+  {
+    "id": "geo-005",
+    "frage": "Welche Stadt ist die Hauptstadt Australiens?",
+    "optionen": ["Sydney", "Melbourne", "Brisbane", "Canberra"],
+    "richtig": 3,
+    "erklaerung": "Die Stadt wurde ab 1913 am Reißbrett geplant, weil sich Sydney und Melbourne nicht auf einen Vorrang einigen konnten, und liegt ungefähr in der Mitte zwischen beiden. Sie bildet mit ihrem Umland ein eigenes Bundesterritorium.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-006",
+    "frage": "Welches Gewässer ist der flächengrößte See der Erde?",
+    "optionen": ["Das Kaspische Meer", "Der Baikalsee", "Der Obere See", "Der Viktoriasee"],
+    "richtig": 0,
+    "erklaerung": "Mit rund 370.000 Quadratkilometern ist es ein abflussloser Salzsee, an den fünf Staaten grenzen. Den Namen Meer trägt es nur wegen seiner Größe und seines Salzgehalts.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-007",
+    "frage": "Was versteht man in der Geografie unter einem Fjord?",
+    "optionen": ["Eine vom Meer durch eine Sandbank abgetrennte Lagune", "Eine Flussmündung, in die bei Flut das Meerwasser eindringt", "Eine steil abfallende Felsküste ohne vorgelagerten Strand", "Ein von einem Gletscher ausgeschürftes Tal, das später vom Meer überflutet wurde"],
+    "richtig": 3,
+    "erklaerung": "Typisch sind die U-förmigen Querschnitte und die geringe Wassertiefe an der Mündung, wo der Gletscher sein Geröll abgelagert hat. Besonders häufig kommen sie an den Küsten Norwegens, Grönlands, Chiles und Neuseelands vor.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-008",
+    "frage": "Welcher Meeresströmung verdankt Nordwesteuropa sein für die geografische Breite mildes Klima?",
+    "optionen": ["Dem Kanarenstrom", "Dem Labradorstrom", "Dem Humboldtstrom", "Dem Golfstrom mit seiner Verlängerung, dem Nordatlantikstrom"],
+    "richtig": 3,
+    "erklaerung": "Warmes Wasser aus dem Golf von Mexiko wird nach Nordosten transportiert und gibt seine Wärme an die Luft ab. Deshalb bleiben norwegische Häfen eisfrei, während Orte auf gleicher Breite in Kanada strenge Winter haben.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-009",
+    "frage": "Was entsteht dort, wo zwei ozeanische Erdplatten auseinanderdriften?",
+    "optionen": ["Ein Mittelozeanischer Rücken", "Ein Tiefseegraben", "Ein Faltengebirge", "Eine vulkanische Inselkette über einem Hotspot"],
+    "richtig": 0,
+    "erklaerung": "An diesen Nahtstellen quillt Magma auf und bildet ständig neuen Meeresboden, der nach beiden Seiten wegwandert. Island ist einer der wenigen Orte, an denen eine solche Zone über den Meeresspiegel ragt.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-010",
+    "frage": "Welches Gestein entsteht, wenn Kalkstein unter hohem Druck und großer Hitze umgewandelt wird?",
+    "optionen": ["Granit", "Basalt", "Marmor", "Sandstein"],
+    "richtig": 2,
+    "erklaerung": "Bei dieser Metamorphose wachsen die Kalkkristalle zu einem dichten, körnigen Gefüge zusammen. Granit und Basalt dagegen erstarren aus Magma, Sandstein wird aus verfestigten Sandkörnern abgelagert.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-011",
+    "frage": "Auf welcher geografischen Breite verläuft der nördliche Wendekreis?",
+    "optionen": ["Bei etwa 10 Grad nördlicher Breite", "Bei etwa 23,5 Grad nördlicher Breite", "Bei etwa 45 Grad nördlicher Breite", "Bei etwa 66,5 Grad nördlicher Breite"],
+    "richtig": 1,
+    "erklaerung": "Der Wert entspricht der Neigung der Erdachse gegenüber der Bahnebene; dort steht die Sonne zur Sommersonnenwende einmal im Jahr genau im Zenit. Bei rund 66,5 Grad liegt dagegen der Polarkreis.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-012",
+    "frage": "Wie heißt das Klimaphänomen, bei dem sich das Oberflächenwasser des tropischen Pazifiks vor der Küste Südamerikas ungewöhnlich stark erwärmt?",
+    "optionen": ["El Niño", "La Niña", "Der Monsun", "Die Nordatlantische Oszillation"],
+    "richtig": 0,
+    "erklaerung": "Dabei schwächen sich die Passatwinde ab, das kalte Auftriebswasser vor Peru bleibt aus und die Fischerei bricht ein. Der Name geht auf peruanische Fischer zurück, denen das warme Wasser oft um die Weihnachtszeit auffiel.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-013",
+    "frage": "Welcher Fluss bildet über weite Strecken die Grenze zwischen den USA und Mexiko?",
+    "optionen": ["Der Colorado", "Der Rio Grande", "Der Sacramento", "Der Snake River"],
+    "richtig": 1,
+    "erklaerung": "In Mexiko trägt derselbe Fluss den Namen Río Bravo del Norte. Er entspringt in den Rocky Mountains von Colorado und mündet in den Golf von Mexiko.",
+    "feld": "Geografie",
+    "niveau": 4
+  },
+  {
+    "id": "geo-014",
+    "frage": "Welche Schicht unterhalb der starren Lithosphäre ermöglicht durch ihre zähplastische Beschaffenheit die Bewegung der Erdplatten?",
+    "optionen": ["Die Erdkruste", "Der äußere Erdkern", "Die Asthenosphäre", "Die Mohorovičić-Diskontinuität"],
+    "richtig": 2,
+    "erklaerung": "Sie liegt im oberen Erdmantel in etwa 100 bis 200 Kilometern Tiefe und ist nicht flüssig, sondern über lange Zeiträume verformbar wie sehr zäher Teig. Die Mohorovičić-Diskontinuität ist dagegen keine Schicht, sondern die Grenzfläche zwischen Kruste und Mantel.",
+    "feld": "Geografie",
+    "niveau": 5
+  },
+  {
+    "id": "geo-015",
+    "frage": "Wie heißt der höchste Berg Österreichs?",
+    "optionen": ["Die Wildspitze", "Der Großvenediger", "Der Hohe Dachstein", "Der Großglockner"],
+    "richtig": 3,
+    "erklaerung": "Der rund 3.798 Meter hohe Gipfel liegt in der Glocknergruppe der Hohen Tauern genau auf der Grenze zwischen Kärnten und Tirol. Erstmals bestiegen wurde er 1800 im Rahmen einer vom Gurker Fürstbischof organisierten Expedition.",
+    "feld": "Geografie",
+    "niveau": 1
+  },
+  {
+    "id": "geo-016",
+    "frage": "Welches österreichische Bundesland hat als einziges keine Staatsgrenze zum Ausland?",
+    "optionen": ["Salzburg", "Wien", "Die Steiermark", "Das Burgenland"],
+    "richtig": 1,
+    "erklaerung": "Es ist vollständig von Niederösterreich umschlossen und damit eine Enklave innerhalb eines anderen Bundeslandes. Salzburg grenzt an Bayern, die Steiermark und das Burgenland haben Grenzen nach Slowenien beziehungsweise Ungarn und zur Slowakei.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-017",
+    "frage": "An wie viele Staaten grenzt Österreich?",
+    "optionen": ["Sechs", "Sieben", "Acht", "Neun"],
+    "richtig": 2,
+    "erklaerung": "Es sind Deutschland, Tschechien, die Slowakei, Ungarn, Slowenien, Italien, die Schweiz und Liechtenstein. Die kürzeste dieser Grenzen ist mit etwa 35 Kilometern jene zu Liechtenstein.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-018",
+    "frage": "Welcher Fluss durchfließt Tirol und mündet bei Passau in die Donau?",
+    "optionen": ["Der Inn", "Die Salzach", "Die Enns", "Die Drau"],
+    "richtig": 0,
+    "erklaerung": "Er entspringt im Schweizer Engadin und führt an der Mündung oft mehr Wasser als die Donau selbst. Die Salzach ist einer seiner größten Zuflüsse und erreicht die Donau daher nicht direkt.",
+    "feld": "Geografie",
+    "niveau": 2
+  },
+  {
+    "id": "geo-019",
+    "frage": "Welches österreichische Bundesland ist flächenmäßig das größte?",
+    "optionen": ["Die Steiermark", "Niederösterreich", "Tirol", "Oberösterreich"],
+    "richtig": 1,
+    "erklaerung": "Es umfasst rund 19.200 Quadratkilometer, also fast ein Viertel des Bundesgebiets, und reicht vom Waldviertel bis an die Grenze zum Burgenland. Die Steiermark folgt mit etwa 16.400 Quadratkilometern auf dem zweiten Platz.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-020",
+    "frage": "Welcher bewaldete Höhenzug bildet den nordöstlichen Ausläufer der Alpen unmittelbar am Westrand Wiens?",
+    "optionen": ["Das Leithagebirge", "Die Hohe Wand", "Der Wienerwald", "Der Semmering"],
+    "richtig": 2,
+    "erklaerung": "Er steht seit 2005 als Biosphärenpark unter Schutz und geht im Norden bei Klosterneuburg bis an die Donau heran. Schon 1870 verhinderte eine Bürgerbewegung um Josef Schöffel die geplante Abholzung großer Teile.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-021",
+    "frage": "Welcher Pass ist der niedrigste Übergang über den Alpenhauptkamm zwischen Nord- und Südtirol?",
+    "optionen": ["Der Arlbergpass", "Der Reschenpass", "Der Katschbergpass", "Der Brennerpass"],
+    "richtig": 3,
+    "erklaerung": "Mit rund 1.370 Metern Scheitelhöhe ist er seit der Römerzeit die wichtigste Nord-Süd-Verbindung über die Alpen. Die 1867 eröffnete Bahnstrecke kommt ohne Scheiteltunnel aus.",
+    "feld": "Geografie",
+    "niveau": 3
+  },
+  {
+    "id": "geo-022",
+    "frage": "Wie heißt der größte Gletscher Österreichs?",
+    "optionen": ["Der Gepatschferner", "Die Pasterze", "Der Hintertuxer Gletscher", "Der Dachsteingletscher"],
+    "richtig": 1,
+    "erklaerung": "Er liegt am Fuß des Großglockners in Kärnten und ist von der Großglockner-Hochalpenstraße aus einsehbar. Seine Länge wird seit 1879 systematisch vermessen, was eine der längsten Messreihen der Alpen ergibt.",
+    "feld": "Geografie",
+    "niveau": 4
+  },
+  {
+    "id": "geo-023",
+    "frage": "Welcher Berg ist der höchste Gipfel Niederösterreichs?",
+    "optionen": ["Der Schneeberg", "Die Rax", "Der Ötscher", "Das Hochkar"],
+    "richtig": 0,
+    "erklaerung": "Er erreicht rund 2.076 Meter und ist damit der östlichste Zweitausender der Alpen. Aus seinem Gebiet stammt über die I. Wiener Hochquellenwasserleitung seit 1873 ein großer Teil des Wiener Trinkwassers.",
+    "feld": "Geografie",
+    "niveau": 4
+  },
+  {
+    "id": "geo-024",
+    "frage": "Welcher See ist der flächengrößte, der zur Gänze auf österreichischem Staatsgebiet liegt?",
+    "optionen": ["Der Traunsee", "Der Wörthersee", "Der Mondsee", "Der Attersee"],
+    "richtig": 3,
+    "erklaerung": "Mit rund 46 Quadratkilometern übertrifft er alle anderen vollständig innerstaatlichen Seen; Bodensee und Neusiedler See sind zwar größer, werden aber mit Nachbarstaaten geteilt. Er liegt im oberösterreichischen Salzkammergut und ist für seine Sichttiefe bekannt.",
+    "feld": "Geografie",
+    "niveau": 5
+  },
+  {
+    "id": "spo-001",
+    "frage": "Wie viele Spieler einer Mannschaft stehen beim Fußball zu Spielbeginn auf dem Feld?",
+    "optionen": ["Zehn", "Elf", "Zwölf", "Neun"],
+    "richtig": 1,
+    "erklaerung": "Einer davon muss der Torhüter sein, der sich durch abweichende Kleidung von allen anderen unterscheiden muss. Sinkt eine Mannschaft durch Ausschlüsse unter sieben Spieler, wird die Partie abgebrochen.",
+    "feld": "Sport",
+    "niveau": 1
+  },
+  {
+    "id": "spo-002",
+    "frage": "Wie viele Grand-Slam-Turniere werden im Tennis pro Jahr ausgetragen?",
+    "optionen": ["Zwei", "Drei", "Vier", "Fünf"],
+    "richtig": 2,
+    "erklaerung": "Es sind die Australian Open, die French Open, Wimbledon und die US Open. Sie werden auf drei verschiedenen Belägen gespielt, weshalb ein Sieg bei allen vieren als besondere Leistung gilt.",
+    "feld": "Sport",
+    "niveau": 1
+  },
+  {
+    "id": "spo-003",
+    "frage": "Wie heißt im Tennis der Spielstand 40:40?",
+    "optionen": ["Vorteil", "Satzball", "Tie-Break", "Einstand"],
+    "richtig": 3,
+    "erklaerung": "Ab diesem Punktestand muss ein Spiel mit zwei Punkten Abstand gewonnen werden, weshalb es theoretisch endlos weitergehen kann. Im Englischen heißt dieser Stand Deuce.",
+    "feld": "Sport",
+    "niveau": 2
+  },
+  {
+    "id": "spo-004",
+    "frage": "Wie lang ist die offizielle Marathondistanz?",
+    "optionen": ["38,600 Kilometer", "40,000 Kilometer", "42,195 Kilometer", "44,500 Kilometer"],
+    "richtig": 2,
+    "erklaerung": "Die krumme Zahl geht auf die Olympischen Spiele 1908 in London zurück, wo die Strecke von Schloss Windsor bis vor die königliche Loge im Stadion reichte. Seit 1921 gilt sie als verbindliches Maß.",
+    "feld": "Sport",
+    "niveau": 2
+  },
+  {
+    "id": "spo-005",
+    "frage": "Wie heißt das große Stadion des FC Barcelona?",
+    "optionen": ["Das Camp Nou", "Das Estadio Santiago Bernabéu", "Das Estadio Mestalla", "Das Estadio Benito Villamarín"],
+    "richtig": 0,
+    "erklaerung": "Der katalanische Name bedeutet schlicht Neues Feld, weil der Verein 1957 vom älteren Spielort Les Corts hierher übersiedelte. Das Santiago Bernabéu ist die Heimstätte des Erzrivalen Real Madrid.",
+    "feld": "Sport",
+    "niveau": 3
+  },
+  {
+    "id": "spo-006",
+    "frage": "Was gilt im Fußball für einen Spieler, der sich in der eigenen Spielfeldhälfte aufhält, wenn der Ball gespielt wird?",
+    "optionen": ["Er kann dort nicht im strafbaren Abseits stehen", "Für ihn gelten dieselben Abseitsregeln wie in der gegnerischen Hälfte", "Abseits wird dort nur bei Freistößen geahndet", "Abseits führt dort zu einem indirekten Freistoß für die verteidigende Mannschaft"],
+    "richtig": 0,
+    "erklaerung": "Die Regel verlangt für eine Abseitsstellung unter anderem, dass sich der Spieler in der gegnerischen Hälfte befindet. Entscheidend ist dabei immer der Moment, in dem der Mitspieler den Ball spielt, nicht der Moment der Ballannahme.",
+    "feld": "Sport",
+    "niveau": 3
+  },
+  {
+    "id": "spo-007",
+    "frage": "Wie viele Punkte sind im Tennis zum Gewinn eines regulären Tie-Breaks mindestens nötig?",
+    "optionen": ["Fünf", "Sechs", "Sieben", "Zehn"],
+    "richtig": 2,
+    "erklaerung": "Zusätzlich braucht es zwei Punkte Vorsprung, sonst geht es weiter. Eingeführt wurde diese Kurzentscheidung Anfang der 1970er-Jahre, um endlos lange Sätze zu vermeiden.",
+    "feld": "Sport",
+    "niveau": 3
+  },
+  {
+    "id": "spo-008",
+    "frage": "In welcher österreichischen Stadt fanden die Olympischen Winterspiele 1964 und 1976 statt?",
+    "optionen": ["Salzburg", "Kitzbühel", "Villach", "Innsbruck"],
+    "richtig": 3,
+    "erklaerung": "Die Spiele 1976 wurden kurzfristig hierher vergeben, nachdem die ursprünglich vorgesehene US-Stadt Denver nach einer Volksabstimmung abgesagt hatte. Die vorhandenen Anlagen von zwölf Jahren zuvor konnten weiterverwendet werden.",
+    "feld": "Sport",
+    "niveau": 3
+  },
+  {
+    "id": "spo-009",
+    "frage": "In welchem Jahr wurde der SK Rapid Wien gegründet?",
+    "optionen": ["1894", "1899", "1911", "1921"],
+    "richtig": 1,
+    "erklaerung": "Der Klub ging aus dem zwei Jahre zuvor entstandenen Ersten Wiener Arbeiter-Fußball-Club hervor und nahm damals auch die Vereinsfarben Grün-Weiß an. Der Lokalrivale Austria Wien entstand 1911 aus dem Wiener Amateur-Sportverein.",
+    "feld": "Sport",
+    "niveau": 4
+  },
+  {
+    "id": "spo-010",
+    "frage": "Was signalisiert die blaue Flagge einem Fahrer in der Formel 1?",
+    "optionen": ["Dass er überrundet wird und den schnelleren Wagen vorbeilassen muss", "Dass die Boxengasse geschlossen ist", "Dass Öl oder Flüssigkeit auf der Strecke liegt", "Dass gegen ihn eine Zeitstrafe verhängt wurde"],
+    "richtig": 0,
+    "erklaerung": "Missachtet ein Fahrer das Signal mehrfach, drohen Strafen der Rennleitung. Eine gelb-rot gestreifte Flagge warnt dagegen vor rutschigem Untergrund durch Öl oder Split.",
+    "feld": "Sport",
+    "niveau": 4
+  },
+  {
+    "id": "spo-011",
+    "frage": "Wie hoch ist ein Tennisnetz in der Mitte des Platzes?",
+    "optionen": ["Etwa 80 Zentimeter", "Etwa 91 Zentimeter", "Etwa 107 Zentimeter", "Etwa 120 Zentimeter"],
+    "richtig": 1,
+    "erklaerung": "An den beiden Pfosten ist das Netz mit rund 107 Zentimetern höher und hängt zur Mitte hin durch, wo es von einem Gurt heruntergehalten wird. Die Maße gehen auf die englischen Einheiten drei beziehungsweise dreieinhalb Fuß zurück.",
+    "feld": "Sport",
+    "niveau": 4
+  },
+  {
+    "id": "spo-012",
+    "frage": "In welchem Jahr wurde der Europapokal der Landesmeister in UEFA Champions League umbenannt?",
+    "optionen": ["1985", "1992", "1997", "2003"],
+    "richtig": 1,
+    "erklaerung": "Mit der Umbenennung kam auch eine Gruppenphase dazu, die den reinen K.-o.-Modus des alten Bewerbs ablöste. Später wurden zusätzlich Vizemeister und weitere Klubs eines Landes zugelassen.",
+    "feld": "Sport",
+    "niveau": 4
+  },
+  {
+    "id": "spo-013",
+    "frage": "Was besagte die Auswärtstorregel, die die UEFA 2021 für ihre Klubbewerbe abschaffte?",
+    "optionen": ["Auswärtstore zählten in der Gruppenphase doppelt", "Ein Auswärtssieg brachte einen zusätzlichen Tabellenpunkt", "Bei Gleichstand entschied allein das Ergebnis des Rückspiels", "Bei gleichem Torverhältnis nach Hin- und Rückspiel kam die Mannschaft mit mehr auswärts erzielten Toren weiter"],
+    "richtig": 3,
+    "erklaerung": "Eingeführt worden war sie in den 1960er-Jahren, als weite Reisen und sehr unterschiedliche Platzverhältnisse Auswärtsspiele deutlich erschwerten. Seit der Abschaffung folgen bei Gleichstand Verlängerung und gegebenenfalls Elfmeterschießen.",
+    "feld": "Sport",
+    "niveau": 4
+  },
+  {
+    "id": "spo-014",
+    "frage": "Wer war der Verbandskapitän des österreichischen Fußball-\"Wunderteams\" der frühen 1930er-Jahre?",
+    "optionen": ["Ernst Happel", "Karl Rappan", "Hugo Meisl", "Matthias Sindelar"],
+    "richtig": 2,
+    "erklaerung": "Er prägte als Funktionär und Teamchef den technisch orientierten Wiener Schule-Stil und war auch Mitbegründer des Mitropapokals. Matthias Sindelar war der bekannteste Spieler dieser Mannschaft, nicht ihr Trainer.",
+    "feld": "Sport",
+    "niveau": 5
+  },
+  {
+    "id": "spo-015",
+    "frage": "Welche Mindestdistanz muss ein Formel-1-Grand-Prix nach dem Reglement umfassen, abgesehen von der Ausnahme in Monaco?",
+    "optionen": ["Rund 200 Kilometer", "Rund 260 Kilometer", "Rund 305 Kilometer", "Rund 400 Kilometer"],
+    "richtig": 2,
+    "erklaerung": "Die Rundenzahl eines Rennens ergibt sich daraus, wie oft die Streckenlänge in diese Distanz passt, aufgerundet auf die nächste volle Runde. In Monaco gilt wegen des engen Stadtkurses eine kürzere Vorgabe.",
+    "feld": "Sport",
+    "niveau": 5
+  },
+  {
+    "id": "spo-016",
+    "frage": "In welchem Jahr begann im Tennis die Open Era, seit der Profis bei den Grand-Slam-Turnieren startberechtigt sind?",
+    "optionen": ["1958", "1968", "1975", "1981"],
+    "richtig": 1,
+    "erklaerung": "Davor durften bei den großen Turnieren nur Amateure antreten, während Berufsspieler auf eigenen Touren spielten. Den Anfang machten die French Open, die als erstes Major das Feld öffneten.",
+    "feld": "Sport",
+    "niveau": 5
+  }
+]

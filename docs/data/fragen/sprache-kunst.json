@@ -1,0 +1,362 @@
+[
+  {
+    "id": "lit-001",
+    "frage": "Wer schrieb die Tragödie \"Faust. Der Tragödie erster Teil\"?",
+    "optionen": ["Johann Wolfgang von Goethe", "Friedrich Schiller", "Gotthold Ephraim Lessing", "Heinrich von Kleist"],
+    "richtig": 0,
+    "erklaerung": "Der erste Teil erschien 1808, doch Goethe arbeitete über sechzig Jahre an dem Stoff. Der zweite Teil wurde erst 1832 nach seinem Tod veröffentlicht.",
+    "feld": "Literatur",
+    "niveau": 1
+  },
+  {
+    "id": "lit-002",
+    "frage": "Wer schrieb das Schauspiel \"Wilhelm Tell\"?",
+    "optionen": ["Heinrich von Kleist", "Friedrich Schiller", "Gotthold Ephraim Lessing", "Johann Gottfried Herder"],
+    "richtig": 1,
+    "erklaerung": "Das Stück wurde 1804 in Weimar uraufgeführt und blieb Schillers letztes vollendetes Drama; er starb im Jahr darauf. Die Schweiz hat er selbst nie gesehen.",
+    "feld": "Literatur",
+    "niveau": 1
+  },
+  {
+    "id": "lit-003",
+    "frage": "Von wem stammt das Drama \"Romeo und Julia\"?",
+    "optionen": ["Christopher Marlowe", "Ben Jonson", "William Shakespeare", "John Milton"],
+    "richtig": 2,
+    "erklaerung": "Shakespeare schrieb die Tragödie um 1595. Die Geschichte der verfeindeten Familien in Verona war schon vorher in italienischen Novellen verbreitet.",
+    "feld": "Literatur",
+    "niveau": 1
+  },
+  {
+    "id": "lit-004",
+    "frage": "Wer schrieb den Roman \"Buddenbrooks\"?",
+    "optionen": ["Hermann Hesse", "Theodor Fontane", "Heinrich Mann", "Thomas Mann"],
+    "richtig": 3,
+    "erklaerung": "Der 1901 erschienene Roman trägt den Untertitel \"Verfall einer Familie\" und schildert vier Generationen einer Lübecker Kaufmannsfamilie. Er wurde bei der Verleihung des Nobelpreises 1929 ausdrücklich hervorgehoben.",
+    "feld": "Literatur",
+    "niveau": 2
+  },
+  {
+    "id": "lit-005",
+    "frage": "Welcher österreichische Autor schrieb den Roman \"Der Mann ohne Eigenschaften\"?",
+    "optionen": ["Robert Musil", "Hermann Broch", "Franz Werfel", "Karl Kraus"],
+    "richtig": 0,
+    "erklaerung": "Musil arbeitete bis zu seinem Tod 1942 an dem Werk, das unvollendet blieb. Es spielt 1913 in \"Kakanien\", seinem ironischen Namen für die k. u. k. Monarchie.",
+    "feld": "Literatur",
+    "niveau": 2
+  },
+  {
+    "id": "lit-006",
+    "frage": "Welche Gedichtform besteht klassisch aus vierzehn Versen, meist zwei Quartetten und zwei Terzetten?",
+    "optionen": ["Die Ballade", "Das Sonett", "Die Ode", "Die Elegie"],
+    "richtig": 1,
+    "erklaerung": "Das Sonett entstand im 13. Jahrhundert in Italien und wurde von Petrarca geprägt. Im deutschen Barock führte es vor allem Andreas Gryphius zur Meisterschaft.",
+    "feld": "Literatur",
+    "niveau": 2
+  },
+  {
+    "id": "lit-007",
+    "frage": "Wer schrieb die \"Schachnovelle\"?",
+    "optionen": ["Lion Feuchtwanger", "Franz Werfel", "Stefan Zweig", "Alfred Döblin"],
+    "richtig": 2,
+    "erklaerung": "Zweig verfasste die Erzählung 1941/42 im brasilianischen Exil; sie war seine letzte vollendete Arbeit. Erschienen ist sie 1943, nach seinem Freitod.",
+    "feld": "Literatur",
+    "niveau": 2
+  },
+  {
+    "id": "lit-008",
+    "frage": "Welcher Wiener Dramatiker schrieb die Posse \"Einen Jux will er sich machen\"?",
+    "optionen": ["Ferdinand Raimund", "Ludwig Anzengruber", "Karl Schönherr", "Johann Nestroy"],
+    "richtig": 3,
+    "erklaerung": "Nestroy brachte das Stück 1842 heraus und spielte selbst den Weinberl. Thornton Wilder bearbeitete den Stoff später; daraus entstand das Musical \"Hello, Dolly!\".",
+    "feld": "Literatur",
+    "niveau": 3
+  },
+  {
+    "id": "lit-009",
+    "frage": "Wer schrieb das Trauerspiel \"König Ottokars Glück und Ende\"?",
+    "optionen": ["Franz Grillparzer", "Friedrich Hebbel", "Ferdinand Raimund", "Adalbert Stifter"],
+    "richtig": 0,
+    "erklaerung": "Die Uraufführung fand 1825 am Wiener Burgtheater statt; die Zensur hatte das Stück zuvor zwei Jahre lang zurückgehalten. Grillparzer arbeitete zeitlebens als Beamter im Hofkammerarchiv.",
+    "feld": "Literatur",
+    "niveau": 3
+  },
+  {
+    "id": "lit-010",
+    "frage": "Wer schrieb den Roman \"Radetzkymarsch\"?",
+    "optionen": ["Franz Werfel", "Joseph Roth", "Alexander Lernet-Holenia", "Leo Perutz"],
+    "richtig": 1,
+    "erklaerung": "Roth erzählt darin 1932 den Niedergang der Familie Trotta und der Donaumonarchie bis 1914. Der Titel spielt auf den Marsch von Johann Strauss Vater an.",
+    "feld": "Literatur",
+    "niveau": 3
+  },
+  {
+    "id": "lit-011",
+    "frage": "Welcher literarischen Epoche wird Goethes Briefroman \"Die Leiden des jungen Werthers\" zugerechnet?",
+    "optionen": ["Der Weimarer Klassik", "Der Romantik", "Dem Sturm und Drang", "Dem Biedermeier"],
+    "richtig": 2,
+    "erklaerung": "Der Roman von 1774 stellt Gefühl und Individuum gegen die Regelpoetik der Aufklärung, ein Kennzeichen des Sturm und Drang. Er machte den jungen Goethe in ganz Europa berühmt.",
+    "feld": "Literatur",
+    "niveau": 3
+  },
+  {
+    "id": "lit-012",
+    "frage": "Welche österreichische Dichterin veröffentlichte 1953 den Gedichtband \"Die gestundete Zeit\"?",
+    "optionen": ["Marlen Haushofer", "Christine Lavant", "Friederike Mayröcker", "Ingeborg Bachmann"],
+    "richtig": 3,
+    "erklaerung": "Ingeborg Bachmann, geboren 1926 in Klagenfurt, erhielt im selben Jahr den Preis der Gruppe 47. Später wandte sie sich der Prosa zu, etwa mit dem Roman \"Malina\".",
+    "feld": "Literatur",
+    "niveau": 4
+  },
+  {
+    "id": "lit-013",
+    "frage": "Welche Erzählung Arthur Schnitzlers gilt als erste durchgehend im inneren Monolog geschriebene Dichtung deutscher Sprache?",
+    "optionen": ["Leutnant Gustl", "Traumnovelle", "Fräulein Else", "Der blinde Geronimo und sein Bruder"],
+    "richtig": 0,
+    "erklaerung": "Die Erzählung erschien 1900 und gibt ungefiltert die Gedanken eines Offiziers wieder. Wegen der Darstellung des Militärs wurde Schnitzler der Rang eines Oberarztes der Reserve aberkannt.",
+    "feld": "Literatur",
+    "niveau": 4
+  },
+  {
+    "id": "lit-014",
+    "frage": "Wer schrieb den Wiener Roman \"Die Strudlhofstiege\"?",
+    "optionen": ["Albert Drach", "Heimito von Doderer", "Gerhard Fritsch", "Fritz von Herzmanovsky-Orlando"],
+    "richtig": 1,
+    "erklaerung": "Doderers Roman von 1951 ist nach der Freitreppe im neunten Wiener Gemeindebezirk benannt und spielt in den Jahren um 1910 sowie 1923 bis 1925. Die Fortsetzung trägt den Titel \"Die Dämonen\".",
+    "feld": "Literatur",
+    "niveau": 4
+  },
+  {
+    "id": "lit-015",
+    "frage": "Welches Werk gilt als ältestes überliefertes Epos der Weltliteratur?",
+    "optionen": ["Die Ilias", "Das Ramayana", "Das Gilgamesch-Epos", "Die Odyssee"],
+    "richtig": 2,
+    "erklaerung": "Das Epos aus Mesopotamien ist in Keilschrift auf Tontafeln überliefert, Vorläufer reichen ins dritte Jahrtausend vor Christus zurück. Es enthält eine Sintflutgeschichte, die der biblischen Erzählung auffallend ähnelt.",
+    "feld": "Literatur",
+    "niveau": 5
+  },
+  {
+    "id": "lit-016",
+    "frage": "Wer verfasste um 1200 das mittelhochdeutsche Versepos \"Parzival\"?",
+    "optionen": ["Hartmann von Aue", "Gottfried von Straßburg", "Walther von der Vogelweide", "Wolfram von Eschenbach"],
+    "richtig": 3,
+    "erklaerung": "Das rund 25.000 Verse umfassende Epos erzählt von der Suche nach dem Gral. Richard Wagner griff den Stoff für sein Bühnenweihfestspiel \"Parsifal\" auf.",
+    "feld": "Literatur",
+    "niveau": 5
+  },
+  {
+    "id": "spr-001",
+    "frage": "Wie viele Fälle unterscheidet die deutsche Standardsprache?",
+    "optionen": ["Drei", "Vier", "Sechs", "Zwei"],
+    "richtig": 1,
+    "erklaerung": "Es sind Nominativ, Genitiv, Dativ und Akkusativ. Das Lateinische kennt sechs Fälle, das Finnische mehr als ein Dutzend.",
+    "feld": "Sprache",
+    "niveau": 1
+  },
+  {
+    "id": "spr-002",
+    "frage": "Welches in Österreich gebräuchliche Wort bezeichnet die Tomate?",
+    "optionen": ["Paradeiser", "Erdapfel", "Marille", "Kren"],
+    "richtig": 0,
+    "erklaerung": "Paradeiser geht auf \"Paradeisapfel\" zurück, eine alte Bezeichnung für die rote Frucht. Erdapfel meint die Kartoffel, Marille die Aprikose, Kren den Meerrettich.",
+    "feld": "Sprache",
+    "niveau": 1
+  },
+  {
+    "id": "spr-003",
+    "frage": "Aus welcher Sprache wurde das deutsche Wort \"Fenster\" entlehnt?",
+    "optionen": ["Aus dem Griechischen", "Aus dem Gotischen", "Aus dem Keltischen", "Aus dem Lateinischen"],
+    "richtig": 3,
+    "erklaerung": "Es geht auf lateinisch \"fenestra\" zurück und kam mit der römischen Bauweise nach Norden. Das Englische bewahrte dagegen das germanische Wort: \"window\" bedeutet ursprünglich Windauge.",
+    "feld": "Sprache",
+    "niveau": 2
+  },
+  {
+    "id": "spr-004",
+    "frage": "Zu welcher Sprachfamilie gehört das Ungarische?",
+    "optionen": ["Zu den slawischen Sprachen", "Zu den indogermanischen Sprachen", "Zu den uralischen Sprachen", "Zu den Turksprachen"],
+    "richtig": 2,
+    "erklaerung": "Ungarisch bildet mit dem Chantischen und Mansischen in Westsibirien den ugrischen Zweig der uralischen Sprachen. Entfernter verwandt sind Finnisch und Estnisch.",
+    "feld": "Sprache",
+    "niveau": 2
+  },
+  {
+    "id": "spr-005",
+    "frage": "Welchen Fall verlangt die Präposition \"wegen\" in der Standardsprache?",
+    "optionen": ["Den Genitiv", "Den Dativ", "Den Akkusativ", "Den Nominativ"],
+    "richtig": 0,
+    "erklaerung": "Standardsprachlich heißt es \"wegen des schlechten Wetters\". Der Dativ ist umgangssprachlich weit verbreitet, gilt aber in der geschriebenen Hochsprache weiterhin als nicht korrekt.",
+    "feld": "Sprache",
+    "niveau": 2
+  },
+  {
+    "id": "spr-006",
+    "frage": "Worauf geht die Redewendung \"etwas auf dem Kerbholz haben\" zurück?",
+    "optionen": ["Auf Kerben, die der Henker in den Richtblock schlug", "Auf einen Holzstab, in den Schulden als Kerben eingeritzt wurden", "Auf Kerben am Schaft der Jagdwaffe für erlegtes Wild", "Auf die Maßmarkierungen am Messstab der Zimmerleute"],
+    "richtig": 1,
+    "erklaerung": "Das Kerbholz diente bis in die Neuzeit als Schuldschein für Menschen, die nicht lesen und schreiben konnten. Es wurde längs gespalten, Gläubiger und Schuldner bekamen je eine Hälfte, sodass niemand nachträglich Kerben hinzufügen konnte.",
+    "feld": "Sprache",
+    "niveau": 3
+  },
+  {
+    "id": "spr-007",
+    "frage": "Worauf geht die Redewendung \"etwas auf die lange Bank schieben\" zurück?",
+    "optionen": ["Auf die Wartebänke vor den Amtsstuben", "Auf die Sitzbänke im Kirchenschiff", "Auf die lange Truhenbank im Gerichtssaal, in der unerledigte Akten lagen", "Auf die Werkbänke der Tischler"],
+    "richtig": 2,
+    "erklaerung": "In alten Gerichtsstuben verwahrte man Schriftstücke in langen Truhenbänken, die zugleich als Sitzgelegenheit dienten. Was dorthin geschoben wurde, blieb oft lange unbearbeitet.",
+    "feld": "Sprache",
+    "niveau": 3
+  },
+  {
+    "id": "spr-008",
+    "frage": "Zu welcher Wortart gehört das Wort \"obwohl\"?",
+    "optionen": ["Zum Adverb", "Zur Präposition", "Zur Partikel", "Zur Konjunktion"],
+    "richtig": 3,
+    "erklaerung": "\"Obwohl\" ist eine unterordnende Konjunktion, auch Subjunktion genannt. Sie leitet einen Nebensatz ein, in dem das gebeugte Verb ans Ende rückt.",
+    "feld": "Sprache",
+    "niveau": 3
+  },
+  {
+    "id": "spr-009",
+    "frage": "Aus welcher Sprache gelangte das Wort \"Alkohol\" ins Deutsche?",
+    "optionen": ["Aus dem Arabischen", "Aus dem Hebräischen", "Aus dem Persischen", "Aus dem Griechischen"],
+    "richtig": 0,
+    "erklaerung": "Arabisch \"al-kuhl\" bezeichnete ein feines Pulver, das als Augenschminke verwendet wurde. Über die Sprache der Alchemie verschob sich die Bedeutung auf das durch Destillation gewonnene Feinste eines Stoffes.",
+    "feld": "Sprache",
+    "niveau": 3
+  },
+  {
+    "id": "spr-010",
+    "frage": "Woraus hat sich der Glückwunsch \"Hals- und Beinbruch\" entwickelt?",
+    "optionen": ["Aus einem Zuruf unter Bergsteigern", "Aus dem jiddischen \"hatslokhe un brokhe\", also Glück und Segen", "Aus einer Formel mittelalterlicher Turnierkämpfer", "Aus dem Jargon der Zirkusartisten"],
+    "richtig": 1,
+    "erklaerung": "Die jiddische Segensformel wurde im Deutschen lautlich an bekannte Wörter angeglichen und dadurch zum scheinbaren Unglückswunsch. Solche Umdeutungen nennt die Sprachwissenschaft Volksetymologie.",
+    "feld": "Sprache",
+    "niveau": 4
+  },
+  {
+    "id": "spr-011",
+    "frage": "Wodurch bilden starke Verben im Deutschen ihre Stammformen?",
+    "optionen": ["Durch Anhängen der Endung -te", "Durch Verdoppelung der Stammsilbe", "Durch einen Wechsel des Stammvokals", "Durch eine vorangestellte Silbe"],
+    "richtig": 2,
+    "erklaerung": "Man nennt diesen Vokalwechsel Ablaut, etwa bei singen, sang, gesungen. Schwache Verben bilden ihre Formen dagegen mit einem Dentalsuffix, wie sagen, sagte, gesagt.",
+    "feld": "Sprache",
+    "niveau": 4
+  },
+  {
+    "id": "spr-012",
+    "frage": "Welcher Lautwandel trennt das Hochdeutsche vom Niederdeutschen, Niederländischen und Englischen?",
+    "optionen": ["Die erste, germanische Lautverschiebung", "Der i-Umlaut", "Die neuhochdeutsche Diphthongierung", "Die zweite, hochdeutsche Lautverschiebung"],
+    "richtig": 3,
+    "erklaerung": "Ab etwa dem 6. Jahrhundert wurden im Süden des Sprachraums p, t und k zu pf, ff, z, ss und ch verschoben. Deshalb steht englisch apple gegen Apfel und water gegen Wasser.",
+    "feld": "Sprache",
+    "niveau": 5
+  },
+  {
+    "id": "kun-001",
+    "frage": "Wer malte die \"Mona Lisa\"?",
+    "optionen": ["Leonardo da Vinci", "Raffael", "Sandro Botticelli", "Tizian"],
+    "richtig": 0,
+    "erklaerung": "Leonardo begann das Bildnis um 1503 und nahm es bis zuletzt mit sich. Es gelangte in den Besitz des französischen Königs Franz I. und hängt heute im Louvre.",
+    "feld": "Kunst",
+    "niveau": 1
+  },
+  {
+    "id": "kun-002",
+    "frage": "Welcher Baustil ist durch Spitzbogen, Kreuzrippengewölbe und Strebewerk gekennzeichnet?",
+    "optionen": ["Die Romanik", "Die Gotik", "Die Renaissance", "Der Barock"],
+    "richtig": 1,
+    "erklaerung": "Die Gotik entstand ab der Mitte des 12. Jahrhunderts in Nordfrankreich, früh etwa an der Abteikirche Saint-Denis. Weil das Strebewerk die Lasten nach außen ableitet, konnten die Wände großen Glasfenstern weichen.",
+    "feld": "Kunst",
+    "niveau": 1
+  },
+  {
+    "id": "kun-003",
+    "frage": "Wer malte das Gemälde \"Der Kuss\"?",
+    "optionen": ["Egon Schiele", "Oskar Kokoschka", "Gustav Klimt", "Koloman Moser"],
+    "richtig": 2,
+    "erklaerung": "Klimt schuf das Bild 1908/09 in seiner goldenen Periode, in der er Blattgold in die Malerei einarbeitete. Es hängt im Oberen Belvedere in Wien.",
+    "feld": "Kunst",
+    "niveau": 2
+  },
+  {
+    "id": "kun-004",
+    "frage": "Wie heißt der vorherrschende Baustil der großen Wiener Ringstraßenbauten des 19. Jahrhunderts?",
+    "optionen": ["Jugendstil", "Klassizismus", "Biedermeier", "Historismus"],
+    "richtig": 3,
+    "erklaerung": "Der Historismus griff für jedes Gebäude den passend erscheinenden historischen Stil auf. So entstanden das Rathaus neugotisch, das Parlament in griechischer Formensprache und das Burgtheater im Neubarock.",
+    "feld": "Kunst",
+    "niveau": 2
+  },
+  {
+    "id": "kun-005",
+    "frage": "Wie heißt die große Glocke im Nordturm des Wiener Stephansdoms?",
+    "optionen": ["Pummerin", "Anna", "Josephina", "Theresia"],
+    "richtig": 0,
+    "erklaerung": "Die erste Pummerin wurde 1711 aus erbeuteten türkischen Geschützen gegossen und stürzte beim Dombrand 1945 ab. Die heutige Glocke wurde 1951 in Oberösterreich neu gegossen.",
+    "feld": "Kunst",
+    "niveau": 3
+  },
+  {
+    "id": "kun-006",
+    "frage": "Wer entwarf die Wiener Karlskirche?",
+    "optionen": ["Johann Lucas von Hildebrandt", "Johann Bernhard Fischer von Erlach", "Jakob Prandtauer", "Domenico Martinelli"],
+    "richtig": 1,
+    "erklaerung": "Der Bau begann 1716 und ging auf ein Pestgelübde Kaiser Karls VI. zurück. Nach dem Tod des Architekten vollendete sein Sohn Joseph Emanuel die Kirche 1737.",
+    "feld": "Kunst",
+    "niveau": 3
+  },
+  {
+    "id": "kun-007",
+    "frage": "Welche Kunstrichtung begründeten Pablo Picasso und Georges Braque ab 1907?",
+    "optionen": ["Den Fauvismus", "Den Futurismus", "Den Kubismus", "Den Surrealismus"],
+    "richtig": 2,
+    "erklaerung": "Der Kubismus zerlegt Gegenstände in geometrische Formen und zeigt mehrere Ansichten zugleich auf derselben Fläche. Picassos \"Les Demoiselles d'Avignon\" gilt als Auftakt dieser Entwicklung.",
+    "feld": "Kunst",
+    "niveau": 3
+  },
+  {
+    "id": "kun-008",
+    "frage": "Wer entwarf das Gebäude der Wiener Secession mit der vergoldeten Kuppel?",
+    "optionen": ["Otto Wagner", "Josef Hoffmann", "Max Fabiani", "Joseph Maria Olbrich"],
+    "richtig": 3,
+    "erklaerung": "Olbrich errichtete das Ausstellungshaus 1897/98; die Kuppel aus vergoldeten Lorbeerblättern trug ihm im Volksmund den Namen Krauthappel ein. Über dem Eingang steht der Wahlspruch \"Der Zeit ihre Kunst, der Kunst ihre Freiheit\".",
+    "feld": "Kunst",
+    "niveau": 4
+  },
+  {
+    "id": "kun-009",
+    "frage": "Von welchem Wiener Architekten stammt die Schrift \"Ornament und Verbrechen\"?",
+    "optionen": ["Adolf Loos", "Otto Wagner", "Josef Hoffmann", "Clemens Holzmeister"],
+    "richtig": 0,
+    "erklaerung": "Loos trug den Text erstmals 1908 als Vortrag vor und wandte sich darin gegen jede überflüssige Verzierung. Sein schmuckloses Haus am Michaelerplatz löste kurz darauf einen Skandal aus.",
+    "feld": "Kunst",
+    "niveau": 4
+  },
+  {
+    "id": "kun-010",
+    "frage": "Wer malte die \"Bauernhochzeit\" und die \"Jäger im Schnee\", die im Kunsthistorischen Museum in Wien hängen?",
+    "optionen": ["Hieronymus Bosch", "Pieter Bruegel der Ältere", "Jan van Eyck", "Peter Paul Rubens"],
+    "richtig": 1,
+    "erklaerung": "Das Kunsthistorische Museum besitzt die weltweit größte Sammlung von Tafeln Bruegels. Die \"Jäger im Schnee\" entstanden 1565 als Teil eines Zyklus über die Jahreszeiten.",
+    "feld": "Kunst",
+    "niveau": 4
+  },
+  {
+    "id": "kun-011",
+    "frage": "Welche beiden Architekten entwarfen das Kunsthistorische und das Naturhistorische Museum in Wien?",
+    "optionen": ["Theophil Hansen und August Sicard von Sicardsburg", "Heinrich von Ferstel und Friedrich Schmidt", "Gottfried Semper und Carl von Hasenauer", "Eduard van der Nüll und Ludwig Förster"],
+    "richtig": 2,
+    "erklaerung": "Die beiden spiegelgleichen Bauten am Maria-Theresien-Platz wurden 1889 und 1891 eröffnet. Sie waren Teil eines geplanten Kaiserforums, das nie vollendet wurde.",
+    "feld": "Kunst",
+    "niveau": 5
+  },
+  {
+    "id": "kun-012",
+    "frage": "Wer entwarf die Kuppel des Doms von Florenz?",
+    "optionen": ["Leon Battista Alberti", "Andrea Palladio", "Donato Bramante", "Filippo Brunelleschi"],
+    "richtig": 3,
+    "erklaerung": "Brunelleschi errichtete die doppelschalige Kuppel zwischen 1420 und 1436 ohne durchgehendes Lehrgerüst. Der Bau gilt als Schlüsselwerk der Renaissance-Architektur.",
+    "feld": "Kunst",
+    "niveau": 5
+  }
+]

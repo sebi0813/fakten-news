@@ -464,9 +464,11 @@ Der Workflow versucht es deshalb bis zu fünfmal mit wachsender Pause.
 
 ## check-it
 
-Fünf Multiple-Choice-Fragen pro Tag aus einem festen Vorrat im Repository.
-**Kein Schlüssel, keine Netzabfrage, keine laufenden Kosten** — die App holt
-einmal `docs/data/fragen.json` und kommt damit aus, auch offline.
+Fünf Multiple-Choice-Fragen pro Tag aus einem festen Vorrat von **300 Fragen**
+im Repository, verteilt über 18 Felder — von Ernährung, Astronomie und
+Geschichte über Literatur, Sprache und Kunst bis zu Genossenschaftswesen und
+Agile. **Kein Schlüssel, keine Netzabfrage, keine laufenden Kosten** — die App
+holt einmal `docs/data/fragen.json` und kommt damit aus, auch offline.
 
 Warum ein eigener Vorrat und keine fremde Datenbank? Weil es keine gibt, die
 passt. Geprüft wurden:
@@ -534,6 +536,11 @@ und prüft dabei:
 - Erklärung vorhanden und nicht bloß eine Wiederholung der Antwort
 - Niveau zwischen 1 und 5
 - keine doppelten Kennungen, keine zweimal gestellte Frage
+- **inhaltlich** ähnliche Paare werden gemeldet, nicht nur wortgleiche. Beim
+  ersten Lauf über 180 Fragen fiel so auf, dass zwei Autoren unabhängig
+  voneinander nach Österreichs EU-Beitritt gefragt hatten (Ähnlichkeit 0,80).
+  Aussortiert wird hier nicht — ob zwei ähnliche Fragen dieselbe sind,
+  entscheidet ein Mensch besser.
 
 Eine fehlerhafte Frage fliegt mit Namen und Grund aus dem Katalog, der Bau
 läuft weiter. Sie soll beim Bauen auffallen, nicht erst auf dem Telefon.

@@ -1,0 +1,467 @@
+[
+  {
+    "id": "med-001",
+    "frage": "Welches Organ bildet die Gallenflüssigkeit?",
+    "optionen": ["Die Gallenblase", "Die Leber", "Die Bauchspeicheldrüse", "Die Milz"],
+    "richtig": 1,
+    "erklaerung": "Die Gallenflüssigkeit entsteht in der Leber und wird in der Gallenblase nur zwischengespeichert und eingedickt. Deshalb ist die Verdauung auch nach einer Entfernung der Gallenblase grundsätzlich weiter möglich.",
+    "feld": "Medizin",
+    "niveau": 1
+  },
+  {
+    "id": "med-002",
+    "frage": "Was wird bei einer sogenannten Blinddarmoperation tatsächlich entfernt?",
+    "optionen": ["Der Wurmfortsatz", "Der gesamte Blinddarm", "Ein Stück des Dickdarms", "Der letzte Abschnitt des Dünndarms"],
+    "richtig": 0,
+    "erklaerung": "Entzündet sich nicht der Blinddarm selbst, sondern der an ihm hängende Wurmfortsatz, wird nur dieser abgetragen. Der Blinddarm ist der sackförmige Anfangsteil des Dickdarms und bleibt erhalten.",
+    "feld": "Medizin",
+    "niveau": 1
+  },
+  {
+    "id": "med-003",
+    "frage": "Nach welchem Arzt der griechischen Antike ist der berühmteste ärztliche Eid benannt?",
+    "optionen": ["Galenos von Pergamon", "Paracelsus", "Hippokrates von Kos", "Avicenna"],
+    "richtig": 2,
+    "erklaerung": "Der hippokratische Eid stammt aus dem Textkorpus, das Hippokrates von Kos zugeschrieben wird, und entstand im 5. oder 4. Jahrhundert v. Chr. Galenos wirkte erst rund 500 Jahre später und prägte die Medizin bis weit in die Neuzeit.",
+    "feld": "Medizin",
+    "niveau": 1
+  },
+  {
+    "id": "med-004",
+    "frage": "Wozu dient in der Ersten Hilfe die stabile Seitenlage?",
+    "optionen": [
+      "Sie hält bei einer bewusstlosen Person mit normaler Atmung die Atemwege frei",
+      "Sie stillt eine starke Blutung am Rumpf",
+      "Sie ersetzt bei einem Herzstillstand die Herzdruckmassage",
+      "Sie verhindert das Anschwellen gebrochener Knochen"
+    ],
+    "richtig": 0,
+    "erklaerung": "In Rückenlage kann bei Bewusstlosen die erschlaffte Zunge den Rachen verlegen oder Erbrochenes in die Luftwege gelangen; die Seitenlage beugt beidem vor. Bei fehlender normaler Atmung gilt sie nicht, dann ist die Wiederbelebung nötig.",
+    "feld": "Medizin",
+    "niveau": 2
+  },
+  {
+    "id": "med-005",
+    "frage": "Aus wie vielen Knochen besteht das Skelett eines erwachsenen Menschen ungefähr?",
+    "optionen": ["Etwa 150", "Etwa 206", "Etwa 280", "Etwa 350"],
+    "richtig": 1,
+    "erklaerung": "Üblich ist die Angabe von 206 Knochen, wobei kleine Variationen etwa bei Sesambeinen vorkommen. Neugeborene haben über 300 Knochen und Knorpelstücke, von denen viele im Wachstum miteinander verschmelzen.",
+    "feld": "Medizin",
+    "niveau": 2
+  },
+  {
+    "id": "med-006",
+    "frage": "Was geben die beiden Zahlen einer Blutdruckangabe wie \"120 zu 80\" an?",
+    "optionen": [
+      "Puls und Atemfrequenz",
+      "Den Druck in den Arterien und den in den Venen",
+      "Den Druck während des Herzauswurfs und den während der Füllungsphase",
+      "Den Druck in der linken und den in der rechten Herzhälfte"
+    ],
+    "richtig": 2,
+    "erklaerung": "Der obere, systolische Wert entsteht beim Zusammenziehen der Herzkammern, der untere, diastolische in der Erschlaffungs- und Füllungsphase. Gemessen wird der Druck in einer Arterie, angegeben in Millimeter Quecksilbersäule.",
+    "feld": "Medizin",
+    "niveau": 2
+  },
+  {
+    "id": "med-007",
+    "frage": "Was liegt einem Schlaganfall zugrunde?",
+    "optionen": [
+      "Ein Krampfanfall der Hirnrinde",
+      "Eine plötzliche Störung der Blutversorgung im Gehirn",
+      "Ein Einriss der Hauptschlagader",
+      "Eine akute Entzündung der Hirnhäute"
+    ],
+    "richtig": 1,
+    "erklaerung": "In der großen Mehrzahl der Fälle verschließt ein Gerinnsel ein Hirngefäß, seltener platzt ein Gefäß und blutet ins Gewebe. Weil Nervenzellen ohne Sauerstoff rasch absterben, gilt der Schlaganfall als Notfall.",
+    "feld": "Medizin",
+    "niveau": 2
+  },
+  {
+    "id": "med-008",
+    "frage": "Wer entdeckte 1928 durch einen verunreinigten Bakterienkulturen-Versuch das Penicillin?",
+    "optionen": ["Robert Koch", "Paul Ehrlich", "Alexander Fleming", "Louis Pasteur"],
+    "richtig": 2,
+    "erklaerung": "Fleming bemerkte, dass um einen eingeschleppten Schimmelpilz herum keine Bakterien wuchsen. Erst Howard Florey und Ernst Boris Chain machten den Stoff ab 1940 in größerem Maßstab nutzbar; alle drei erhielten 1945 den Nobelpreis.",
+    "feld": "Medizin",
+    "niveau": 3
+  },
+  {
+    "id": "med-009",
+    "frage": "Warum können Antibiotika grundsätzlich nicht gegen Viren wirken?",
+    "optionen": [
+      "Weil Viren für die Wirkstoffe zu klein sind",
+      "Weil Viren keinen eigenen Stoffwechsel haben und sich in den Zellen des Wirts vermehren",
+      "Weil Viren vom Immunsystem abgeschirmt werden",
+      "Weil Viren eine besonders dicke Zellwand besitzen"
+    ],
+    "richtig": 1,
+    "erklaerung": "Antibiotika greifen typisch bakterielle Strukturen an, etwa den Zellwandaufbau oder die bakterielle Eiweißsynthese. Viren besitzen nichts davon, weshalb gegen sie eigene Virostatika entwickelt werden mussten.",
+    "feld": "Medizin",
+    "niveau": 3
+  },
+  {
+    "id": "med-010",
+    "frage": "Zu welcher Gruppe von Krankheitserregern gehört der Auslöser der Malaria?",
+    "optionen": ["Zu den Bakterien", "Zu den Viren", "Zu den einzelligen Parasiten", "Zu den Fadenwürmern"],
+    "richtig": 2,
+    "erklaerung": "Malaria wird von Einzellern der Gattung Plasmodium verursacht, die von Stechmücken der Gattung Anopheles übertragen werden. Der Erreger befällt Leberzellen und anschließend die roten Blutkörperchen.",
+    "feld": "Medizin",
+    "niveau": 3
+  },
+  {
+    "id": "med-011",
+    "frage": "Welches bildgebende Verfahren arbeitet mit starken Magnetfeldern und Radiowellen statt mit Röntgenstrahlen?",
+    "optionen": ["Die Magnetresonanztomografie", "Die Computertomografie", "Die Mammografie", "Die Durchleuchtung"],
+    "richtig": 0,
+    "erklaerung": "Die Magnetresonanztomografie nutzt das Verhalten von Wasserstoffkernen im Magnetfeld und bildet deshalb Weichteile besonders gut ab. Die Computertomografie erzeugt ihre Schnittbilder dagegen aus vielen Röntgenaufnahmen.",
+    "feld": "Medizin",
+    "niveau": 3
+  },
+  {
+    "id": "med-012",
+    "frage": "Worauf beruht der Schutz durch eine aktive Impfung?",
+    "optionen": [
+      "Fertige Antikörper werden von außen zugeführt",
+      "Der Erreger wird unmittelbar im Blut abgetötet",
+      "Die Körpertemperatur wird dauerhaft leicht angehoben",
+      "Der Körper bildet nach Kontakt mit Erregerbestandteilen selbst Antikörper und Gedächtniszellen"
+    ],
+    "richtig": 3,
+    "erklaerung": "Die aktive Impfung trainiert das Immunsystem, das den Schutz über langlebige Gedächtniszellen selbst aufbaut. Die passive Immunisierung mit fertigen Antikörpern wirkt dagegen sofort, aber nur für kurze Zeit.",
+    "feld": "Medizin",
+    "niveau": 3
+  },
+  {
+    "id": "med-013",
+    "frage": "Welche Blutgruppe des AB0-Systems gilt bei roten Blutkörperchen als Universalspender?",
+    "optionen": ["A", "B", "AB", "0"],
+    "richtig": 3,
+    "erklaerung": "Erythrozyten der Gruppe 0 tragen weder A- noch B-Merkmale und lösen daher im AB0-System keine Abwehrreaktion aus; berücksichtigt wird zusätzlich der Rhesusfaktor. Umgekehrt ist AB der Universalempfänger. Entdeckt hat die Blutgruppen der Wiener Arzt Karl Landsteiner.",
+    "feld": "Medizin",
+    "niveau": 4
+  },
+  {
+    "id": "med-014",
+    "frage": "Welche Herzklappe liegt zwischen dem linken Vorhof und der linken Herzkammer?",
+    "optionen": ["Die Trikuspidalklappe", "Die Aortenklappe", "Die Pulmonalklappe", "Die Mitralklappe"],
+    "richtig": 3,
+    "erklaerung": "Die Mitralklappe ist die einzige Herzklappe mit nur zwei Segeln, woher ihr Name in Anlehnung an die Bischofsmütze stammt. Ihr Gegenstück in der rechten Herzhälfte ist die dreizipflige Trikuspidalklappe.",
+    "feld": "Medizin",
+    "niveau": 4
+  },
+  {
+    "id": "med-015",
+    "frage": "Welcher Arzt führte 1847 am Wiener Allgemeinen Krankenhaus die Händedesinfektion mit Chlorkalk ein und senkte damit die Sterblichkeit am Kindbettfieber drastisch?",
+    "optionen": ["Ignaz Semmelweis", "Theodor Billroth", "Joseph Lister", "Carl von Rokitansky"],
+    "richtig": 0,
+    "erklaerung": "Semmelweis erkannte, dass Ärzte den Erreger vom Seziersaal in den Kreißsaal trugen, lange bevor Bakterien bekannt waren. Seine Kollegen lehnten die Erklärung zunächst ab; erst Jahrzehnte später setzte sich die Antisepsis allgemein durch.",
+    "feld": "Medizin",
+    "niveau": 4
+  },
+  {
+    "id": "med-016",
+    "frage": "Welche Antikörperklasse ist im Blut Erwachsener am häufigsten und geht als einzige durch die Plazenta auf das ungeborene Kind über?",
+    "optionen": ["IgA", "IgE", "IgG", "IgM"],
+    "richtig": 2,
+    "erklaerung": "IgG macht rund drei Viertel der Antikörper im Blut aus und verleiht dem Neugeborenen für einige Monate einen geliehenen Schutz. IgM entsteht als Erstes bei einer frischen Infektion, IgA schützt vor allem die Schleimhäute.",
+    "feld": "Medizin",
+    "niveau": 5
+  },
+  {
+    "id": "che-001",
+    "frage": "Welches chemische Element hat das Symbol Na?",
+    "optionen": ["Stickstoff", "Neon", "Nickel", "Natrium"],
+    "richtig": 3,
+    "erklaerung": "Na steht für lateinisch natrium. Das Element ist so reaktionsfreudig, dass es in der Natur nie elementar vorkommt, sondern nur in Verbindungen wie Kochsalz.",
+    "feld": "Chemie",
+    "niveau": 1
+  },
+  {
+    "id": "che-002",
+    "frage": "Welchen pH-Wert hat eine neutrale wässrige Lösung bei Zimmertemperatur?",
+    "optionen": ["0", "7", "10", "14"],
+    "richtig": 1,
+    "erklaerung": "Bei pH 7 sind gleich viele Oxonium- wie Hydroxidionen vorhanden. Die Skala ist logarithmisch: Eine Lösung mit pH 4 ist zehnmal saurer als eine mit pH 5.",
+    "feld": "Chemie",
+    "niveau": 1
+  },
+  {
+    "id": "che-003",
+    "frage": "Welches Gas treibt einen Teig auf, wenn Natron mit einer Säure reagiert?",
+    "optionen": ["Wasserstoff", "Sauerstoff", "Kohlendioxid", "Stickstoff"],
+    "richtig": 2,
+    "erklaerung": "Aus Natriumhydrogencarbonat setzt die Säure Kohlendioxid frei, dessen Bläschen den Teig lockern. Backpulver enthält deshalb neben Natron gleich ein säuerndes Salz und ein Trennmittel.",
+    "feld": "Chemie",
+    "niveau": 2
+  },
+  {
+    "id": "che-004",
+    "frage": "Welches Metall ist bei Zimmertemperatur flüssig?",
+    "optionen": ["Quecksilber", "Blei", "Zinn", "Zink"],
+    "richtig": 0,
+    "erklaerung": "Quecksilber erstarrt erst bei etwa minus 39 Grad Celsius und war deshalb lange die Füllung von Thermometern. Wegen seiner Giftigkeit wurde es dort weitgehend durch andere Flüssigkeiten ersetzt.",
+    "feld": "Chemie",
+    "niveau": 2
+  },
+  {
+    "id": "che-005",
+    "frage": "Wer ordnete 1869 die bekannten Elemente zu einem Periodensystem und ließ darin Lücken für noch unentdeckte Elemente frei?",
+    "optionen": ["Antoine Lavoisier", "John Dalton", "Dmitri Mendelejew", "Justus von Liebig"],
+    "richtig": 2,
+    "erklaerung": "Mendelejew sagte aus den Lücken die Eigenschaften noch unbekannter Elemente wie Gallium und Germanium erstaunlich genau voraus. Heute wird nicht nach Atommasse, sondern nach Ordnungszahl sortiert.",
+    "feld": "Chemie",
+    "niveau": 2
+  },
+  {
+    "id": "che-006",
+    "frage": "Welches Element ist im Universum mit Abstand am häufigsten?",
+    "optionen": ["Helium", "Sauerstoff", "Kohlenstoff", "Wasserstoff"],
+    "richtig": 3,
+    "erklaerung": "Auf Wasserstoff entfallen etwa drei Viertel der gewöhnlichen Materie, auf Helium fast der gesamte Rest. Alle schwereren Elemente zusammen machen nur rund ein Prozent aus.",
+    "feld": "Chemie",
+    "niveau": 2
+  },
+  {
+    "id": "che-007",
+    "frage": "Was entsteht, wenn eine Säure mit einer Lauge neutralisiert wird?",
+    "optionen": [
+      "Ein Salz und Wasser",
+      "Ein Metall und Wasserstoff",
+      "Ein Oxid und Sauerstoff",
+      "Eine Base und ein Alkohol"
+    ],
+    "richtig": 0,
+    "erklaerung": "Oxonium- und Hydroxidionen verbinden sich zu Wasser, die übrigen Ionen bilden das Salz. Aus Salzsäure und Natronlauge entsteht auf diesem Weg gewöhnliches Kochsalz.",
+    "feld": "Chemie",
+    "niveau": 3
+  },
+  {
+    "id": "che-008",
+    "frage": "Was bewirkt ein Katalysator bei einer chemischen Reaktion?",
+    "optionen": [
+      "Er verschiebt das Gleichgewicht zugunsten der Produkte",
+      "Er setzt die Aktivierungsenergie herab und liegt am Ende unverbraucht vor",
+      "Er liefert die für die Reaktion nötige Energie",
+      "Er wird im Lauf der Reaktion vollständig aufgebraucht"
+    ],
+    "richtig": 1,
+    "erklaerung": "Ein Katalysator eröffnet einen energetisch günstigeren Reaktionsweg und beschleunigt Hin- und Rückreaktion gleichermaßen, verschiebt das Gleichgewicht also nicht. Enzyme sind die Katalysatoren des Körpers.",
+    "feld": "Chemie",
+    "niveau": 3
+  },
+  {
+    "id": "che-009",
+    "frage": "Warum gehen Edelgase nur äußerst selten chemische Verbindungen ein?",
+    "optionen": [
+      "Weil ihre Atome besonders schwer sind",
+      "Weil sie keine Elektronen besitzen",
+      "Weil ihre äußerste Elektronenschale vollständig besetzt ist",
+      "Weil sie nur bei sehr tiefen Temperaturen existieren"
+    ],
+    "richtig": 2,
+    "erklaerung": "Eine volle Außenschale ist energetisch so günstig, dass kaum ein Anreiz zum Austausch von Elektronen besteht. Von den schwereren Edelgasen wie Xenon lassen sich unter harten Bedingungen dennoch Verbindungen herstellen.",
+    "feld": "Chemie",
+    "niveau": 3
+  },
+  {
+    "id": "che-010",
+    "frage": "Was bedeutet Oxidation im allgemeinen chemischen Sinn?",
+    "optionen": [
+      "Die Aufnahme von Elektronen",
+      "Die Aufnahme von Wasserstoff",
+      "Die Abgabe von Elektronen",
+      "Die Abgabe von Wärme"
+    ],
+    "richtig": 2,
+    "erklaerung": "Der Begriff stammt zwar von der Reaktion mit Sauerstoff, wurde aber auf jede Elektronenabgabe verallgemeinert. Weil Elektronen nicht verloren gehen, ist jede Oxidation zwingend mit einer Reduktion gekoppelt.",
+    "feld": "Chemie",
+    "niveau": 3
+  },
+  {
+    "id": "che-011",
+    "frage": "Welche funktionelle Gruppe kennzeichnet die Stoffklasse der Alkohole?",
+    "optionen": [
+      "Die Carboxylgruppe",
+      "Die Carbonylgruppe",
+      "Die Aminogruppe",
+      "Die Hydroxylgruppe"
+    ],
+    "richtig": 3,
+    "erklaerung": "Alkohole tragen eine oder mehrere OH-Gruppen an einem Kohlenstoffgerüst, etwa Ethanol oder das dreiwertige Glycerin. Die Carboxylgruppe kennzeichnet dagegen die Carbonsäuren wie Essigsäure.",
+    "feld": "Chemie",
+    "niveau": 4
+  },
+  {
+    "id": "che-012",
+    "frage": "Wie viele Teilchen enthält ein Mol eines Stoffes?",
+    "optionen": [
+      "Rund 6,022 mal 10 hoch 23",
+      "Rund 3,14 mal 10 hoch 12",
+      "Rund 1,602 mal 10 hoch 19",
+      "Rund 9,81 mal 10 hoch 25"
+    ],
+    "richtig": 0,
+    "erklaerung": "Diese Avogadro-Konstante verknüpft die Teilchenzahl mit wägbaren Stoffmengen: Ein Mol Kohlenstoff-12 wiegt genau zwölf Gramm. Seit 2019 ist der Zahlenwert exakt festgelegt und definiert die Einheit Mol.",
+    "feld": "Chemie",
+    "niveau": 4
+  },
+  {
+    "id": "che-013",
+    "frage": "Was besagt das Prinzip von Le Chatelier?",
+    "optionen": [
+      "Ein chemisches Gleichgewicht weicht einem äußeren Zwang aus",
+      "Jede Reaktion läuft so ab, dass möglichst viel Wärme frei wird",
+      "Die Reaktionsgeschwindigkeit ist von der Temperatur unabhängig",
+      "In einem geschlossenen System bleibt die Gesamtmasse erhalten"
+    ],
+    "richtig": 0,
+    "erklaerung": "Erhöht man etwa den Druck, verschiebt sich das Gleichgewicht auf die Seite mit weniger Gasteilchen. Das Prinzip ist die Grundlage dafür, dass die Ammoniaksynthese unter hohem Druck betrieben wird.",
+    "feld": "Chemie",
+    "niveau": 5
+  },
+  {
+    "id": "che-014",
+    "frage": "Woraus besteht ein Puffersystem, das den pH-Wert einer Lösung weitgehend konstant hält?",
+    "optionen": [
+      "Aus einer starken Säure und einer starken Base",
+      "Aus einer schwachen Säure und ihrer korrespondierenden Base",
+      "Aus zwei starken Basen unterschiedlicher Konzentration",
+      "Aus einem Salz und einem Alkohol"
+    ],
+    "richtig": 1,
+    "erklaerung": "Die schwache Säure fängt zugesetzte Hydroxidionen ab, ihre korrespondierende Base die zugesetzten Säureteilchen. Im Blut übernimmt das Kohlensäure-Hydrogencarbonat-System diese Aufgabe.",
+    "feld": "Chemie",
+    "niveau": 5
+  },
+  {
+    "id": "mat-001",
+    "frage": "Wie groß ist die Summe der Innenwinkel eines ebenen Dreiecks?",
+    "optionen": ["90 Grad", "180 Grad", "270 Grad", "360 Grad"],
+    "richtig": 1,
+    "erklaerung": "Der Satz folgt aus dem Parallelenaxiom der euklidischen Geometrie. Auf einer Kugeloberfläche gilt er nicht: Dort ist die Winkelsumme eines Dreiecks stets größer als 180 Grad.",
+    "feld": "Mathematik",
+    "niveau": 1
+  },
+  {
+    "id": "mat-002",
+    "frage": "Was besagt der Satz des Pythagoras für ein rechtwinkliges Dreieck?",
+    "optionen": [
+      "Die Summe der Quadrate über den beiden Katheten ist gleich dem Quadrat über der Hypotenuse",
+      "Die Summe der beiden Katheten ist gleich der Hypotenuse",
+      "Das Quadrat über der längsten Seite ist gleich der Summe der beiden übrigen Seiten",
+      "Die Höhe teilt die Hypotenuse stets in zwei gleich lange Abschnitte"
+    ],
+    "richtig": 0,
+    "erklaerung": "In Formeln: a² + b² = c², wobei c die dem rechten Winkel gegenüberliegende Hypotenuse ist. Die Umkehrung gilt ebenfalls, weshalb sich mit einer Schnur im Verhältnis 3 zu 4 zu 5 ein rechter Winkel abstecken lässt.",
+    "feld": "Mathematik",
+    "niveau": 1
+  },
+  {
+    "id": "mat-003",
+    "frage": "Wie berechnet man den Flächeninhalt eines Kreises mit dem Radius r?",
+    "optionen": [
+      "2 mal Pi mal r",
+      "Pi mal dem Durchmesser",
+      "4 mal Pi mal r im Quadrat",
+      "Pi mal r im Quadrat"
+    ],
+    "richtig": 3,
+    "erklaerung": "Der Flächeninhalt beträgt Pi mal r², während 2 mal Pi mal r den Umfang angibt. Verdoppelt man den Radius, vervierfacht sich deshalb die Fläche.",
+    "feld": "Mathematik",
+    "niveau": 2
+  },
+  {
+    "id": "mat-004",
+    "frage": "Wie groß ist die Wahrscheinlichkeit, mit einer fairen Münze zweimal hintereinander Kopf zu werfen?",
+    "optionen": ["Ein Halb", "Ein Drittel", "Ein Viertel", "Zwei Drittel"],
+    "richtig": 2,
+    "erklaerung": "Die beiden Würfe sind unabhängig, daher multiplizieren sich die Wahrscheinlichkeiten: ein Halb mal ein Halb ergibt ein Viertel. Die Münze hat kein Gedächtnis, der zweite Wurf bleibt für sich genommen bei einem Halb.",
+    "feld": "Mathematik",
+    "niveau": 3
+  },
+  {
+    "id": "mat-005",
+    "frage": "Was besagt der Satz des Thales?",
+    "optionen": [
+      "Alle Punkte eines Kreises haben denselben Abstand vom Mittelpunkt",
+      "Ein Dreieck über dem Durchmesser eines Kreises, dessen dritte Ecke auf dem Kreis liegt, hat bei dieser Ecke einen rechten Winkel",
+      "In jedem gleichschenkligen Dreieck sind die Basiswinkel gleich groß",
+      "Die Winkelhalbierenden eines Dreiecks schneiden einander in einem Punkt"
+    ],
+    "richtig": 1,
+    "erklaerung": "Der Satz ist ein Sonderfall des Umfangswinkelsatzes und erlaubt es, mit Zirkel und Lineal einen rechten Winkel zu konstruieren. Thales von Milet lebte im 6. Jahrhundert v. Chr. und gilt als einer der ersten namentlich bekannten Mathematiker.",
+    "feld": "Mathematik",
+    "niveau": 3
+  },
+  {
+    "id": "mat-006",
+    "frage": "Was gibt der Median einer der Größe nach geordneten Datenreihe an?",
+    "optionen": [
+      "Den Durchschnitt aller Werte",
+      "Den am häufigsten vorkommenden Wert",
+      "Die Differenz zwischen größtem und kleinstem Wert",
+      "Den Wert genau in der Mitte der Reihe"
+    ],
+    "richtig": 3,
+    "erklaerung": "Der Median teilt die Werte in zwei gleich große Hälften und reagiert kaum auf einzelne Ausreißer. Deshalb wird bei Einkommen meist der Median angegeben, der niedriger liegt als der arithmetische Mittelwert.",
+    "feld": "Mathematik",
+    "niveau": 4
+  },
+  {
+    "id": "mat-007",
+    "frage": "Was kennzeichnet eine irrationale Zahl?",
+    "optionen": [
+      "Sie ist stets negativ",
+      "Sie ist Lösung keiner einzigen Gleichung",
+      "Sie besitzt unendlich viele Teiler",
+      "Sie lässt sich nicht als Bruch zweier ganzer Zahlen schreiben"
+    ],
+    "richtig": 3,
+    "erklaerung": "Die Dezimaldarstellung irrationaler Zahlen bricht nie ab und wird nie periodisch, Beispiele sind die Wurzel aus 2 und die Kreiszahl Pi. Dass die Wurzel aus 2 irrational ist, wussten bereits die antiken Griechen.",
+    "feld": "Mathematik",
+    "niveau": 4
+  },
+  {
+    "id": "mat-008",
+    "frage": "Was bewies Euklid in seinen \"Elementen\" über die Primzahlen?",
+    "optionen": [
+      "Dass jede Primzahl ungerade ist",
+      "Dass es unendlich viele Primzahlen gibt",
+      "Dass zwischen zwei Quadratzahlen immer eine Primzahl liegt",
+      "Dass jede gerade Zahl die Summe zweier Primzahlen ist"
+    ],
+    "richtig": 1,
+    "erklaerung": "Sein Widerspruchsbeweis zeigt, dass zu jeder endlichen Liste von Primzahlen eine weitere gefunden werden kann. Dass jede gerade Zahl Summe zweier Primzahlen sei, ist dagegen die bis heute unbewiesene Goldbachsche Vermutung.",
+    "feld": "Mathematik",
+    "niveau": 4
+  },
+  {
+    "id": "mat-009",
+    "frage": "Was besagt der Fundamentalsatz der Arithmetik?",
+    "optionen": [
+      "Jede natürliche Zahl größer als 1 lässt sich bis auf die Reihenfolge eindeutig in Primfaktoren zerlegen",
+      "Jede natürliche Zahl ist die Summe von höchstens vier Quadratzahlen",
+      "Zu je zwei natürlichen Zahlen gibt es unendlich viele gemeinsame Teiler",
+      "Die Summe der Kehrwerte aller natürlichen Zahlen ist endlich"
+    ],
+    "richtig": 0,
+    "erklaerung": "Genau wegen dieser Eindeutigkeit zählt die 1 nicht als Primzahl, sonst ließen sich beliebig viele Einsen anhängen. Auf der Schwierigkeit, sehr große Zahlen zu faktorisieren, beruhen gängige Verschlüsselungsverfahren.",
+    "feld": "Mathematik",
+    "niveau": 5
+  },
+  {
+    "id": "mat-010",
+    "frage": "Was besagt der große Satz von Fermat, den Andrew Wiles 1994 bewies?",
+    "optionen": [
+      "Jede Primzahl der Form 4k+1 ist die Summe zweier Quadratzahlen",
+      "Es gibt unendlich viele Primzahlzwillinge",
+      "Jede gerade Zahl größer als 2 ist die Summe zweier Primzahlen",
+      "Für n größer als 2 hat a hoch n plus b hoch n gleich c hoch n keine Lösung in positiven ganzen Zahlen"
+    ],
+    "richtig": 3,
+    "erklaerung": "Fermat notierte die Behauptung um 1640 an den Rand eines Buches und behauptete einen Beweis, für den der Platz nicht reiche. Erst rund 350 Jahre später gelang Wiles der Nachweis mit Methoden der modernen Zahlentheorie.",
+    "feld": "Mathematik",
+    "niveau": 5
+  }
+]
