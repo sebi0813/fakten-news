@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v22'
+const APP_VERSION = 'v23'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -738,7 +738,10 @@ const CHECKIT_ANZAHL = 5
 const CHECKIT_URL = 'data/fragen.json'
 
 // Abstand bis zur Wiedervorlage in Tagen, Index entspricht dem Fach.
-const LEITNER_TAGE = [0, 2, 7, 21, 60, 180]
+// Auch eine falsch beantwortete Frage wartet mindestens eine Woche. Kommt
+// sie nach zwei Tagen wieder, erinnert man sich an die Antwort statt an die
+// Sache — gelernt ist damit nichts.
+const LEITNER_TAGE = [0, 7, 14, 30, 90, 180]
 
 // Höchstens so viele der fünf Tagesfragen sind Wiederholungen — sonst
 // besteht der Tag irgendwann nur noch aus Bekanntem und es kommt nichts
@@ -767,7 +770,9 @@ function checkitStand() {
     c.antworten = {}
     c.satz = null
     c.wiederholung = []
+    c.runde = 1
   }
+  c.runde ??= 1
   c.antworten ??= {}
   return c
 }
@@ -782,7 +787,7 @@ function checkitTagesfragen() {
   if (!alle?.length) return []
   const c = checkitStand()
 
-  if (c.satz) {
+  if (c.satz?.length) {
     const gefunden = c.satz.map(id => alle.find(f => f.id === id)).filter(Boolean)
     if (gefunden.length) return gefunden
     c.satz = null                       // Katalog hat sich grundlegend geändert
@@ -791,14 +796,19 @@ function checkitTagesfragen() {
   const jetzt = Date.now()
   const gesehen = c.stand
 
+  // Heute schon beantwortet? Dann in keiner weiteren Runde dieses Tages
+  // noch einmal. Ohne diese Sperre stünde nach "Neue Fragen laden" dieselbe
+  // Frage samt aufgedeckter Lösung erneut da.
+  const erledigt = new Set(Object.keys(c.antworten))
+
   // Fällige Wiederholungen zuerst, die am längsten überfälligen zuoberst.
-  const faellig = alle.filter(f => gesehen[f.id] && gesehen[f.id].faellig <= jetzt)
+  const faellig = alle.filter(f => gesehen[f.id] && gesehen[f.id].faellig <= jetzt && !erledigt.has(f.id))
     .sort((a, b) => gesehen[a.id].faellig - gesehen[b.id].faellig)
 
   // Neue Fragen möglichst nah am eigenen Niveau, innerhalb einer Stufe gestreut.
   const neu = alle.filter(f => !gesehen[f.id])
     .map(f => ({ f, d: Math.abs((f.niveau ?? 3) - c.niveau) }))
-    .sort((a, b) => (a.d - b.d) || (streuung(a.f.id + c.tag) - streuung(b.f.id + c.tag)))
+    .sort((a, b) => (a.d - b.d) || (streuung(a.f.id + c.tag + c.runde) - streuung(b.f.id + c.tag + c.runde)))
     .map(x => x.f)
 
   const satz = []
@@ -807,12 +817,13 @@ function checkitTagesfragen() {
   for (const f of faellig.slice(0, MAX_WIEDERHOLUNG)) dazu(f)
   for (const f of neu) dazu(f)
   for (const f of faellig) dazu(f)          // nichts Neues mehr übrig
-  if (satz.length < CHECKIT_ANZAHL) {
-    // Vorrat erschöpft: das am längsten nicht Gefragte noch einmal.
-    for (const f of alle.slice().sort((a, b) =>
-      (gesehen[a.id]?.faellig || 0) - (gesehen[b.id]?.faellig || 0))) dazu(f)
-  }
+  // Bewusst KEIN Auffüllen mit Fragen, die noch nicht fällig sind. Früher
+  // stand der Tagessatz notfalls mit dem am längsten nicht Gefragten voll —
+  // damit standen am Tag nach einem Marathon wieder fünf Fragen da, obwohl
+  // keine einzige dran war. Sind weniger als fünf fällig, sind es eben
+  // weniger; ist nichts fällig, ist der Tag geschafft.
 
+  if (!satz.length) { c.satz = []; return [] }     // für heute ist alles durch
   c.satz = satz.map(f => f.id)
   c.wiederholung = satz.filter(f => gesehen[f.id]).map(f => f.id)
   save(LS.prefs, prefs)
@@ -837,7 +848,10 @@ function checkitAntwort(id, gewaehlt) {
 
   // Leitner: eine Stufe vor oder ganz zurück.
   const alt = c.stand[id] || { box: 0, falsch: 0, richtig: 0 }
-  const box = richtig ? Math.min(5, alt.box + 1) : 1
+  // Fach 1 ist dem Danebengreifen vorbehalten. Wer eine Frage auf Anhieb
+  // weiß, soll sie nicht genauso bald wiedersehen wie eine verpatzte —
+  // deshalb geht es bei einer richtigen Antwort mindestens auf Fach 2.
+  const box = richtig ? Math.min(5, Math.max(2, alt.box + 1)) : 1
   c.stand[id] = {
     box,
     faellig: Date.now() + LEITNER_TAGE[box] * DAY,
@@ -874,6 +888,35 @@ function checkitAntwort(id, gewaehlt) {
 }
 
 const NIVEAU_NAME = ['', 'Einstieg', 'Solide', 'Mittel', 'Anspruchsvoll', 'Schwer']
+
+/**
+ * Noch eine Runde am selben Tag. Der bisherige Satz wird freigegeben, die
+ * gegebenen Antworten bleiben stehen — sie sperren ihre Fragen für heute.
+ */
+/**
+ * Wie viele Fragen heute noch sinnvoll wären: ungesehene plus fällige
+ * Wiederholungen, ohne die bereits beantworteten. Steht das auf null, ist
+ * der Tag ehrlich durch — dann verschwindet der Knopf, statt Fragen
+ * vorzuziehen, die erst nächste Woche dran wären.
+ */
+function checkitRestHeute() {
+  const alle = state.fragen?.fragen || []
+  const c = checkitStand()
+  const jetzt = Date.now()
+  const erledigt = new Set(Object.keys(c.antworten))
+  return alle.filter(f => !erledigt.has(f.id)
+    && (!c.stand[f.id] || c.stand[f.id].faellig <= jetzt)).length
+}
+
+function checkitNeueRunde() {
+  const c = checkitStand()
+  c.runde = (c.runde || 1) + 1
+  c.satz = null
+  save(LS.prefs, prefs)
+  renderCheckIt()
+  renderTabs()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 /** Holt den Fragenvorrat — einmal pro Sitzung, danach aus dem Speicher. */
 async function ladeFragen() {
@@ -925,9 +968,11 @@ function checkitFrageHTML(f, nr, gewaehlt, istWiederholung) {
 function wiedervorlageText(fach) {
   if (!fach) return ''
   const tage = LEITNER_TAGE[fach]
-  if (fach === 1) return 'Kommt in 2 Tagen noch einmal.'
+  if (fach === 1) return 'Kommt in einer Woche noch einmal.'
   if (fach === 5) return 'Sitzt — kommt erst in einem halben Jahr wieder.'
-  return `Fach ${fach} von 5 — Wiedervorlage in ${tage < 30 ? `${tage} Tagen` : `${Math.round(tage / 30)} Monaten`}.`
+  const monate = Math.round(tage / 30)
+  const abstand = tage < 30 ? `${tage} Tagen` : monate === 1 ? 'einem Monat' : `${monate} Monaten`
+  return `Fach ${fach} von 5 — Wiedervorlage in ${abstand}.`
 }
 
 /** Was die Auswertung des Tages am Niveau geändert hat — im Klartext. */
@@ -956,6 +1001,13 @@ function renderCheckIt() {
 
   const c = checkitStand()
   const heute = checkitTagesfragen()
+  if (!heute.length) {
+    const beantwortetHeute = Object.keys(c.antworten).length
+    return showEmpty('✅', 'Für heute geschafft',
+      `${beantwortetHeute} Frage${beantwortetHeute === 1 ? '' : 'n'} heute beantwortet. `
+      + 'Die übrigen warten auf ihre Wiedervorlage — frühestens in einer Woche. '
+      + 'Morgen früh steht wieder ein frischer Satz bereit.')
+  }
   const beantwortet = heute.filter(f => c.antworten[f.id] != null)
   const richtig = beantwortet.filter(f => c.antworten[f.id] === f.richtig).length
   const fertig = beantwortet.length === heute.length
@@ -972,12 +1024,17 @@ function renderCheckIt() {
     <div class="ci-punkte">${richtig} / ${heute.length}</div>
   </div>`
 
+  const rest = checkitRestHeute()
   const schluss = fertig ? `<div class="card-lite ci-schluss">
     <h3>${richtig === heute.length ? '🏆 Alles richtig' : richtig >= heute.length - 1 ? '👏 Stark'
       : richtig >= 2 ? '👍 Passt' : '🙂 Morgen wieder'}</h3>
     <p class="muted small">${esc(niveauText(c))}</p>
     <p class="muted small">${imUmlauf} von ${alle.length} Fragen im Umlauf, ${gelernt} davon sitzen.
-      Falsch beantwortete kommen in zwei Tagen wieder.</p>
+      Falsch beantwortete kommen in einer Woche wieder.</p>
+    ${rest
+      ? `<button class="btn ci-mehr" data-ci-neu>Neue Fragen laden</button>
+         <p class="muted small">${rest} Frage${rest === 1 ? '' : 'n'} stehen heute noch bereit.</p>`
+      : '<p class="muted small">Für heute ist alles durch — der Rest wartet auf seine Wiedervorlage.</p>'}
   </div>` : ''
 
   $('#feed').innerHTML = kopf
@@ -2053,6 +2110,8 @@ document.addEventListener('click', ev => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return
   }
+
+  if (ev.target.closest('[data-ci-neu]')) { checkitNeueRunde(); return }
 
   const ciOpt = ev.target.closest('[data-ci]')
   if (ciOpt) {

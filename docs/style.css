@@ -646,3 +646,5 @@ a.info-row:active { background: var(--bg-elev-2); }
 
 .ci-wdh { background: #fbbf2422; color: var(--amber); }
 .ci-wieder { margin-top: 8px !important; font-size: 12.5px !important; color: var(--muted); }
+
+.ci-mehr { margin: 14px auto 6px; display: block; min-width: 190px; }

@@ -485,16 +485,36 @@ zurück in Fach 1.
 
 | Fach | nächste Wiedervorlage |
 |---|---|
-| 1 | nach 2 Tagen |
-| 2 | nach 1 Woche |
-| 3 | nach 3 Wochen |
-| 4 | nach 2 Monaten |
+| 1 (danebengegriffen) | nach 1 Woche |
+| 2 | nach 2 Wochen |
+| 3 | nach 1 Monat |
+| 4 | nach 3 Monaten |
 | 5 | nach 6 Monaten |
+
+**Eine Woche ist der Mindestabstand**, auch für eine falsch beantwortete Frage.
+Kommt sie nach zwei Tagen wieder, erinnert man sich an die Antwort statt an die
+Sache — gelernt ist damit nichts. Fach 1 bleibt dem Danebengreifen vorbehalten:
+Wer eine Frage auf Anhieb weiß, landet gleich in Fach 2 und hat zwei Wochen Ruhe.
 
 Der Tagessatz besteht aus **höchstens drei Wiederholungen**, der Rest sind neue
 Fragen. Ohne diese Grenze bestünde der Tag nach einigen Wochen nur noch aus
-Bekanntem und es käme nichts Neues mehr dazu. Ist der Vorrat erschöpft, füllt
-die App mit dem auf, was am längsten nicht gefragt wurde.
+Bekanntem und es käme nichts Neues mehr dazu.
+
+**Aufgefüllt wird nicht.** Sind weniger als fünf Fragen fällig, sind es eben
+weniger; ist nichts fällig und nichts Neues übrig, meldet der Reiter „Für heute
+geschafft". Früher stand der Satz notfalls mit dem am längsten nicht Gefragten
+voll — damit standen am Tag nach einem Marathon wieder fünf Fragen da, obwohl
+keine einzige dran war.
+
+### Mehrere Runden am Tag
+
+Sind die fünf Fragen beantwortet, erscheint **„Neue Fragen laden"** mit der
+Anzahl der heute noch bereitstehenden Fragen. Jede Runde holt den nächsten
+Satz; heute schon beantwortete Fragen sind für den Rest des Tages gesperrt.
+
+Der Knopf erscheint nur, solange es *sinnvolle* Fragen gibt — ungesehene oder
+fällige. Er zieht nichts vor, dessen Wiedervorlage noch nicht ansteht, sonst
+wäre die ganze Staffelung hinfällig.
 
 Das Niveau wächst mit: vier oder fünf Treffer heben es, höchstens einer senkt
 es. Neue Fragen werden nach der Nähe zum eigenen Niveau ausgewählt.
