@@ -4,8 +4,8 @@ Eine werbefreie, faktenorientierte Nachrichten-App als PWA. Läuft auf GitHub Pa
 kostet nichts, und legt sich als eigenes Icon auf den iPhone-Homescreen.
 
 **Reiter:** Für dich · Wirtschaft · Sport · Wissenschaft · Welt · Österreich ·
-Region · check-it · Termine · Gemerkt · Wetter · Historie — **jedes Profil wählt
-selbst aus.**
+Deine Region · Öffi · Verkehr · check-it · Termine · Gemerkt · Wetter · Historie
+— **jedes Profil wählt selbst aus.**
 „Für dich" bleibt immer und enthält alles mit Relevanz, einschließlich Warnungen
 und Fokusthemen.
 
@@ -487,16 +487,17 @@ zurück in Fach 1.
 
 | Fach | nächste Wiedervorlage |
 |---|---|
-| 1 (danebengegriffen) | nach 1 Woche |
-| 2 | nach 2 Wochen |
-| 3 | nach 1 Monat |
-| 4 | nach 3 Monaten |
-| 5 | nach 6 Monaten |
+| 1 (danebengegriffen) | nach 2 Wochen |
+| 2 | nach 1 Monat |
+| 3 | nach 3 Monaten |
+| 4 | nach 6 Monaten |
+| 5 | nach 1 Jahr |
 
-**Eine Woche ist der Mindestabstand**, auch für eine falsch beantwortete Frage.
-Kommt sie nach zwei Tagen wieder, erinnert man sich an die Antwort statt an die
-Sache — gelernt ist damit nichts. Fach 1 bleibt dem Danebengreifen vorbehalten:
-Wer eine Frage auf Anhieb weiß, landet gleich in Fach 2 und hat zwei Wochen Ruhe.
+**Zwei Wochen sind der Mindestabstand**, auch für eine falsch beantwortete
+Frage. Eine Woche war zu kurz — die Fragen kamen spürbar schnell wieder, und
+erinnert hat man sich dann an die Antwort, nicht an die Sache. Fach 1 bleibt
+dem Danebengreifen vorbehalten: Wer eine Frage auf Anhieb weiß, landet gleich
+in Fach 2 und hat einen Monat Ruhe.
 
 Der Tagessatz besteht aus **höchstens drei Wiederholungen**, der Rest sind neue
 Fragen. Ohne diese Grenze bestünde der Tag nach einigen Wochen nur noch aus
@@ -551,10 +552,51 @@ wäre so eine Frage in einem Jahr schlicht falsch.
 
 ---
 
+## Verkehr und Öffi
+
+Zwei eigene Reiter, beide **pro Profil abwählbar**. Vorher stand das alles als
+Block in „Für dich“, ungefragt und nicht wegzubekommen. Dort stehen jetzt nur
+noch Warnungen und das Wetter am Standort.
+
+Der **Hauptort** ist einstellbar und gilt als Startpunkt aller Verbindungen,
+dazu bis zu vier häufige Ziele. Früher stand Korneuburg–Wien samt Klinik
+Donaustadt fest im Code — brauchbar für genau einen Menschen. Wird am Standort
+eines der Ziele erkannt, dreht sich die Richtung von selbst um und die
+Verbindungen zeigen nach Hause.
+
+Der Regionalreiter heißt jetzt **„Deine Region“** statt nach dem erkannten Ort.
+Welche Region gilt, steht unter ⚙ und in der Leermeldung — der Reitername soll
+sich nicht ändern, wenn man verreist.
+
+---
+
 ## Termine
 
 Ein eigener Tab zeigt Veranstaltungen der **nächsten zwei Wochen** für Korneuburg,
 Stockerau und Wien, nach Tagen gruppiert und chronologisch sortiert.
+
+**Kino** kommt aus einer eigenen Quelle. Geprüft und verworfen wurden:
+cineplexx.at liefert auf jeden Pfad dieselbe 5-KB-JavaScript-Hülle,
+kinoprogramm.at ist eine geparkte Verkaufsdomain, und die Feeds einzelner
+Häuser (Filmcasino, Stadtkino) sind Blog-Feeds ohne Spielzeiten. Falter rendert
+sein Kinoprogramm serverseitig und nennt Titel, Genre, Kino und Spielzeit —
+angeknüpft wird dort an Dinge, die Bedeutung tragen (der Link auf `/kino/<id>/`,
+das Attribut `data-upscore-title`, das `<time>`-Element), nicht an die
+Tailwind-Klassen.
+
+### Ein Fehlschlag darf keine Rubrik leeren
+
+Am 2. Oktober 2026 antwortete meinbezirk.at in **einem einzigen** Lauf dreimal
+mit „fetch failed“ — kein HTTP-Fehler, ein Verbindungsabbruch. Dieser eine Lauf
+drückte die Regionalmeldungen von 69 auf 14 und löschte alle 53 Termine, weil
+sein Ergebnis danach auf dem Server lag. Zwei Vorkehrungen:
+
+- **Zwei Wiederholversuche** bei Verbindungsfehlern, mit wachsender Pause. Bei
+  einem HTTP-Fehler wird nicht nachgefasst — der kommt beim zweiten Versuch
+  genauso wieder.
+- **Bestandsschutz:** Ist keine Terminquelle erreichbar, übernimmt der Build die
+  noch zukünftigen Termine des letzten Laufs. Ein Termin von vorhin ist besser
+  als gar keiner.
 
 Auch hier gibt es keine Schnittstelle: Wien liefert auf seinem Veranstaltungsdienst
 HTTP 500, `data.gv.at` 404, die Stadt Korneuburg hat keinen Kalenderexport, Falter und

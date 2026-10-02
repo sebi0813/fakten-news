@@ -16,7 +16,7 @@
 // Steht in der Kopfzeile und unter ⚙. Damit lässt sich am Gerät ablesen, ob
 // wirklich die neue Fassung läuft — genau das war beim Cache-Problem nicht
 // erkennbar. Beide Werte bei jeder Auslieferung mit hochziehen.
-const APP_VERSION = 'v23'
+const APP_VERSION = 'v24'
 
 /**
  * Zeitpunkt des Builds, in Wiener Zeit.
@@ -115,10 +115,14 @@ const defaults = {
     hideRead: true, hideLowFact: false, images: true, info: true,
     ortErlaubt: false, apiKey: '',
     // Welche Termin-Sparten dieses Profil sehen will. Leere Liste = alle.
-    eventGenres: ['theater', 'musical', 'klassik', 'konzert'],
+    eventGenres: ['theater', 'musical', 'klassik', 'konzert', 'kino'],
     // Welche Reiter dieses Profil sieht. "Für dich" ist immer dabei.
     tabs: ['wirtschaft', 'sport-int', 'wissenschaft', 'welt', 'oesterreich',
-      'region', 'checkit', 'termine', 'gemerkt', 'wetter'],
+      'region', 'oeffi', 'verkehr', 'checkit', 'termine', 'gemerkt', 'wetter'],
+    // Startpunkt aller Verbindungen und die häufigsten Ziele. Früher stand
+    // Korneuburg–Wien fest im Code; jedes Profil entscheidet das jetzt selbst.
+    heimatOrt: 'Korneuburg',
+    pendelZiele: ['Wien Mitte-Landstraße', 'Wien Praterstern', 'Wien Floridsdorf'],
     // Heimatregion, falls der Standort nicht erkannt wird oder gesperrt ist.
     heimatRegion: 'korneuburg',
     // Welche Blöcke im Verkehrsteil von "Für dich" erscheinen.
@@ -172,6 +176,24 @@ function migratePrefs() {
   if (Array.isArray(settings.tabs) && !settings.checkitNachgetragen) {
     if (!settings.tabs.includes('checkit')) settings.tabs.push('checkit')
     settings.checkitNachgetragen = true
+    save(LS.settings, settings)
+  }
+
+  // Verkehr und Öffi sind aus "Für dich" herausgewachsen und eigene Reiter
+  // geworden. Bestehende Profile bekommen sie einmalig nachgetragen, sonst
+  // wären die Verbindungen für sie einfach verschwunden.
+  if (Array.isArray(settings.tabs) && !settings.verkehrNachgetragen) {
+    for (const t of ['oeffi', 'verkehr']) if (!settings.tabs.includes(t)) settings.tabs.push(t)
+    settings.verkehrNachgetragen = true
+    save(LS.settings, settings)
+  }
+
+  // Kino ist als Termin-Sparte dazugekommen. Ohne Nachtrag blieben die
+  // Spielzeiten unsichtbar: Der Filter lässt nur gewählte Sparten durch,
+  // und eine gespeicherte Auswahl ersetzt die Vorgabe vollständig.
+  if (Array.isArray(settings.eventGenres) && !settings.kinoNachgetragen) {
+    if (!settings.eventGenres.includes('kino')) settings.eventGenres.push('kino')
+    settings.kinoNachgetragen = true
     save(LS.settings, settings)
   }
 }
@@ -486,6 +508,8 @@ function setStatusParts(teile) {
 const CLIENT_TABS = {
   'fuer-dich': { label: 'Für dich', icon: '⭐' },
   checkit: { label: 'check-it', icon: '🧠' },
+  oeffi: { label: 'Öffi', icon: '🚆' },
+  verkehr: { label: 'Verkehr', icon: '🚗' },
   termine: { label: 'Termine', icon: '📅' },
   gemerkt: { label: 'Gemerkt', icon: '🔖' },
   historie: { label: 'Historie', icon: '🕘' },
@@ -622,9 +646,14 @@ function renderTabs() {
     ...cats.filter(c => !c.nurFuerDich).map(c => c.id === 'region'
       // Der Regionalreiter trägt den Namen der erkannten Region, nicht das
       // Wort "Region" — man soll sehen, wo man gerade ist.
-      ? { ...c, label: regionLabel(),
+      // Der Reiter trägt die allgemeine Bezeichnung. Welche Region erkannt
+      // wurde, steht unter ⚙ und in der Leermeldung — der Reitername soll
+      // sich nicht ändern, wenn man verreist.
+      ? { ...c, label: 'Deine Region',
           count: items.filter(i => i.cat === 'region' && i.region === region && !isHidden(i)).length }
       : { ...c, count: items.filter(i => i.cat === c.id && !isHidden(i)).length }),
+    { id: 'oeffi', ...CLIENT_TABS.oeffi },
+    { id: 'verkehr', ...CLIENT_TABS.verkehr },
     { id: 'checkit', ...CLIENT_TABS.checkit, count: checkitOffen() || undefined },
     { id: 'termine', ...CLIENT_TABS.termine, count: (state.data?.events || []).length },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt, count: Object.keys(saved).length },
@@ -663,10 +692,15 @@ function render() {
   if (state.tab === 'historie') { renderHistory(); return }
   if (state.tab === 'termine') { renderEvents(); return }
   if (state.tab === 'checkit') { renderCheckIt(); return }
+  if (state.tab === 'oeffi') { renderOeffi(); return }
+  if (state.tab === 'verkehr') { renderVerkehr(); return }
 
-  // Nur in "Für dich". Flash bleibt schweren Unfällen, Katastrophen und
-  // Warnungen vorbehalten — Bahn- und Straßeninfo hat dort nichts verloren.
-  const info = state.tab === 'fuer-dich' ? infoBlockHTML() : ''
+  // Nur in "Für dich", und dort nur noch Warnungen und Wetter. Bahn und
+  // Straße haben eigene Reiter bekommen — sie standen hier als Block, den
+  // man nicht wegbekam, über allem anderen.
+  const info = state.tab === 'fuer-dich'
+    ? infoBlockHTML({ arten: ['warn', 'wx'], titel: '📍 An deinem Standort' })
+    : ''
 
   const items = visibleItems()
   if (!items.length) {
@@ -738,10 +772,10 @@ const CHECKIT_ANZAHL = 5
 const CHECKIT_URL = 'data/fragen.json'
 
 // Abstand bis zur Wiedervorlage in Tagen, Index entspricht dem Fach.
-// Auch eine falsch beantwortete Frage wartet mindestens eine Woche. Kommt
-// sie nach zwei Tagen wieder, erinnert man sich an die Antwort statt an die
-// Sache — gelernt ist damit nichts.
-const LEITNER_TAGE = [0, 7, 14, 30, 90, 180]
+// Mindestens zwei Wochen, auch für eine falsch beantwortete Frage. Eine
+// Woche war noch zu kurz: Die Fragen kamen spürbar schnell wieder, und
+// erinnert hat man sich dann an die Antwort, nicht an die Sache.
+const LEITNER_TAGE = [0, 14, 30, 90, 180, 365]
 
 // Höchstens so viele der fünf Tagesfragen sind Wiederholungen — sonst
 // besteht der Tag irgendwann nur noch aus Bekanntem und es kommt nichts
@@ -968,8 +1002,8 @@ function checkitFrageHTML(f, nr, gewaehlt, istWiederholung) {
 function wiedervorlageText(fach) {
   if (!fach) return ''
   const tage = LEITNER_TAGE[fach]
-  if (fach === 1) return 'Kommt in einer Woche noch einmal.'
-  if (fach === 5) return 'Sitzt — kommt erst in einem halben Jahr wieder.'
+  if (fach === 1) return 'Kommt in zwei Wochen noch einmal.'
+  if (fach === 5) return 'Sitzt — kommt erst in einem Jahr wieder.'
   const monate = Math.round(tage / 30)
   const abstand = tage < 30 ? `${tage} Tagen` : monate === 1 ? 'einem Monat' : `${monate} Monaten`
   return `Fach ${fach} von 5 — Wiedervorlage in ${abstand}.`
@@ -1041,6 +1075,49 @@ function renderCheckIt() {
     + heute.map((f, i) => checkitFrageHTML(f, i + 1, c.antworten[f.id],
         (c.wiederholung || []).includes(f.id))).join('')
     + schluss
+}
+
+/**
+ * Öffentlicher Verkehr: Verbindungen ab dem eigenen Hauptort, Störungen
+ * und die laufenden Streckensperren.
+ */
+function renderOeffi() {
+  const v = settings.verkehr || {}
+  const teile = [
+    v.verbindungen === false ? '' : verbindungenHTML({ bahn: true, auto: false }),
+    infoBlockHTML({ arten: ['oebb'], titel: '🚆 Bahnmeldungen', mitSperren: true }),
+  ].filter(Boolean)
+
+  $('#feed').innerHTML = teile.join('')
+  if (!teile.length) {
+    return showEmpty('🚆', 'Nichts eingeschaltet',
+      'Unter ⚙ lässt sich festlegen, was hier erscheint — Verbindungen und Bahnmeldungen.')
+  }
+  if (teile.length === 1 && v.verbindungen !== false) {
+    $('#feed').innerHTML += `<p class="muted small" style="padding:4px 14px 18px">
+      Keine aktuellen Störungen auf deinen Strecken.</p>`
+  }
+}
+
+/** Straße: Meldungen zu den eigenen Strecken plus Route auf der Karte. */
+function renderVerkehr() {
+  const v = settings.verkehr || {}
+  const teile = [
+    v.verbindungen === false ? '' : verbindungenHTML({ bahn: false, auto: true }),
+    infoBlockHTML({ arten: ['traffic'], titel: '🚗 Straßenmeldungen' }),
+  ].filter(Boolean)
+
+  $('#feed').innerHTML = teile.join('')
+  if (!teile.length) {
+    return showEmpty('🚗', 'Nichts eingeschaltet',
+      'Unter ⚙ lässt sich festlegen, was hier erscheint — Verbindungen und Straßenmeldungen.')
+  }
+  if (teile.length === 1 && v.verbindungen !== false) {
+    $('#feed').innerHTML += `<p class="muted small" style="padding:4px 14px 18px">
+      Keine Staumeldungen zu deinen Strecken. Eigene Live-Daten gibt es nicht —
+      ASFINAG blockt automatisierte Abrufe. Der 🚗-Knopf führt auf die Karte mit
+      der aktuellen Verkehrslage.</p>`
+  }
 }
 
 function renderEvents() {
@@ -1286,7 +1363,18 @@ async function fetchWarnings() {
  * Ersetzt das frühere Laufband. Ein Ticker zwingt zum Warten, bis die
  * gewünschte Zeile vorbeikommt — als Liste ist alles auf einen Blick da.
  */
-function infoEntries() {
+/**
+ * Info-Kacheln, gefiltert nach Art. Welche hineinkommen, entscheidet der
+ * Aufrufer: "Für dich" zeigt nur Warnungen und Wetter, die Reiter Öffi und
+ * Verkehr jeweils ihren Teil. Vorher stand alles übereinander in "Für dich"
+ * und war dort nicht einzeln abwählbar.
+ */
+function infoEntries(nur = null) {
+  const alle = infoEntriesAlle()
+  return nur ? alle.filter(e => nur.has(e.kind)) : alle
+}
+
+function infoEntriesAlle() {
   const out = []
 
   const v = settings.verkehr || {}
@@ -1345,22 +1433,35 @@ function infoEntries() {
  * und Scotty zeigt die nächsten Verbindungen.
  */
 
-const STATIONEN = {
-  korneuburg: 'Korneuburg',
-  wienMitte: 'Wien Mitte-Landstraße',
-  praterstern: 'Wien Praterstern',
-  floridsdorf: 'Wien Floridsdorf',
-  // Die Klinik Donaustadt heißt in der Fahrplanauskunft nach ihrer
-  // U-Bahn-Station. "Klinik Donaustadt" liefert dort auch Treffer in Ulm
-  // und der Schweiz — der Stationsname ist eindeutig.
-  donauspital: 'Wien Donauspital (U)',
+// Hauptort und Ziele kommen aus dem Profil. Vorher stand Korneuburg–Wien
+// samt Klinik Donaustadt fest im Code — brauchbar für genau einen Menschen.
+const ZIELE_VORGABE = ['Wien Mitte-Landstraße', 'Wien Praterstern', 'Wien Floridsdorf']
+
+function heimatOrt() {
+  return String(settings.heimatOrt || 'Korneuburg').trim() || 'Korneuburg'
 }
 
-// Für die Autoroute: Klartext-Adressen, die Kartendienste sicher finden.
-const AUTOZIELE = {
-  korneuburg: 'Korneuburg, Österreich',
-  wienMitte: 'Wien Mitte, Landstraßer Hauptstraße, Wien',
-  donauspital: 'Klinik Donaustadt, Langobardenstraße 122, 1220 Wien',
+function pendelZiele() {
+  const roh = Array.isArray(settings.pendelZiele)
+    ? settings.pendelZiele
+    : String(settings.pendelZiele || '').split(',')
+  const sauber = roh.map(z => String(z).trim()).filter(Boolean).slice(0, 4)
+  return sauber.length ? sauber : ZIELE_VORGABE
+}
+
+/**
+ * Steht der erkannte Standort für diesen Ort? Verglichen werden die
+ * tragenden Wörter, damit "Wien Mitte-Landstraße" auch bei erkanntem
+ * "Wien" greift und ein Tippfehler im Bezirksnamen nichts kaputt macht.
+ */
+function ortPasst(standort, ort) {
+  return String(ort).toLowerCase().split(/[\s,\-]+/)
+    .filter(w => w.length > 3).some(w => standort.includes(w))
+}
+
+/** Kurzform für die Knopfbeschriftung: "Wien Mitte-Landstraße" -> "Wien Mitte". */
+function ortKurz(ort) {
+  return String(ort).split(/[,(]/)[0].replace(/-[A-Za-zÄÖÜäöüß]+$/, '').trim() || ort
 }
 
 /** Fahrplanauskunft für eine Strecke, ab jetzt. */
@@ -1383,12 +1484,10 @@ function scottyLink(von, nach) {
  * Abrufe mit HTTP 403, data.gv.at und VOR mit 404. Statt einer halbgaren
  * eigenen Anzeige führt der Knopf dorthin, wo die Lage wirklich steht.
  */
-function verkehrskarte(zielSchluessel) {
-  const nachWien = richtung() === 'ausKorneuburg'
-  const von = nachWien ? AUTOZIELE.korneuburg : AUTOZIELE[zielSchluessel] || AUTOZIELE.wienMitte
-  const nach = nachWien ? (AUTOZIELE[zielSchluessel] || AUTOZIELE.wienMitte) : AUTOZIELE.korneuburg
+function verkehrskarte(von, nach) {
   return 'https://www.google.com/maps/dir/?api=1'
-    + `&origin=${encodeURIComponent(von)}&destination=${encodeURIComponent(nach)}`
+    + `&origin=${encodeURIComponent(`${von}, Österreich`)}`
+    + `&destination=${encodeURIComponent(`${nach}, Österreich`)}`
     + '&travelmode=driving&layer=traffic'
 }
 
@@ -1403,41 +1502,41 @@ function tafelLink(station) {
  * wird Korneuburg angenommen.
  */
 function richtung() {
-  const ort = (state.weatherPlace || '').toLowerCase()
-  return /wien|floridsdorf|donaustadt|leopoldstadt|brigittenau/.test(ort) ? 'ausWien' : 'ausKorneuburg'
+  const standort = (state.weatherPlace || '').toLowerCase()
+  const heim = heimatOrt()
+  const ziele = pendelZiele()
+  if (standort && !ortPasst(standort, heim)) {
+    // An einem der Ziele? Dann zählt der Weg zurück.
+    const hier = ziele.find(z => ortPasst(standort, z))
+    if (hier) return { von: hier, ziele: [heim], heimwaerts: true }
+  }
+  return { von: heim, ziele, heimwaerts: false }
 }
 
-function verbindungenHTML() {
-  const S = STATIONEN
-  const nachWien = richtung() === 'ausKorneuburg'
-  const start = nachWien ? S.korneuburg : S.wienMitte
-  const ziele = nachWien
-    ? [[S.wienMitte, 'Wien Mitte', 'wienMitte'],
-       [S.donauspital, 'Klinik Donaustadt', 'donauspital'],
-       [S.floridsdorf, 'Floridsdorf', 'wienMitte']]
-    : [[S.korneuburg, 'Korneuburg', 'korneuburg']]
+function verbindungenHTML({ bahn = true, auto = true } = {}) {
+  const { von, ziele, heimwaerts } = richtung()
 
   return `<section class="infoblock verbindungen">
     <h2 class="info-head">
-      🚉 ${nachWien ? 'Von Korneuburg nach Wien' : 'Von Wien nach Korneuburg'}
+      ${heimwaerts ? '🏠' : '🚉'} Von ${esc(ortKurz(von))} nach ${esc(ziele.map(ortKurz).join(', '))}
       <button class="mini-btn" data-act="verbindung-neu" title="Standort neu bestimmen">↻</button>
     </h2>
-    <div class="conn-row">
-      ${ziele.map(([ziel, kurz]) => `
-        <a class="conn-btn" href="${esc(scottyLink(start, ziel))}" target="_blank" rel="noopener noreferrer">
-          🚆 ${esc(kurz)} <span>›</span></a>`).join('')}
-    </div>
-    <div class="conn-row">
-      ${ziele.map(([, kurz, auto]) => `
-        <a class="conn-btn conn-auto" href="${esc(verkehrskarte(auto))}" target="_blank" rel="noopener noreferrer">
-          🚗 ${esc(kurz)}</a>`).join('')}
-    </div>
-    <div class="conn-row">
-      <a class="conn-btn conn-sec" href="${esc(tafelLink(start))}" target="_blank" rel="noopener noreferrer">
-        Abfahrten ${esc(nachWien ? 'Korneuburg' : 'Wien Mitte')}</a>
+    ${bahn ? `<div class="conn-row">
+      ${ziele.map(z => `
+        <a class="conn-btn" href="${esc(scottyLink(von, z))}" target="_blank" rel="noopener noreferrer">
+          🚆 ${esc(ortKurz(z))} <span>›</span></a>`).join('')}
+    </div>` : ''}
+    ${auto ? `<div class="conn-row">
+      ${ziele.map(z => `
+        <a class="conn-btn conn-auto" href="${esc(verkehrskarte(von, z))}" target="_blank" rel="noopener noreferrer">
+          🚗 ${esc(ortKurz(z))}</a>`).join('')}
+    </div>` : ''}
+    ${bahn ? `<div class="conn-row">
+      <a class="conn-btn conn-sec" href="${esc(tafelLink(von))}" target="_blank" rel="noopener noreferrer">
+        Abfahrten ${esc(ortKurz(von))}</a>
       <a class="conn-btn conn-sec" href="https://anachb.vor.at/" target="_blank" rel="noopener noreferrer">
         Wiener Linien</a>
-    </div>
+    </div>` : ''}
     <p class="conn-note muted">🚆 öffnet die ÖBB-Fahrplanauskunft ab jetzt, 🚗 die Karte
       mit der aktuellen Verkehrslage. Beides muss extern geschehen: ÖBB, Wiener Linien
       und ASFINAG erlauben keinen Zugriff aus dem Browser — ASFINAG blockt automatisierte
@@ -1447,6 +1546,9 @@ function verbindungenHTML() {
 
 /** Laufende Streckensperren, eingeklappt als Nachschlagewerk. */
 function sperrenHTML() {
+  // Wer die Bahn abschaltet, will auch die Sperren nicht sehen. Vorher
+  // blieben sie stehen, obwohl sonst alles Bahnbezogene verschwunden war.
+  if (settings.verkehr?.bahn === false) return ''
   const alt = (state.data?.info || []).filter(t => t.kind === 'oebb' && t.neu === false)
   if (!alt.length) return ''
   return `<details class="sperren">
@@ -1458,17 +1560,14 @@ function sperrenHTML() {
   </details>`
 }
 
-function infoBlockHTML() {
+function infoBlockHTML({ arten = null, titel = '📍 In deiner Umgebung', mitSperren = false } = {}) {
   if (!settings.info) return ''
-  const v = settings.verkehr || {}
-  const entries = infoEntries()
-  const sperren = sperrenHTML()
-  // Auch ohne akute Meldung soll die Sperren-Rubrik erreichbar bleiben —
-  // sonst verschwindet sie genau dann, wenn gerade nichts los ist.
-  if (!entries.length && !sperren) return v.verbindungen === false ? '' : verbindungenHTML()
+  const entries = infoEntries(arten ? new Set(arten) : null)
+  const sperren = mitSperren ? sperrenHTML() : ''
+  if (!entries.length && !sperren) return ''
 
-  return (v.verbindungen === false ? '' : verbindungenHTML()) + `<section class="infoblock">
-    <h2 class="info-head">📍 In deiner Umgebung</h2>
+  return `<section class="infoblock">
+    <h2 class="info-head">${titel}</h2>
     ${entries.map(e => {
       const inner = `<span class="info-icon">${e.icon}</span>
         <span class="info-text">${e.label ? `<b>${esc(e.label)}</b> ` : ''}${esc(e.text)}</span>`
@@ -1817,6 +1916,7 @@ const GENRE_LISTE = [
   { id: 'klassik', label: 'Klassik & Oper', icon: '🎻' },
   { id: 'konzert', label: 'Konzert', icon: '🎵' },
   { id: 'familie', label: 'Familie & Kinder', icon: '👨‍👩‍👧' },
+  { id: 'kino', label: 'Kino', icon: '🎬' },
 ]
 
 /** Termin-Sparten dieses Profils. Jedes Profil entscheidet für sich. */
@@ -1833,8 +1933,10 @@ function waehlbareTabs() {
   return [
     ...(state.data?.categories || []).filter(c => !c.nurFuerDich).map(c => ({
       id: c.id, icon: c.icon,
-      label: c.id === 'region' ? regionLabel() : c.label,
+      label: c.id === 'region' ? 'Deine Region' : c.label,
     })),
+    { id: 'oeffi', ...CLIENT_TABS.oeffi },
+    { id: 'verkehr', ...CLIENT_TABS.verkehr },
     { id: 'checkit', ...CLIENT_TABS.checkit },
     { id: 'termine', ...CLIENT_TABS.termine },
     { id: 'gemerkt', ...CLIENT_TABS.gemerkt },
@@ -1851,6 +1953,19 @@ function renderTabList() {
     </button>`).join('')
 }
 
+/** Hauptort und Ziele in den Einstellungen anzeigen. */
+function orteZeichnen() {
+  const o = $('#opt-heimatort'); if (o) o.value = heimatOrt()
+  const z = $('#opt-ziele'); if (z) z.value = pendelZiele().join(', ')
+  const info = $('#orte-info')
+  if (!info) return
+  const { von, ziele, heimwaerts } = richtung()
+  info.textContent = heimwaerts
+    ? `Standort ${state.weatherPlace || '—'} erkannt — die Verbindungen zeigen gerade von `
+      + `${ortKurz(von)} zurück nach ${ziele.map(ortKurz).join(', ')}.`
+    : `Die Verbindungen starten in ${ortKurz(von)} Richtung ${ziele.map(ortKurz).join(', ')}.`
+}
+
 function renderRegionList() {
   const regionen = state.data?.regions || []
   const erkannt = aktuelleRegion()
@@ -1862,6 +1977,21 @@ function renderRegionList() {
   $('#region-info').textContent = ort
     ? `Standort erkannt: ${ort} → Region ${regionLabel()}. Die Auswahl oben greift nur, wenn kein Standort verfügbar ist.`
     : 'Kein Standort freigegeben — es gilt die oben gewählte Heimatregion. Der Verkehrsblock in „Für dich“ fragt den Standort ab, sobald du dort auf ↻ tippst.'
+}
+
+function orteSpeichern() {
+  const ort = $('#opt-heimatort')?.value.trim()
+  const ziele = String($('#opt-ziele')?.value || '').split(',')
+    .map(z => z.trim()).filter(Boolean).slice(0, 4)
+  settings.heimatOrt = ort || 'Korneuburg'
+  // Leere Eingabe heißt "zurück zur Vorgabe", nicht "keine Ziele" — sonst
+  // stünde der Reiter ohne jede Verbindung da.
+  settings.pendelZiele = ziele.length ? ziele : ZIELE_VORGABE
+  save(LS.settings, settings)
+  orteZeichnen()
+  renderTabList()
+  render()
+  setStatus(`Hauptort: ${settings.heimatOrt}`)
 }
 
 function renderProfiles() {
@@ -1882,6 +2012,7 @@ function openSheet() {
   $('#opt-v-bahn').checked = v.bahn !== false
   $('#opt-v-strasse').checked = v.strasse !== false
   $('#opt-v-wetter').checked = v.wetter !== false
+  orteZeichnen()
   const gemerktGesamt = profiles.reduce((n, p) => {
     try { return n + Object.keys(JSON.parse(localStorage.getItem(`faktum.${p.id}.saved.v1`) || '{}')).length }
     catch { return n }
@@ -2279,6 +2410,10 @@ const bindVerkehr = (sel, key) => $(sel)?.addEventListener('change', e => {
   save(LS.settings, settings)
   render()
 })
+$('#btn-save-orte')?.addEventListener('click', orteSpeichern)
+$('#opt-ziele')?.addEventListener('keydown', e => { if (e.key === 'Enter') orteSpeichern() })
+$('#opt-heimatort')?.addEventListener('keydown', e => { if (e.key === 'Enter') orteSpeichern() })
+
 bindVerkehr('#opt-v-verbindungen', 'verbindungen')
 bindVerkehr('#opt-v-bahn', 'bahn')
 bindVerkehr('#opt-v-strasse', 'strasse')
@@ -2418,6 +2553,7 @@ $('#setup-fertig').addEventListener('click', () => {
   const neu = {
     ...std,
     heimatRegion: setupAuswahl.heimatRegion,
+    heimatOrt: $('#setup-heimatort')?.value.trim() || std.heimatOrt,
     tabs: [...setupAuswahl.tabs],
     eventGenres: [...setupAuswahl.genres],
     verkehr: Object.fromEntries(VERKEHR_OPTIONEN.map(v => [v.id, setupAuswahl.verkehr.has(v.id)])),

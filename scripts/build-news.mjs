@@ -19,6 +19,7 @@ import {
 import { translateItems, loadCache, saveCache, LANG_NAMES } from './translate.mjs'
 import { summarizeMerged } from './summarize.mjs'
 import { buildFragenkatalog } from './fragenkatalog.mjs'
+import { buildKino } from './kino.mjs'
 import { claudeVerfügbar } from './translate.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -274,20 +275,39 @@ function factLabel(score) {
 
 // ------------------------------------------------------------------- Fetching
 
+/**
+ * Feed holen, mit zwei Wiederholversuchen.
+ *
+ * Der Grund steht im Protokoll vom 2. Oktober 2026: In einem einzigen Lauf
+ * antwortete meinbezirk.at dreimal mit "fetch failed" — kein HTTP-Fehler,
+ * ein Verbindungsabbruch. Dieser eine Lauf hat die Regionalmeldungen von
+ * 69 auf 14 gedrückt und alle Termine gelöscht, weil sein Ergebnis danach
+ * auf dem Server lag. Ein Netzfehler ist keine tote Quelle; ein HTTP-Fehler
+ * dagegen kommt beim zweiten Versuch genauso wieder, deshalb wird nur bei
+ * Verbindungsfehlern nachgefasst.
+ */
 async function fetchFeed(src) {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS)
-  try {
-    const res = await fetch(src.url, {
-      signal: ctrl.signal,
-      redirect: 'follow',
-      headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' },
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return await res.text()
-  } finally {
-    clearTimeout(timer)
+  let letzter
+  for (let versuch = 1; versuch <= 3; versuch++) {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS)
+    try {
+      const res = await fetch(src.url, {
+        signal: ctrl.signal,
+        redirect: 'follow',
+        headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' },
+      })
+      if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { endgueltig: true })
+      return await res.text()
+    } catch (err) {
+      letzter = err
+      if (err.endgueltig || versuch === 3) break
+      await new Promise(r => setTimeout(r, versuch * 1500))
+    } finally {
+      clearTimeout(timer)
+    }
   }
+  throw letzter
 }
 
 /** Link-Erreichbarkeit stichprobenartig prüfen (HEAD, kurzer Timeout). */
@@ -714,20 +734,48 @@ function parseGermanDate(s, now) {
  * gleichmäßigem HTML dar: eine <ul class="content-card-date-location"> mit
  * Datum, Ort und Gemeinde, gefolgt von der Überschrift.
  */
+/** HTML-Seite holen, mit Wiederholversuchen wie beim Feed. */
+async function holeSeite(url, versuche = 3) {
+  let letzter
+  for (let versuch = 1; versuch <= versuche; versuch++) {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 20000)
+    try {
+      const res = await fetch(url, { signal: ctrl.signal, headers: { 'user-agent': UA } })
+      if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { endgueltig: true })
+      return await res.text()
+    } catch (err) {
+      letzter = err
+      if (err.endgueltig || versuch === versuche) break
+      await new Promise(r => setTimeout(r, versuch * 2000))
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+  throw letzter
+}
+
+/**
+ * Termine des letzten Laufs, soweit sie noch in der Zukunft liegen.
+ * Rettungsnetz: Fällt die Quelle einmal aus, soll der Reiter nicht leer
+ * sein — ein Termin von vorhin ist besser als gar keiner.
+ */
+async function termineAusBestand(now) {
+  try {
+    const d = JSON.parse(await readFile(OUT, 'utf8'))
+    return (d.events || []).filter(e => e.ts > now - 12 * 3600_000)
+  } catch {
+    return []
+  }
+}
+
 async function buildEvents(now) {
-  const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15'
-    + ' (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
   const cutoff = now + EVENT_DAYS_AHEAD * 86400_000
   const alle = []
 
   for (const seite of EVENT_PAGES) {
     try {
-      const ctrl = new AbortController()
-      const timer = setTimeout(() => ctrl.abort(), 20000)
-      const res = await fetch(seite.url, { signal: ctrl.signal, headers: { 'user-agent': UA } })
-      clearTimeout(timer)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const html = await res.text()
+      const html = await holeSeite(seite.url)
 
       const re = /<ul class="content-card-date-location">([\s\S]*?)<\/ul>([\s\S]{0,900}?)<h3[^>]*class="[^"]*content-card-headline[^"]*"[^>]*>([\s\S]*?)<\/h3>/gi
       let n = 0
@@ -771,12 +819,38 @@ async function buildEvents(now) {
     }
   }
 
+  // Kino kommt aus eigener Quelle und wird als Sparte "kino" eingereiht.
+  for (const f of await buildKino(now, EVENT_DAYS_AHEAD)) {
+    alle.push({
+      id: hashId(`kino|${f.title}|${f.ts}`),
+      title: f.title,
+      genres: ['kino'],
+      fits: true,
+      when: f.when,
+      ts: f.ts,
+      venue: f.venue,
+      place: f.genre ? `Wien · ${f.genre}` : 'Wien',
+      region: 'Wien',
+      near: 'wien',
+      link: f.link,
+    })
+  }
+
   // Dubletten über mehrere Seiten (Korneuburg und Stockerau überschneiden sich)
   const gesehen = new Set()
-  return alle
+  const fertig = alle
     .filter(e => { const k = `${e.title}|${e.ts}`; if (gesehen.has(k)) return false; gesehen.add(k); return true })
     .sort((a, b) => a.ts - b.ts)
-    .slice(0, 80)
+    .slice(0, 120)
+
+  if (!fertig.length) {
+    const bestand = await termineAusBestand(now)
+    if (bestand.length) {
+      console.warn(`  Keine Quelle erreichbar — ${bestand.length} Termine aus dem letzten Lauf übernommen`)
+      return bestand
+    }
+  }
+  return fertig
 }
 
 // -------------------------------------------------------------- Themenkontext

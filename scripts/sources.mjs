@@ -276,6 +276,12 @@ export const EVENT_DAYS_AHEAD = 14
 // Interessante Sparten. Termine, die nichts davon treffen, werden nicht
 // verworfen — sie stehen nur hinter einem Schalter in den Einstellungen.
 export const EVENT_GENRES = [
+  // Kino: Spielzeiten kommen aus einer eigenen Quelle (siehe kino.mjs), die
+  // Sparte gilt aber auch für Kinotermine, die in den Regionallisten stehen
+  // — Filmclubs, Vorpremieren, Open-Air-Kino.
+  { id: 'kino', label: 'Kino', icon: '🎬',
+    terms: ['kino', 'film', 'leinwand', 'cineplexx', 'filmclub', 'vorpremiere',
+      'filmvorführung', 'filmabend', 'premiere'] },
   { id: 'theater', label: 'Theater', icon: '🎭',
     terms: ['theater', 'schauspiel', 'bühne', 'komödie', 'tragödie', 'inszenierung',
       'premiere', 'kabarett', 'lesung', 'literatur'] },

@@ -58,6 +58,12 @@
       </section>
 
       <section class="card-lite">
+        <h3>Von welchem Ort aus bist du unterwegs?</h3>
+        <p class="muted small">Startpunkt für Bahn- und Autoverbindungen.</p>
+        <input type="text" id="setup-heimatort" placeholder="Korneuburg" autocomplete="off" spellcheck="false">
+      </section>
+
+      <section class="card-lite">
         <h3>Wo bist du zu Hause?</h3>
         <div id="setup-region" class="genre-list"></div>
         <p class="muted small" style="margin-top:10px">
@@ -176,7 +182,23 @@
       </section>
 
       <section class="card-lite">
-        <h3>Verkehr in „Für dich“</h3>
+        <h3>Dein Hauptort</h3>
+        <p class="muted small">Von hier starten alle Verbindungen — Bahn und Auto.
+          Bist du gerade an einem deiner Ziele, dreht sich die Richtung von selbst um.</p>
+        <input type="text" id="opt-heimatort" placeholder="Korneuburg" autocomplete="off" spellcheck="false">
+        <p class="muted small" style="margin-top:12px">Deine häufigsten Ziele, mit Komma getrennt:</p>
+        <input type="text" id="opt-ziele" placeholder="Wien Mitte-Landstraße, Wien Praterstern"
+               autocomplete="off" spellcheck="false">
+        <div class="row" style="margin-top:10px">
+          <button class="btn btn-ghost" id="btn-save-orte">Übernehmen</button>
+        </div>
+        <p class="muted small" id="orte-info"></p>
+      </section>
+
+      <section class="card-lite">
+        <h3>Was in „Verkehr“ und „Öffi“ steht</h3>
+        <p class="muted small">Die beiden Reiter lassen sich oben ab- und zuschalten.
+          Hier entscheidest du, was darin erscheint.</p>
         <label class="switch">
           <input type="checkbox" id="opt-v-verbindungen" checked>
           <span>Verbindungen <small class="muted">Fahrplanauskunft und Verkehrslage</small></span>
@@ -191,7 +213,7 @@
         </label>
         <label class="switch">
           <input type="checkbox" id="opt-v-wetter" checked>
-          <span>Wetter <small class="muted">Aktuell und die nächsten drei Stunden</small></span>
+          <span>Wetter in „Für dich“ <small class="muted">Aktuell und die nächsten drei Stunden</small></span>
         </label>
       </section>
 
